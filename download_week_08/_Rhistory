@@ -1,0 +1,109 @@
+?prop.test
+n1 <- 608
+s1 <- 392
+f1 <- n1-s1 # number of failures
+# Wichita
+n1 <- 527
+s1 <- 413
+f1 <- n1-s1 # number of failures
+# Matrix with successes in first column, failures in second column
+# either of these would work
+m <- matrix( c(s1,s2,f1,f2), nrow = 2)
+# Wichita
+n2 <- 527
+s2 <- 413
+f2 <- n2-s2 # number of failures
+# Matrix with successes in first column, failures in second column
+# either of these would work
+m <- matrix( c(s1,s2,f1,f2), nrow = 2)
+m <- rbind( c(s1,f1), c(s2,f2) )
+# make a 95% CI for the difference of proportions as on page 509
+# if you do stats::prop.test() that just insures that we are using the
+# default command in the package stats, this is only necessary if you load
+# another package that implements prop.test (such as MOSAIC), otherwise, you can
+# use prop.test().  Typing stats::prop.test() doesn't hurt anything.
+prop.test(m,conf.level=.95)$conf.int
+m
+n1 <- 608
+s1 <- 392
+f1 <- n1-s1 # number of failures
+# Wichita
+n2 <- 527
+s2 <- 413
+f2 <- n2-s2 # number of failures
+# Matrix with successes in first column, failures in second column
+# either of these would work
+m <- matrix( c(s1,s2,f1,f2), nrow = 2)
+m
+m <- rbind( c(s1,f1), c(s2,f2) )
+m
+prop.test(m,conf.level=.95)$conf.int
+prop.test(s1,n1,conf.level=.95)$conf.int
+?chisq.test
+mtranspose <- t(m)  # transpose the matrix
+chisq.test(m)
+chisq.test(mtranspose)
+haveCP <- rep("HAVE CP", 9+14)
+test <- c(rep("Negative", 14), rep("Positive", 9))
+haveCP <- data.frame(CP=haveCP, Test=test)
+noCP <- rep("NO CP", 27+56)
+test <- c(rep("Negative", 56), rep("Positive", 27))
+noCP <- data.frame(CP=noCP, Test=test)
+dat <- rbind(haveCP,noCP)
+str(dat)
+table(dat$Test,dat$CP)
+# or
+table(dat$CP,dat$Test)
+dat[dat$Test=="Positive"]
+str(dat)
+dat$Test
+subset(dat, Test=="Positive")
+dat[dat$Test=="Positive",] # you just need the comma here to say all columns
+subset(dat, Test=="Positive")
+M1 <- matrix(c(14, 38, 51, 11), nrow = 2)
+M1
+odds.ratio(M1)
+M2 <- matrix(c(18515, 18496, 1427, 1438), nrow = 2)
+rownames(M2) <- c("Placebo", "Aspirin")
+colnames(M2) <- c("No", "Yes")
+M2
+odds.ratio(M2)
+require(adb)
+require(ADB)
+require(abd)
+M1 <- matrix(c(14, 38, 51, 11), nrow = 2)
+M1
+odds.ratio(M1)
+M2 <- matrix(c(18515, 18496, 1427, 1438), nrow = 2)
+rownames(M2) <- c("Placebo", "Aspirin")
+colnames(M2) <- c("No", "Yes")
+M2
+odds.ratio(M2)
+?odds.ratio
+detach(abd)
+require(abd)
+?odds.ratio
+install.packages('abd')
+install.packages("abd")
+require(abd)
+?odds.ratio
+require(mosaic)
+?oddsRatio
+M1 <- matrix(c(14, 38, 51, 11), nrow = 2)
+M1
+oddsRatio(M1)
+counts=matrix(c(9,14,27,56),nrow=2)
+rownames(counts) <- c("HAVE CP","NO CP")
+colnames(counts) <- c("Positive","Negative")
+results <- oddsRatio(counts, verbose=TRUE)
+str(results)
+attr(results)
+attr(results,"OR")
+require(mosaic)
+detach("package:abd", unload=TRUE)
+detach("package:car", unload=TRUE)
+detach("package:ggplot2", unload=TRUE)
+detach("package:mosaic", unload=TRUE)
+detach("package:nlme", unload=TRUE)
+require(mosaic)
+detach(mosaic)

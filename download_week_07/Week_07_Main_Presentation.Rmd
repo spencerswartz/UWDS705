@@ -1,0 +1,1391 @@
+---
+title: "Multiple Comparisons"
+output:
+  beamer_presentation:
+    colortheme: default
+    fonttheme: default
+    keep_tex: yes
+    template: ../../beamer169experimental.tex
+fontsize: '12pt'
+---
+
+## Omnibus test
+
+\Large
+Omnibus or global test: is explained variance statistically larger than unexplained variance?
+
+- What does it tell us?
+    - \Large population Means/Medians are different
+- How?
+    - \Large Don't know.
+    
+<div class='notes'>
+No audio.
+</div>
+    
+## Getting the specifics
+
+\Large
+
+- Multiple comparisons 
+    - \Large which population means are different?
+    - more generally which medians, means, trimmed means are different?
+    
+- Omnibus test is usually not required first
+- Possible for omnibus test to not find anything, while multiple comparisons procedure finds significant results!
+
+<div class='notes'>
+No audio.
+</div>
+
+## A five group example
+
+```{r echo=TRUE}
+set.seed(554)
+x <- rnorm(100); group <- factor( rep( LETTERS[1:5], each=20 ) )
+tapply(x, group, mean)
+```
+
+<div class='notes'>
+- All five samples are from the same standard normal with population mean 0
+
+- The sample means will vary some, as we see here, but since the population means are the same, we shouldn't detect any differences between population means
+
+- of course with real data we wouldn't have the luxury of knowing the population means, but this example will help us sort out some of the issues with multiple comparisons
+</div>
+
+
+
+## A five group example, pg 2
+
+```{r eval=FALSE}
+boxplot(x~group)
+```
+
+```{r echo=FALSE, fig.height=2.5, fig.width=5.5, fig.align='center'}
+par(mar=c(2,2,.1,0)) # adjust margins
+boxplot(x~group)
+```
+
+<div class='notes'>
+- all 5 samples are from the same population with mean 0, we shouldn't detect differences
+- visually the samples look similar, but there are some differences, like between D and E
+- are these differences large enough that we doubt the population means are the same?
+</div>
+
+## Test each pair?
+
+\small
+
+```{r eval=FALSE}
+t.test( x[ group=='A' ], x[ group=='B' ])
+```
+
+
+```{r, echo=FALSE,warning=FALSE}
+# this is just tricks to trim the output to fit on one slide
+require(utils)
+tmp <- noquote( 
+  capture.output( 
+    t.test( x[ group=='A' ], x[ group=='B' ])
+    )
+  )
+write.table(tmp[2:8],quote=F,row.names=F,col.names=F)
+```
+
+<div class='notes'>
+- can test pairs with two-sample t-tests, either pooled or unpooled as appropriate
+</div>
+
+## How many pairs?
+
+\Large
+
+$k$ groups | $m = \frac{k(k-1)}{2}$ pairs
+:---------:|:-----------------------------:
+3          | 3 
+4          | 6
+5          | 10
+6          | 15
+7          | 21
+$\vdots$   | $\vdots$
+
+<div class='notes'>
+- the number of pairs grows quadratically with the number of groups
+- with all those indiviudal tests the chance of errors due to randomness increases
+</div>
+
+## Examine All Pairs
+
+```{r echo = TRUE}
+pairwise.t.test( x, group, p.adjust.method='none', 
+                 conf.level=.95)$p.value
+```
+
+\large
+
+- $\mu_A \neq \mu_E \mbox{  and  } \mu_D \neq \mu_E \Rightarrow$ 2 Type I errors
+- Multiple tests $\Rightarrow$ increased risk of errors
+
+<div class='notes'>
+- VIDEO SLIDE
+- these are all the p-values for two-sided pooled t-tests comparing the population means
+- each test was performed at the 5% significance level
+- notice that there *TWO* p-values smaller than 0.05, highlight or circle these
+</div>
+
+
+
+## Error Rates
+
+\large
+
+- Individual: $\alpha_I$
+    - \large prob. Type I error for single comparison 
+- Experimentwise Error Rate: $\alpha_E$
+    - \large also called Familywise Error Rate (FWER or $\mbox{FW}_\alpha$ )
+    - \large prob. at least one Type I error for $m$ comparisons
+    - strongly controlling FWER can lower the power of a test
+    
+<div class='notes'>
+No audio.
+</div>
+    
+## Goal: control FWER ($\alpha_E$)
+
+\Large 
+
+\hfill \textcolor{red}{No procedure works well in all scenarios} \hspace*{\fill}
+
+- Considerations
+    - \large Normal distributions?
+    - Equal variances?
+    - Same shaped distributions?
+    - All pairs or a few contrasts or pairs?
+    - Confidence intervals needed or just hypothesis tests?
+
+<div class = 'notes'>
+No audio.
+</div>
+
+## A side note
+
+\large
+
+- Genomics and other fields make 100's or 1000's comparisions
+- $\mbox{False Discovery Rate} \approx \frac{\# \mbox{false positives}}{\# \mbox{positives}}$
+
+\hfill \includegraphics[height=1.8in]{./figures/balance2_errors.png} \hspace*{\fill}
+
+<div class='notes'>
+- problem with controlling the FWER is that we are trying to avoid making any Type I errors at all. 
+- No false positives means a lot of false negatives.
+- Not good for exploratory data analysis with many comparisons.
+- Controlling the False Discovery Rate offers a trade off ... allow a certain proportion of false positives among all the positives to be able to detect more significant differences
+</div>
+
+
+## Going beyond pairs
+
+\large
+
+- mean of groups 1 and 2 different than mean of groups 3 and 4?
+- textbook
+    - Ott Section 9.2
+    - don't worry about orthogonal contrasts
+    - Example 9.3 
+    - F-test is same as t-test here, because $F = t^2$
+- onewayComp() code
+    - handles arbitrary linear contrasts
+    - uses Welch type corrections for unequal variances
+- formulas for $t$-tests of contrasts at end of slides
+
+<div class='notes'>
+- contrasts are generally part of designed studies, important for statisticians, but perhaps not as important for data scientists
+- it is still good to be aware of them, and they may be useful occasionally.
+- there isn't much about the details of linear contrasts in these notes, but there is plenty in the book
+- an F statistic with 1 degree of freedom in the numerator is equivalent to a t statistic
+- the R code is a little more general than what is mentioned in the book since it can handle unequal variances
+</div>
+
+
+## Bonferroni Correction
+
+\Large
+
+- Bonferroni Inequality: $\alpha_E \leq m \alpha_I$
+- To make $\alpha_E$ small, reduce $\alpha_I$
+- To get $\alpha_E \leq \alpha$, set $\alpha_I = \alpha  / m$.
+
+<div class='notes'>
+- idea: reduce the individual error rate to lower the family wise error rate
+- simply divide desired error rate by number of comparisons to get the individual comparison rate
+- completely general idea and can be used with any tests
+- any number of comparisons is OK, but works best if only a small number of comparisons
+</div>
+
+
+
+
+## Bonferroni Example - compare $P$ to reduced $\alpha$
+
+5 groups, 10 comparisons, $\alpha_I = .05/10 = .005$
+
+```{r echo = TRUE}
+pairwise.t.test( x, group, p.adjust.method='none', 
+                 conf.level=.95)$p.value
+```
+
+For $\alpha_E = .05$ we reject each individual HT if $p < .005$
+
+<div class='notes'>
+- compare each p-value to the reduced individual level of significance
+- No significant differences among the means
+- This is exactly right since we know all the samples come from a single population
+</div>
+
+## Bonferroni Example - adjust $P$ and compare to $\alpha_E$
+
+5 groups, 10 comparisons, $p_{\mbox{adj}} = \min(10p, 1)$
+
+```{r echo = TRUE}
+pairwise.t.test( x, group, p.adjust.method='bonferroni', 
+                 conf.level=.95)$p.value
+```
+
+For $\alpha_E = .05$ we reject each individual HT if $p_{\mbox{adj}} = 10 p < .05$
+
+<div class='notes'>
+- instead of dividing alpha by the number of comparisons
+- we can multiply p by the number of comparisons, capping the result at 1
+- these are called adjusted p-values
+- many software packages, including R,  produce adjust p-values
+</div>
+
+## Bonferroni Pros and Cons
+
+\Large
+
+- Pros
+    - \large any number of simultaneous hypothesis tests or confidence intervals
+    - \large any procedures allowed
+
+- Cons 
+    - \large overly conservative / reduced power - too many Type II errors
+    - avoid, if possible, unless the number of comparisons is small
+
+<div class='notes'>
+No audio
+</div>
+
+## Procedures for CI's
+
+\includegraphics[width=5in]{./figures/tableCI1.pdf}
+
+<div class='notes'>
+No audio
+</div>
+
+## CI's for All Pairs and Normal
+
+\includegraphics[width=5in]{./figures/tableCI2.pdf}
+
+<div class='notes'>
+- If you've got samples from normal distributions and you need confidence interval estimates of the differences between the population means, then use one of these procedures
+- Don't get confused about the Tukey Test vs. the Tukey-Kramer test.  The Tukey-Kramer test is the same as the Tukey test when the sample sizes are all the same 
+- when the sample sizes are the same we say the samples are balanced
+</div>
+
+## Tukey-Kramer
+
+\Large
+$$\overline{x}_i - \overline{x}_j \pm q_{\mbox{crit}} s_p \sqrt{ \frac{\frac{1}{n_i} + \frac{1}{n_j}}{2}}$$
+
+\large
+$q_{crit}$ is the upper-tail critical value of the Studentized range distribution (`qtukey()` in R).
+
+$s_p = \sqrt{MSE}, df = N - k$
+
+exact control of FWER if samples balanced and population variances equal.
+
+<div class='notes'>
+no audio
+</div>
+
+## Games-Howell
+
+\Large
+$$\overline{x}_i - \overline{x}_j \pm q_{\mbox{crit}} \sqrt{ \frac{\frac{s_i^2}{n_i} + \frac{s_j^2}{n_j}}{2} }$$
+
+\large
+$q_{crit}$ is the upper-tail critical value of the Studentized range distribution (`qtukey()` in R).
+
+"Welch" corrected degrees of freedom: $v_i = \frac{s_i^2}{n_i}, v_j = \frac{s_j^2}{n_j}, df = \frac{ (v_i + v_j)^2 }{\frac{v_i^2}{n_i-1} + \frac{v_j^2}{n_j-1}}$
+
+approximate control of FWER
+
+<div class='notes'>
+no audio
+</div>
+
+## Tukey-Kramer vs. Games-Howell
+
+\Large
+
+- Tukey-Kramer
+    - \large approximately balanced (equal) sample sizes
+    - and approximately equal variances
+- Games-Howell
+    - \large unbalanced sample sizes
+    - and/or unequal variances 
+    - don't transform, use this instead
+
+<div class='notes'>
+- The classical approach to dealing with unequal variances is to seek a nonlinear transformation of the data that would make the variances similar and then use an equal variances test.
+- Hard to interpret the results when the data is transformed.
+- Much simpler to use Games-Howell which corrects for unequal variances
+</div>
+
+## Reading Example 
+
+\Large
+
+- data from Ott, problem 7.22, page 393
+- compare improvement in reading score for 4 teaching methods:
+    - ( L) Lecture only
+    - (LR) Lecture and Remedial textbook
+    - (LC) Lecture and Computer assistance
+    - ( C) Computer Assistance only
+       
+<div class='notes'>
+no audio
+</div>
+
+## Reading Example (2)
+       
+```{r echo=FALSE,fig.align='center',fig.height=2.25,fig.width=4.5}
+scoreInc <- c(c(7,2,2,6,16,11,9,0,4,2), 
+              c(5,2,3,11,16,11,3),
+              c(9,12,2,17,12,20,20,31,21), 
+              c(17,19,26,1,47,27,-8,10,20) )
+group <- factor(c( rep("L",10),
+            rep("LR",7),
+            rep("LC",9),
+            rep("C",9)),levels = c("L","LR","LC","C"))
+d <- data.frame(scoreInc,group)
+par(mar=c(4,4,0,0))
+#boxplot(scoreInc~group,data=d,at=c(4,1,3,2))
+boxplot(scoreInc~group,data=d)
+title(xlab="Teaching Method",ylab="Score Change")
+```
+\Large Note: variances are different!
+
+<div class='notes'>
+- we want to estimate the mean differences between teaching methods for enhancing reading
+so we need confidence intervals for mean differences
+</div>
+
+## Reading Example (3)
+
+Ignoring the equal variances for a moment ...
+
+```{r echo=TRUE, eval=TRUE}
+TukeyHSD(aov(scoreInc~group, data=d))$group
+```
+
+<div class='notes'>
+- clearly we have unequal variances so we should use a Games-Howell procedure
+- but just to show you how it is done, here is the Tukey-Kramer procedure looks in R
+- by the way, HSD stands for "Honest Significant Difference"
+</div>
+
+## Reading Example (4)
+
+Tukey-Kramer with onewayComp()
+
+```{r echo=TRUE}
+source('./onewayComp.R') # included in weekly download
+onewayComp(scoreInc~group, data=d, var.equal=T)$comp[,c(1,2,3,6)]
+```
+
+No significant differences (all the intervals contain 0)
+
+<div class='notes'>
+- The function onewayComp() is available in the DS705data package that you can install for this class.  Make sure to load the package before you can use it.  The function is also available with the weekly download.
+- If we run onewayComp() with var.equal set to TRUE the results are identical to those from the TukeyHSD.  TukeyHSD doesn't support unequal variances.
+</div>
+</div>
+
+## Reading Example (5)
+
+Unequal variances so use Games-Howell:
+```{r echo=TRUE}
+onewayComp(scoreInc~group, data=d, var.equal=F)$comp[,c(1,2,3,6)]
+```
+
+LC reading improvement is 0.7 to 19.5 greater than L reading improvement!
+
+<div class='notes'>
+no audio
+</div>
+
+## CI's for few pairs or contrasts
+
+\includegraphics[width=5in]{./figures/TableCI3.pdf}
+
+<div class='notes'>
+no audio
+</div>
+
+## Bonferroni Correction for CI's
+
+\Large 
+
+- 4 comparisons
+- want familywise error rate $\alpha_E = 0.05$
+- familywise confidence level $1-\alpha_E = 0.95$
+- individual comparison error rate $\alpha_I = 0.05/4 = 0.0125$
+- individual comparison confidence level $1-\alpha_I = 0.9875$
+
+<div class='notes'>
+no audio
+</div>
+
+## Morphine Tolerance Example
+
+\large
+
+- Record pain sensitivity after rats developed morphine tolerance
+- 5 treatment groups:  MS, MM, SS, SM, McM 
+- from David Howell's book: *Statistical Methods for Psychology* - Chapter 12 (included with download)
+- original study: www.eou.edu/psych/re/morphinetolerance.doc
+
+<div class='notes'>
+- The details of the experiment aren't important for the purpose of demonstrating our statistical procedures, but domain knowledge is always important for data scientist.
+- If you are are curious, the M's are for morphine and S's for Saline, so MS is morphine followed by Saline etc. 
+</div>
+
+## Morphine Tolerance Example (2)
+
+```{r echo=FALSE, fig.width=5, fig.height=2.5, fig.align='center'}
+pain <- c( 3, 5, 1, 8, 1, 1, 4, 9,
+        2,12,13, 6,10, 7,11,19,
+       14, 6,12, 4,19, 3, 9,21,
+       29,20,36,21,25,18,26,17,
+       24,26,40,32,20,33,27,30)
+treat <- factor( rep( c('MS','MM','SS','SM','McM'),
+                      each = 8), 
+                 levels = c('MS','MM','SS','SM','McM')  )
+morph <- data.frame(pain,treat)
+par(mar=c(3,2,0.5,0))
+boxplot(pain~treat,data=morph)
+```
+- \large Normality and equal variances seem OK
+
+<div class='notes'>
+no audio
+</div>
+
+## Morphine Tolerance Example (3)
+
+\Large
+
+- Particular comparisons of interest
+    - \large average of MS, MM, SS vs average of SM, McM
+    - MM vs McM
+    - MS vs SS
+    - MM vs SS
+- build a contrast matrix with weights (next slide)
+
+<div class='notes'>
+no audio
+</div>
+
+## Morphine Tolerance Example (4)
+
+\large
+
+- contrast matrix
+    - \large each contrast is a row
+    - weights in each row add to zero
+    - absolute value of weights in each row adds to 2 (standard contrasts)
+
+```{r}
+K = rbind('ave2 -ave3'=c(-1/3,-1/3,-1/3,1/2,1/2),
+          ' McM - MM' =c(   0,  -1,   0,  0,  1),
+          '  SS - MS' =c(  -1,   0,   1,  0,  0),
+          '  MM - SS' =c(   0,   1,  -1,  0,  0) )
+```
+    
+<div class='notes'>
+no audio
+</div>
+## Morphine Tolerance Example (5)
+
+- Approach 1: use glht() from package 'multcomp'.
+- Bonferroni with 4 comparisons, want familywise 0.95, so individual 0.9875.
+
+```{r, message=FALSE}
+require(multcomp) # install package if necessary
+# setup oneway ANOVA
+amod <- aov(pain ~ treat, data = morph)
+comp.glht <- glht( amod, linfct = mcp( treat = K) )
+```
+
+Output on next slide.
+
+<div class='notes'>
+- glht stands for general linear hypothesis test
+- it is found in the multcomp package which has many useful routines for multiple comparisons
+- it does not, at least easily, support unequal variances
+</div>
+
+## Morphine Tolerance Example (6)
+
+\small
+```{r, eval=FALSE} 
+confint( comp.glht )
+```
+
+```{r, echo=FALSE,warning=FALSE}
+# this is just tricks to trim the output to fit on one slide
+require(utils)
+tmp <- noquote( 
+  capture.output( 
+    confint( comp.glht )
+    )
+  )
+write.table(tmp[c(10:11,13:18)],quote=F,row.names=F,col.names=F)
+```
+
+- multcomp family of confidence intervals use a "Tukey" like procedure
+- requires approximately balanced and equal variances 
+
+<div class='notes'>
+The results are not identical to Tukey but they're quite close.  A slightly different probability distribution is used to get the critical values for the confidence intervals.
+</div>
+
+## Morphine Tolerance Example (7)
+
+Can do the Bonferroni correction manually:
+```{r, eval=FALSE} 
+confint( comp.glht, calpha=univariate_calpha(), level = 1-.05/4 )
+```
+
+```{r, echo=FALSE,warning=FALSE}
+# this is just tricks to trim the output to fit on one slide
+require(utils)
+tmp <- noquote( 
+  capture.output( 
+    confint( comp.glht, calpha=univariate_calpha(), level = 1-.05/4 )
+    )
+  )
+write.table(tmp[c(10:11,13:18)],quote=F,row.names=F,col.names=F)
+```
+
+<div class="notes">
+- confint doesn't readily support the bonferroni correction, but it's easy to tweak the confidence level to manually incorporate the correction.
+- we will interpret these intervals  a couple of slides from now
+- the multcomp package has some helpful visualization tools as we will see on the next slide
+</div>
+
+## Morphine Tolerance Example (8)
+```{r eval = FALSE} 
+plot(confint( comp.glht, 
+      calpha=univariate_calpha(), level= 1-.05/4 ))
+```
+
+
+```{r echo=FALSE, fig.width=4,fig.height=2,fig.align='center'} 
+par(mar=c(2,5.5,0,0)); 
+plot(confint( comp.glht, calpha=univariate_calpha(), level= 1-.05/4 ))
+```
+
+<div class='notes'>
+
+- If a CI for a difference contains 0, this suggests there is no significant difference.  
+- We can see that the average population mean for the last two treatments is larger than the average population mean for the first three treatments.
+- similarly the pain sensitivity is higher for the McM treatment than for the MM treatment.
+</div>
+
+## Morphine Tolerance Example (9)
+
+\small
+```{r}
+onewayComp( pain~treat, data = morph, con=K,
+            adjust = 'bonferroni')$comp[,c(1:3,4,6)]
+```
+
+<div class="notes">
+- onewayComp with bonferroni gives the same results as Bonferroni corrected procedure from multcomp
+- the multcomp package will handle a lot more than one way designs that we are studying this week, but it doesn't handle unequal variances ... for that we'll use the onewayComp function 
+- in addition to incorporating unequal variances, it also can give bootstrap estimated confidence intervals and p-values based on Studentized test statistics like you studied in Week 2.
+</div>
+
+## Morphine Tolerance Example (10)
+- \Large With 95% confidence
+    - \large Average population mean for SM and McM is 13.4 to 23.0 higher than average population mean of MS, MM, and SS 
+    - population mean for McM is 11.6 to 26.4 larger than population mean for MM
+
+<div class='notes'>
+no audio
+</div>
+
+## CI's for Non-normal Distributions
+
+\includegraphics[width=5in]{./figures/TableCI4.pdf}
+
+## Bootstrap with onewayComp
+If distributions deviate significantly from normal, then set nboot > 0.  
+```{r}
+onewayComp( pain~treat, data = morph, con=K, nboot=10000,
+            adjust = 'bonferroni')$comp[,c(1:3,4,6)]
+```
+CI's based on Studentized estimates.  var.equal = TRUE by default.
+
+<div class="notes">
+- bootstrapping wasn't necessary here since we had approximately normal and equal variances,
+- but the onewayComp() function can be used to bootstrap estimated CI's for any pairs of means or other contrasts
+- the intervals produced are based on resampling to estimate the $t$ distribution for each contrast.
+- notice that the results are almost identical to the analytical results (set nboot=0).  
+</div>
+
+## Bootstrap using boot package
+
+\columnsbegin
+\column{.5\textwidth}
+
+\Large CI's for contrasts with medians, trimmed means, and means.
+
+\column{.5\textwidth}
+
+\includegraphics[width=.75\textwidth]{./figures/free_stop_sign.png}
+
+\Large Watch presentation about 'boot' package.
+
+\columnsend
+
+<div class='notes'>
+- the boot package can be used to give bootstrap estimates for any statistics of interest
+- you can estimate the  difference of the trimmed means or difference of medians, etc. 
+- there is a bit of a learning curve for using the the boot package, so if you haven't already done
+so, you should go through the separate presentation.
+</div>
+
+## Contact Lenses Example 
+
+See Problem 8.27 in Ott (page 442).
+```{r echo=FALSE,fig.align='center',fig.width=5,fig.height=2.5}
+contacts <- read.csv('./ex8-27.TXT')
+contacts <- contacts[,c(4,2)]
+par(mar=c(4,4,.5,.5))
+boxplot(Response~Supplier,data=contacts,horizontal=TRUE,main="",
+        xlab='Power deviation',ylab='Supplier')
+require(boot)
+```
+
+<div class='notes'>
+- The response variable, recorded for each of the suppliers, is the deviation between the actual power
+of a lens and the reported or labeled power of a lens.
+- because of outliers and potential skewness, we elect to estimate the differences in the population medians instead of the means.
+</div> 
+
+## Contact Lenses Example (2)
+
+- Estimate differences in population medians: C-A, C-B, and A-B
+```{r echo=TRUE}
+bootMedDiff <- function(d,i){
+  # d is a dataframe with 
+  #    quantitative variable in column 1
+  #    factor variable in column 2
+  meds <- tapply(d[i,1],d[,2],median)
+  c( meds[3]-meds[1], meds[3]-meds[2], meds[1]-meds[2])
+  }
+```
+
+<div class='notes'>
+- Here is our auxiliary function for computing the three differences of medians
+- we will pass this function to the boot() function and use the strata option so that the resampling occurs within each sample.
+</div>
+
+## Contact Lenses Example (3)
+
+```{r echo=FALSE}
+set.seed(1)
+```
+
+\small
+```{r echo=TRUE}
+boot.object <- boot(contacts, bootMedDiff, R = 5000, 
+                    strata = contacts$Supplier)
+# med_C - med_A 
+boot.ci(boot.object,conf = 1 - .05/3, type='bca', index=1)$bca[4:5]
+# med_C - med_B 
+boot.ci(boot.object,conf = 1 - .05/3, type='bca', index=2)$bca[4:5]
+# med_A - med_B (= 6)
+boot.ci(boot.object,conf = 1 - .05/3, type='bca', index=3)$bca[4:5]
+```
+
+<div class='notes'>
+Notice we've manually applied the Bonferroni correction to each of the individual confidence levels
+so that the overall confidence level is at least 95%
+</div>
+
+## Contact Lenses Example (4)
+
+\large 
+
+For power deviations, we are 95% confident that
+
+- \large Pop. median C is 6.7 to 22.1 larger than pop. median A
+- Pop. median C is 39.2 to 54.5 larger than pop. median B
+- Pop. median A is 27.8 to 37.8 larger than pop. median B
+
+\large
+\textit{Statistically significant, YES. Practically significant?}
+
+<div class='notes'>
+No audio.
+</div>
+
+## Procedures for HT's
+
+\includegraphics[width=5.5in]{./figures/TableHT1.pdf}
+
+<div class='notes'>
+ - If we don't need confidence intervals, then there are other procedures we can use for hypothesis tests that make them more powerful while maintaining a desired error rate.
+ - over the next few slides we'll examine sequential procedures, also called multi-step procedures, that increase the power of the familywise tests in clever ways
+ - after that, we'll look at which procedures are good choices in the different scenarios indicated on this slide.
+ - unfortunately, the sequential procedures can't be used to build confidence interval estimates.
+</div>
+
+## Sequential Procedures
+
+- \Large Adjust $\alpha$ and/or $p$ sequentially to account for
+    - \large number of tests remaining
+    - possibly the number of means between the pair being tested
+    
+- No confidence intervals.
+
+- Less conservative, more power!
+
+<div class='notes'>
+No audio.
+</div>
+
+## Bonferroni-Holm Stepdown Procedure
+
+\Large
+
+- Compare smallest $p$-value to $\alpha/m$
+- Second smallest $p$-value to $\alpha/(m-1)$, etc.
+- Stop at first non-rejection and do not reject any remaining hypotheses.
+- Strengths: Guaranteed FWER, arbitrary contrasts, more power than Bonferroni
+- Cons: still conservative
+
+<div class='notes'>
+- KEY - FWER is the probability of at least one Type I error
+- Suppose that we have 4 contrasts to test.
+- Test the most significant test at level $\alpha/4$
+- If you make a Type I error on the first test, then making more doesn't change anything
+- If you did not make a Type I error on the first test, then there are
+at most 3 remaining chances to make a Type I error so test now with $\alpha/3$, etc.
+</div>
+
+## Bonferroni-Holm Example
+
+\Large
+
+\columnsbegin
+\column{.4\textwidth}
+
+null hyp. | p-value 
+----------|--------
+H1        | 0.01
+H2        | 0.04
+H3        | 0.03
+H4        | 0.002
+
+\vspace{1in}
+
+\column{.6\textwidth}
+\vspace{2in}
+
+\columnsend
+
+<div class='notes'>
+- video slide with writing.
+- start with H4 since it has the smallest $P$-value
+- compare it to .05/4 = .0125 so we reject H_4
+- next is H1 since the p-value is second smallest
+- compare .01 to .05/3 = .0167 so we reject H_1
+- next is H3, compare .03 to .05/2 = .025, do not reject H3
+- STOP, once you do not reject a hypothesis, then don't reject any of the remaining ones either.
+- NOTE, if we had gone on to the next one, H2, we'd be comparing P=.04 to .05/1=.05 which would suggest we should reject H2, but in doing so we could no longer guarantee that we have FWER<=.05.
+</div>
+
+## Bonferroni-Holm Example - adjusted $p$-values
+
+\Large
+
+\columnsbegin
+\column{.4\textwidth}
+
+null hyp. | p-value 
+----------|--------
+H1        | 0.01
+H2        | 0.04
+H3        | 0.03
+H4        | 0.002
+
+\column{.6\textwidth}
+\vspace{1in}
+
+\columnsend
+
+\large
+```{r}
+p.adjust( p = c( .01, .04, .03, .002), method = 'holm')
+```
+
+<div class='notes'>
+\scriptsize
+
+- adjusting the P-values works almost the same way as adjusting alpha at each step, except that we adjust all the p-values, and then make conclusions.
+- there is a twist so that we don't mistakenly reject hypotheses that occur after our first non-rejection.
+- again we proceed with p-values in increasing order
+- at step 1 we look at H4 since it has the smallest P-value, instead of dividing alpha by 4, we multiply P by 4 to get .008
+- at step 2 we look at H1 and multiply the value by 3 to get .03.  now here is the twist, we also look at all the previously adjusted p values and take the max of all the adjusted p-values so far.  in this case we need the max of .008 and .03 which is .03.
+- at step 3 we look at H3 and multiply the P value by 2 to get .06.  The adjusted p-value is now the max of .008, .03, and .06, so .06.
+- last step, look at H2 and multiply the P value by 1 to get .04.  The adjusted p-value is the max of 
+.008, .03, .06 and .04, so .06. 
+- finally we can reject all the hypotheses that have adjusted p-values below our significance level alpha. So H4 and H1 are rejected, but not H2 or H3.
+</div>
+</div>
+
+## Benjamin-Hochberg 
+
+\Large
+
+- less conservative sequential method
+- controls False Discovery Rate (FDR) 
+- allows more false positives, but more powerful
+- use for Exploratory Analysis 
+
+<div class='notes'>
+no audio
+</div>
+
+## Ryan Procedure (REGWQ)
+
+\Large
+
+- Sequential, more powerful version of Tukey Test
+- Requires samples
+    - \large are from normal distributions with equal variances
+    - have (approx) equal sample sizes
+- guarantees FWER
+- Available in package 'mutoss', but difficult to use.
+- Use downloaded regwqComp().
+    - \large also in DS705data package.
+    
+<div class='notes'>
+no audio
+</div>
+
+
+## Multiple HT with Normal Distributions
+
+\includegraphics[width=5.5in]{./figures/TableHT2.pdf}
+
+<div class='notes'>
+no audio
+</div>
+
+## Which procedure?
+
+\large
+For independent samples from (approx.) normal distributions:
+
+- approx. balanced sample sizes AND approx. equal variances
+    - \large Tukey-Kramer or REGWQ if available
+    - onewayComp() with var.equal = TRUE, or regwqComp()
+- unbalanced sample sizes and/or unequal variances
+    - \large Games-Howell
+    - onewayComp() with var.equal = FALSE
+
+<div class='notes'>
+no audio.
+</div>
+
+## Example REGWQ
+
+4 samples from normals with $\sigma = 1$ and $\mu_A =0, \mu_B = 0.5, \mu_C =1, \mu_D = 1.5$
+
+```{r}
+set.seed(4321)
+x <- rnorm(80)+rep(c(0,.5,1,1.5),each=20)
+g <- factor(rep(LETTERS[1:4],each=20)); d <- data.frame(x,g)
+```
+
+```{r echo=FALSE, fig.height=2, fig.width=4, fig.align='center'}
+par(mar=c(3,.5,.5,.5)); boxplot(x~g)
+```
+
+<div class='notes'>
+In this synthetic example, all of the population means are different and the variances are the same.
+However, statistically, we may not have sufficient information to declare that all the population means are different from each other.
+</div>
+
+## Example REGWQ (2)
+
+If REGWQ is not available, can use Tukey-Kramer:
+```{r}
+posthoc<-onewayComp(x~g,adjust='one.step')
+posthoc$comp[,c(1,6,7)]
+```
+Can't separate $\mu_A$ and $\mu_B$  or $\mu_C$ and $\mu_D$
+
+<div class='notes'>
+no audio.
+</div>
+
+## Example REGWQ (3)
+
+Visualize pairs with multcompBoxlot
+```{r, eval=FALSE}
+require(multcompView)
+padj_extract <- function(formula,data){posthoc$comp[,'p adj']}
+multcompBoxplot(x~g,data=d,
+                horizontal=TRUE,compFn="padj_extract")
+```
+See next slide for plot
+
+<div class='notes'>
+- the multcompBoxplot function expects a function to use to compute the p-values.
+- Since we've already done the computation, we use the padj_extract function defined on the
+second line to extract the adjusted p-values from posthoc result we computed on the previous slide.
+- This can only work if the comparisons are done in the same standard order that you'd find in TukeyHSD say
+</div>
+
+## Example REGWQ (4)
+
+```{r echo=FALSE, message=FALSE,fig.height=4, fig.width=5, fig.align='center'}
+require(multcompView)
+padj_extract <- function(formula,data){posthoc$comp[,'p adj']}
+par(mar=c(4,4,4,4))
+multcompBoxplot(x~g,data=d,
+                horizontal=TRUE,compFn="padj_extract")
+```
+
+<div class='notes'>
+- the boxplot now includes the extra information on the right.  Forget about the "T" displays for a minute and focus on the letters.  multcompBoxplot uses a default, but adjustable, significance level of .05 to determine which population means are different.  population means that are not significantly different are grouped together by letter.  
+- pop. means big A and big B are not significantly different so they are grouped together in group little a.  groups big C and big D are grouped in little b.  since the little a's and little b's do not overlap, all other pairs of means are significantly different.
+- for these comparisons the T's give exactly the same information.
+</div>
+
+## Example REGWQ (5)
+
+With REGWQ
+```{r}
+source('./regwqComp.R')
+posthoc<-regwqComp(x~g)
+posthoc[,c(1,4,5,6)]
+```
+Now $\mu_A$ and $mu_B$ are also separated!
+
+<div class='notes'>
+- we aren't going to cover the details of REGWQ in this class, suffice it to say it's
+a multistep version of the Tukey test of means.  
+- it is also more powerful than the Tukey test so you should use it if it's available and appropriate.
+- One important thing to note is that both the p-values and the significance levels alpha are adjusted
+- so each pvalue must be comparted to the adjusted alpha value to determine if the corresponding pair is significantly different
+</div>
+
+## Example REGWQ (6)
+
+Visualize pairs with multcompBoxlot
+```{r, eval=FALSE}
+require(multcompView)
+padj_extract <- function(formula,data){posthoc[,'p adj']}
+par(mar=c(4,4,4,4))
+multcompBoxplot(x~g,data=d,horizontal=TRUE,compFn="padj_extract")
+```
+See next slide for plot
+
+<div class='notes'>
+no audio.
+</div>
+
+## Example REGWQ (8)
+
+```{r echo=FALSE, message=FALSE,fig.height=4, fig.width=5, fig.align='center'}
+require(multcompView)
+padj_extract <- function(formula,data){posthoc[,'p adj']}
+multcompBoxplot(x~g,data=d,horizontal=TRUE,compFn="padj_extract")
+```
+
+<div class='notes'>
+- using the more powerful sequential method we're detecting different population means for groups big A and big B which are now shown to be in difficult groups by group letters on the right
+</div>
+
+## One more visualization
+
+```{r echo=FALSE}
+SIT <- c(3,13,13,8,11,9,12,7,16,15,18,12,8,10)
+PE <- c(18,6,21,34,26,11,2,5,5,26)
+SC <- c(24,14,21,5,17,17,23,19,7,27,25)
+WL <- c(12,30,27,20,17,23,13,28,12,13)
+
+post <- stack(list('SIT'=SIT,'PE'=PE,'SC'=SC,'WL'=WL))
+names(post) <- c('score','treat')
+posthoc <- onewayComp(score~treat,data=post,var.equal=F,adjust='one.step')
+require(multcompView)
+# define a silly helper function to be used with multcompBoxplot
+# just exctracts the adjusted p-values and passes them to plotting routine
+padj_extract <- function(formula,data){posthoc$comp[,'p adj']}
+par(mar=c(4,4,4,4))
+multcompBoxplot(score~treat,data=post,
+                horizontal=TRUE,compFn="padj_extract")
+```
+
+<div class='notes'>
+- VIDEO SLIDE with HIGHLIGHTED CURSOR.
+- here is one more example so we can learn how these so-called T-displays help to interpret the multiple comparisons. 
+- we can see from the letters at the right that the population means are separated into two overlapping groups, but which pairs of means are different?
+- start at the top row with the SIT data and look to the right to find a corresponding T, in this case the black "T" shape.  Looking at the black column we can see that SIT and PE have simil...
+</div>
+
+## HT's for few pairs or contrasts
+
+\includegraphics[width=5in]{./figures/TableHT3.pdf}
+
+<div class='notes'>
+- If we don't need confidence intervals and just need a few hypothesis tests or contrasts,
+then we'll gain some power by using a sequential procedure like Bonferroni-Holm.
+</div>
+
+## Morphine Again
+
+\Large
+
+- Particular comparisons of interest
+    - \large average of MS, MM, SS vs average of SM, McM
+    - MM vs McM
+    - MS vs SS
+    - MM vs SS
+
+## Morphine Again (2)
+
+```{r echo=FALSE, fig.width=5, fig.height=3, fig.align='center'}
+pain <- c( 3, 5, 1, 8, 1, 1, 4, 9,
+        2,12,13, 6,10, 7,11,19,
+       14, 6,12, 4,19, 3, 9,21,
+       29,20,36,21,25,18,26,17,
+       24,26,40,32,20,33,27,30)
+treat <- factor( rep( c('MS','MM','SS','SM','McM'),
+                      each = 8), 
+                 levels = c('MS','MM','SS','SM','McM')  )
+morph <- data.frame(pain,treat)
+par(mar=c(3,2,0.5,0))
+boxplot(pain~treat,data=morph)
+```
+
+<div class='notes'>
+no audio.
+</div>
+## Morphine Again (3)
+
+Test with one-step Bonferroni
+
+```{r}
+onewayComp( pain~treat, data=morph, 
+            con=K, adjust='bonferroni' )$comp[,c(1,4,5:7)]
+```
+
+The first two contrasts are significant.  Note, the third is close ($P_{\small\mbox{adj}} \approx 0.07$)
+
+<div class='notes'>
+we did this exact procedure when we were looking at confidence intervals for these contrasts before.
+the conservative bonferroni correction lets us declare significant differences for the first two contrasts, and the third is close at the 5% significance level.
+
+Some animation would be nice here.  highlight the first two numbers in green in the padj column,
+then highlight the third padj in red.
+
+</div>
+
+## Morphine Again (4)
+
+Test with sequential Bonferroni-Holm
+
+```{r}
+onewayComp( pain~treat, data=morph, 
+            con=K, adjust='holm' )$comp[,c(1,4,5:7)]
+```
+
+The first three contrasts are significant.  
+
+<div class='notes'>
+- The more powerful sequential procedure reveals the third contrast is also significant.  
+- It's a bad idea to shop hypotheses by trying multiple procedures, but in this case we've given up on estimating the CI's in exchange for a legitimately more powerful procedure.
+- While it's a bad idea to shop hypotheses, trying multiple procedures can be a good idea.  If the procedures all agree, then you've got extra confirmation, if they disagree, then you have have to look more closely to see which procedure most closely matches your scenario.
+</div>
+
+## Morphine Again (5)
+
+Test with sequential Benjamin-Hochberg (controls FDR)
+
+```{r}
+onewayComp( pain~treat, data=morph, 
+            con=K, adjust='BH')$comp[,c(1,4,5:7)]
+```
+
+The first three contrasts are significant.  
+
+<div class='notes'>
+- While it's legitimate to use the Benjamin-Hochberg procedure here, it really isn't necessary.  We already have evidence to reject the first three contrasts, and the fourth has a very large p-value so we don't expect the fourth contrast to be rejected by any procedure.
+- This example just shows you how to do the Benj. Hochberg procedure which is terrifically useful if you've got a lot of comparisons to make and you want to explore where there are possibly significant contrasts.
+</div>
+
+## HT's for non-normal distributions
+
+\includegraphics[width=5in]{./figures/TableHT4.pdf}
+
+<div class='notes'>
+- for any number of contrasts you can always get approximate p-values by resampling and then adjusting
+the p-values using a procedure like Bonferroni-Holm
+- the onewayComp() function can approximate t-test p-values by resampling so you no longer need the distributions to be normal
+- there are other alternatives to bootstrapping, we'll look at one called the DUNN test here.
+</div>
+
+
+## Dunn Test
+
+\large
+
+- nonparametric posthoc pairwise test of location for Kruskal-Wallis Test
+- requires same conditions as Kruskal-Wallis Test
+- independent samples from distributions 
+    - \large with same shape and scale
+    - possibly shifted
+- p-values still need to be adjusted for multiple comparisons
+- \textcolor{red}{p-values are compared to $\alpha/2$ not $\alpha$}
+
+<div class='notes'>
+no audio.
+</div>
+
+## Rain Example
+
+4 cities A,B,C,D have monthly rainfall (mm) recorded for 6 different months
+```{r, echo=FALSE,fig.height=3.5,fig.width=5,fig.align='center'}
+A <- c(76,105,93,95,108,111)
+B <- c(119,116,101,103,113,84)
+C <- c(70,64,54,73,81,68)
+D <- c(61,54,59,67,59,70)
+weather <- stack(list('A'=A,'B'=B,'C'=C,'D'=D))
+names(weather) <- c('rainfall','city')
+rainfall <- weather$rainfall; city <- weather$city
+boxplot(rainfall~city)
+```
+Some skewness, similar shapes and scales $\Rightarrow$ Kruskal-Wallis and Dunn Test OK.
+
+<div class='notes'>
+no audio
+</div>
+
+## Rain Example (2)
+
+```{r, eval=FALSE} 
+require(dunn.test) # install package 'dunn.test' if needed
+dunn.test(rainfall,city,method='holm',alpha=.05)
+```
+
+\small
+```{r, echo=FALSE,warning=FALSE,message=FALSE}
+# this is just tricks to trim the output to fit on one slide
+require(dunn.test)
+require(utils)
+tmp <- noquote( 
+  capture.output( 
+    dunn.test(rainfall,city,method='holm')
+    )
+  )
+write.table(tmp[1:6],quote=F,row.names=F,col.names=F)
+```
+
+Output continued on next slide ...
+
+<div class='notes'>
+no audio
+</div>
+
+## Rain Example (3)
+\small
+```{r, echo=FALSE}
+write.table(tmp[c(7:19)],quote=F,row.names=F,col.names=F)
+```
+
+<div class='notes'>
+- when using a sequential procedure to adjust the p-values the order of the comparisons usually matters,
+therefore the statistically significant p-values are marked with asterisks.  
+- if you use a nonsequential adjustment like bonferroni, there will no asterisks, simply compare the adjusted p values to alpha/2.
+- a significant test means that the two populations are shifted, since we're only using this 
+when the population distributions can reasonably be assume to have the same shape and scale with possible shifts we can regard this as a test means or medians
+- If you look back at the boxplot I find it curious that cities A and D have statistically different mean rainfalls, but not cities A and C.
+</div>
+
+## Non-normal distributions + few contrasts
+
+\includegraphics[width=5in]{./figures/tableHT5.pdf}
+
+<div class='notes'>
+You can also use resampling techniques with large numbers of comparisons, but we'll do
+a made-up example with just a few contrasts to see how it goes.
+</div>
+
+## Synthetic Example
+
+4 samples of size 10 from very skewed distributions.
+```{r, echo=FALSE}
+set.seed(2)
+x <- rlnorm(40) + rep(c(0,1,3,4),each=10)
+g <- factor( rep( LETTERS[1:4], each = 10) )
+boxplot(x~g)
+```
+
+<div class='notes'>
+no audio
+</div>
+
+
+## Synthetic Example (2)
+
+\large
+
+- compare mean of groups A and B to mean of groups C and D
+- compare means of A and B
+- compare means of C and D
+- use bootstrap t-tests in onewayComp()
+- can also bootstrap with 'boot' package or 'WRS' package
+
+
+<div class='notes'>
+ - Since we have very small samples that seem to come from skewed distributions an ordinary t-tests don't make much sense, but we can estimate the P-values by bootstrapping and then adjust the p-values sequentially.
+</div>
+
+## Synthetic Example (3)
+
+\large Build the contrast matrix:
+```{r}
+K = rbind('aveCD -aveAB'=c(-1/2,-1/2, 1/2, 1/2),
+          '       B - A'=c(  -1,   1,   0,   0),
+          '       D - C'=c(   0,   0,   -1,  1))
+```
+
+<div class='notes'>
+no audio
+</div>
+
+## Synthetic Example (4)
+
+\large
+```{r}
+onewayComp( x~g, var.equal=F, nboot=10000, con=K,
+            adjust = 'holm')$comp[,c(1,4,6,7)]
+```
+$$\mbox{Reject }H_0: \frac{\mu_A + \mu_B}{2} = \frac{\mu_C+\mu_D}{2}$$
+The other contrasts are not significant.
+
+
+<div class='notes'>
+no audio
+</div>
+
+## Big data
+
+\Large
+Exploring lots of groups looking for differences?
+
+Use sequential procedures that control the FDR.  
+
+<div class='notes'>
+ - As a data scientist you could be in scenarios where you have to consider many, many simultaneous comparisons
+ - Controlling the FWER is probably too conservative, particularly if you're simply exploring the data to see where the potential differences are.
+ - A bonferroni type correction will likely miss many significant differences
+ - Instead look for a procedure that controls the False Discovery Rate, but be sure to read up on it before you report the results so that you understand how the error rates differ.
+</div>
+ 
+## Recap
+
+\includegraphics[width=5in]{./figures/tableRecap.pdf}
+
+<div class='notes'>
+
+\scriptsize
+
+- I hope you're not too overwhelmed by volume of material this week.  
+- Multiple comparisons is a huge subject and there many, many other procedures that we
+haven't documented here.  
+- These notes serve as some general guidelines.
+- As a data scientist I think you'll operating mostly in the first row of the table as you may be sifting through many comparisons to find the significant ones that will drive your questions and models.  
+- The second row of the table is more about comparisons that have planned prior to an experiment. It's not impossible that you'll be doing these things, but the first row seems more likely.
+- In the first row it's all about normal versus non-normal.  
+- If you've got data from plausibly normalish distributions than using a procedure that is based on t test statistics is the way to go.  Tukey-Kramer, Games-Howell, etc. are essentially t-procedures that have been tuned to account for multiple comparisons.
+- If you've got data from non-normal distributions, then if they all have similar shapes and scales then the Dunn test (or other related procedures) is a good way to go, but be sure the distributions really do have similar shapes and scales otherwise the Dunn Test probably isn't telling you what you think it is.
+- If the data is from distributions which are all different than a resampling procedure is a good way to proceed. 
+</div>
+
+## Appendix: t-tests for contrasts
+
+\large
+
+- Let $k$ be the number of groups and $N$ the pooled sample size.
+
+- The formula for equal variances (next slide) is equivalent to the $F$ test statistic in your textbook when all the samples are of size $n$ (balanced).
+
+<div class='notes'>
+no audio.
+</div>
+
+## Appendix: t-tests for contrasts (2)
+
+\newcommand{\ds}{\displaystyle}
+
+For equal variances, use MSE from ANOVA for pooled variance estimate
+
+$$ s_p^2 = \mbox{MSE} = (n_1-1)s_1^2 + (n_2-1)s_2^2 + \cdots$$
+
+Now for contrast $\Psi = \ds \sum_{i=1}^k a_i \mu_i$ we have $\ds t = \frac{ \ds \sum_{i=1}^k a_i \overline{x}_i }{\sqrt{s_p^2 \ds \sum_{i=1}^k \frac{a_i^2}{n_i} } }$
+with $\mbox{df} = N - k$.
+
+If samples sizes are balanced with $n=n_1=n_2=\cdots=n_k$, then the square of $t$ is the same as $F$ in the textbook.  If there are only two weights $a_m = 1, a_n = -1$ this becomes the ordinary pooled $t$.
+
+<div class='notes'>
+no audio.
+</div>
+
+## Appendix: t-tests for contrast (3)
+
+\newcommand{\ds}{\displaystyle}
+For unequal variances (or quite unbalanced sample sizes).
+No pooled variance, but Welch-like corrected degrees of freedom is harder.
+$t = \frac{ \ds \sum_{i=1}^k a_i \overline{x}_i }{\sqrt{\ds \sum_{i=1}^k \frac{a_i^2 s_i^2}{n_i} } }$
+
+For df, set $w_i = \ds \frac{a_i^2 s_i^2}{n_i}$, then $df = \ds \frac{ \left( \ds \sum_{i=1}^k w_i \right)^2 }{ \ds \sum_{i=1}^k \frac{w_i^2}{n_i - 1} }$.
+
+If there are only two weights $a_m = 1, a_n = -1$ this becomes the ordinary unpooled $t$.
+
+<div class='notes'>
+no audio.
+</div>
+
+```{r echo=FALSE}
+set.seed(NULL)
+```
+
+## A Bad Idea
+
+- It's not OK to inspect the data and then test only the groups with the largest differences
+- This is called data snooping.
+- You've implicitly tested all of the pairs and so you have an increased risk of Type I errors due to chance.

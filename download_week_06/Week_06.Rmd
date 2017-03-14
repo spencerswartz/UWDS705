@@ -1,0 +1,636 @@
+---
+title: "Multiple Comparison Hypothesis Tests"
+header-includes: \usepackage{amssymb}
+output:
+  beamer_presentation:
+    colortheme: default
+    fonttheme: default
+    keep_tex: yes
+    template: ../beamer169.tex
+  ioslides_presentation: default
+  slidy_presentation: default
+fontsize: 12pt
+---
+
+```{r global_options, include=FALSE, echo=FALSE}
+.pardefault <- par()
+# use for beamer
+knitr::opts_chunk$set(fig.width=4, fig.height=3, fig.align='center',warning=FALSE, message=FALSE)
+# use for word
+# knitr::opts_chunk$set(fig.width=4, fig.height=3,warning=FALSE, message=FALSE)
+
+# install DS705data if needed
+if (!is.element("DS705data",installed.packages()[,1]))
+{ install.packages("http://websites.uwlax.edu/jbaggett/DS705/DS705data_1.0.tgz",repos=NULL,type="source")}
+
+```
+
+## One-way ANOVA Review
+
+```{r echo=FALSE}
+x <- seq(-3,4,length=400)
+shift <- .8
+y1 <- dnorm(x)
+y2 <- dnorm(x,shift)
+y3 <- dnorm(x,shift*2)
+yupper <- max(y1)*1.1
+plot(x,y1,type="l",lwd=2,col='blue',ylim=c(0,yupper),xlab="",ylab="",main="",mar=c(.5,.5,.5,.5),
+     bty = 'n', xaxs = "i",xaxt="n",yaxs="i",yaxt="n",at=NULL)
+points(x,y2,type="l",lwd=2,col='red')
+points(x,y3,type="l",lwd=2,col='green')
+points(x,0*x,type="l",lwd=1,col='black')
+```
+
+\large
+
+- compare population means for 3 or more groups
+
+- requires normal distributions, equal variances, independent observations
+            
+- This week = alternatives.
+
+<div class='notes'>
+no audio
+</div>
+
+## Alternatives for Normal Distributions
+
+\Large
+
+- equal variances $\Rightarrow$ ANOVA (last week)
+
+- not equal variances $\Rightarrow$ ANOVA with Welch correction
+
+## Alternatives for Not Normal Distributions
+
+- \Large possibilities include 
+    - \Large Kruskal-Wallis test
+    - resampling methods
+
+<div class='notes'>
+- Kruskall Wallis requires that the sampled distributions all have the same shape and scale and can be used to detect shifts between the populations, sometimes interpreted as a test of medians
+- resampling is widely applicable, but isn't magic and may be useless if the samples are too small
+</div>
+
+## A Drug Study
+
+\columnsbegin
+
+\column{.5\textwidth}
+
+\large
+```{r echo=FALSE,  message=FALSE, results='asis'}
+New <- c(50,39,42,45,38,44,40,49,42,41)
+Old <- c(44,31,50,22,30,27,32,25,40,NA)
+Control <- c(16,60,24,19,31,37,44,55,NA,NA)
+
+study <- stack(list('New'=New,'Old'=Old,'Ctrl'=Control))
+study <- na.omit(study)
+names(study) <- c('response','treat')
+study.wide <- data.frame(New,Old,Control)
+require(xtable)
+print(xtable(study.wide,digits=0,align=rep('c',4)),
+      include.rownames=FALSE, comment=FALSE)
+```
+
+\column{.5\textwidth}
+\includegraphics[width=.6\textwidth]{./figures/medication.pdf}
+\columnsend
+
+<div class='notes'>
+- here is a motivating example as to why we need alternatives to standard one-way ANOVA
+- suppose we have three groups for studying a drug study: new drug, old drug, and control
+- we are measuring a response variable such as cholesterol level or blood pressure
+</div>
+
+## ANOVA 
+
+\large
+
+```{r echo=TRUE}
+anova( lm( response ~ treat, study ) )
+```
+
+<div class="notes">
+-suppose we blindly apply ANOVA
+- Since $P$ is large, the ANOVA test suggests there are no significant differences between the average responses for the three treatements.  
+- This is wrong!
+- Always EXPLORE the data first.
+</div>
+
+
+## Graph the data
+
+```{r echo=TRUE,fig.height=3.5}
+boxplot(response~treat,data=study,horizontal=TRUE)
+```
+```{r echo=FALSE}
+par(mar=c(2,2,0,0))
+```
+
+<div class="notes">
+- Never start your analysis with an inference procedure, always start by exploring the data
+- We are looking at a response (on the horizontal axis) for three different treatments.  Old, New, and Control.
+- Notice that there are no outliers, and the boxes are symmetric ... indicating that the samples could have reasonably come from normal distributions.
+- However, notice how different the scales in the boxes are ... the standard deviations are very different
+</div>
+
+## Explore the data
+```{r echo=TRUE}
+with( study, tapply( response, treat, mean) )
+```
+
+```{r echo=TRUE}
+with( study, tapply( response, treat, sd) )
+```
+
+<div class='notes'>
+Notice the standard deviations differ by about a factor of 4 so the standard deviations are quite different for the groups.
+</div>
+
+## Test the data (optional)
+\small
+```{r echo=TRUE}
+with( study, tapply( response, treat, shapiro.test) )
+```
+
+<div class='notes'>
+- the results of the tests are cut off, but in each case $P$ is large indicating the sample could plausibly have come from a normally distribution
+- using this test probably isn't necessary even though its often standard advice
+- if $n$ is small, the test isn't powerful and will likely miss some departures from normality
+- if $n$ is large, the test will detect even a small departure from normality, but a small departure isn't important
+- ANOVA procedures are robust to departures from normality, more about that below.
+- simply graph the data and look for gross departures from normality
+</div>
+
+## Test the data (optional)
+```{r echo=TRUE}
+require(car)  # install car package if needed
+leveneTest(response~treat,data=study)
+```
+
+\Large
+Unequal variances (heteroscedastic) $\Rightarrow$ No ANOVA
+
+<div class="notes">
+- technically the test we've done here is called the Brown-Forsythe test which is the same as Levene execpt it computes variations about the medians and is the default in R
+- Levene's test gives a small $P$ which indicates the population variances are likely different
+- again, testing for equal variances is standard advice and you can do so if you really want to
+- but it's just like the Shaprio test
+- if $n$ is small, the test isn't powerful enough and will likely miss some unequal variances
+- if $n$ is large, the test will detect even slightly different variances which aren't important
+- it's easier to use the rule of thumb on the next slide
+- It would also be reasonable to *always* use Welch's ANOVA since it works very nearly as wel as standard ANOVA when the variances are the same and much better than ANOVA when the variances are different
+</div>
+
+## Rule of Thumb
+
+\Large
+$$ \frac{s_{\max}}{s_{\min}} > 2 \Rightarrow \mbox{ unequal variances}$$
+
+```{r echo=TRUE}
+tapply(study$response,study$treat,sd)
+```
+
+<div class="notes">
+- instead of running a test of variances, just use this rule of thumb, or ALWAYS use the unequal variances ANOVA that is introduced below
+- occassionally we want to do plain vanilla one-way ANOVA if we can because if we need to go under the hood, the math is easier, but usually the Welch corrected ANOVA is good enough
+</div>
+
+## ANOVA Failed
+
+```{r echo=TRUE,fig.height=3.5}
+boxplot(response~treat,data=study,horizontal=TRUE)
+```
+```{r echo=FALSE}
+par(mar=c(2,2,0,0))
+```
+
+Means for *New* and *Old* are different, but ANOVA gave $P \approx .14$
+
+## What went wrong with ANOVA?
+
+\huge
+$$ F = \frac{\mbox{MSG}}{\mbox{MSE}} = \frac{ \frac{\sum n_i (\overline{x}_i - \overline{x})^2 }{k-1} }
+{ \frac{\sum (n_i-1) s_i^2 }{N-k} }$$
+
+<div class='notes'>
+- it is pretty clear that the responses for the NEW and OLD treatments are different
+- the denominator is the estimated pooled variance of the pooled data
+- since the variance for the Control group is so large ANOVA it overwhelms the difference between the NEW and OLD treatements giving a small F and a large P value.
+</div>
+
+
+## What now?  
+
+\Large
+ANOVA breaks when the population variances are very different.
+
+- Old School: Transform the data 
+- Better: Welch corrected ANOVA or resampling
+
+<div class="notes">
+- its often possible to transform the data in such a way that the variances are similar, but transforming the data makes the interpretation more difficult
+- The Kruskal-Wallis test, which we will talk about soon, is often touted as an alternative anytime ANOVA goes wrong, but it requires that all of the populations have the same shape and scales only possibly be shifts of each other
+</div>
+
+## 2 sample t-test equal variances
+
+```{r echo=FALSE}
+x <- seq(-3,4,length=400)
+shift <- .8
+y1 <- dnorm(x)
+y2 <- dnorm(x,shift)
+yupper <- max(y1)*1.1
+plot(x,y1,type="l",lwd=2,col='blue',ylim=c(0,yupper),xlab="",ylab="",main="",mar=c(.5,.5,.5,.5),
+     bty = 'n', xaxs = "i",xaxt="n",yaxs="i",yaxt="n",at=NULL)
+points(x,y2,type="l",lwd=2,col='red')
+points(x,0*x,type="l",lwd=1,col='black')
+```
+
+\large
+$$ t = \frac{ \overline{x}_1 - \overline{x}_2}{s_p \sqrt{\frac{1}{n_1} + \frac{1}{n_2}}}, \hspace*{.5in} s_p^2 = \frac{ (n_1-1)s_1^2 + (n_2-1)s_2^2}{n_1 + n_2 - 2}$$
+$$ df = n_1 + n_2 - 2$$
+
+<div class='notes'>
+- what's the t-test for two population means doing here?  
+- this is the pooled t-test where the population variances are assumed to be equal
+- the variance is estimated by pooling all of the data and computing the pooled variance
+- just like ANOVA
+</div>
+
+## 2 sample t-test unequal variances (Welch)
+
+```{r echo=FALSE}
+x <- seq(-3,4,length=400)
+shift <- .8
+sig <- 1
+y1 <- dnorm(x,0,sig)
+y2 <- dnorm(x,shift,sig/2)
+yupper <- max(max(y1),max(y2))*1.1
+plot(x,y1,type="l",lwd=2,col='blue',ylim=c(0,yupper),xlab="",ylab="",main="",mar=c(.5,.5,.5,.5),
+     bty = 'n', xaxs = "i",xaxt="n",yaxs="i",yaxt="n",at=NULL)
+points(x,y2,type="l",lwd=2,col='red')
+points(x,0*x,type="l",lwd=1,col='black')
+```
+
+\large
+$$ t = \frac{ \overline{x}_1 - \overline{x}_2}{\sqrt{\frac{s_1^2}{n_1} + \frac{s_2^2}{n_2}}}, \hspace*{.5in} df = \frac{ \left( \frac{s_1^2}{n_1} + \frac{s_2^2}{n_2} \right)^2}{\frac{\left( \frac{s_1^2}{n_1} \right)^2}{n_1-1}+ \frac{\left( \frac{s_2^2}{n_2}  \right)^2}{n_2-1}}$$
+
+<div class="notes">
+- the 2 sample unequal variances t-test does not pool the variances
+- instead it uses a Welch correction to reduce the degrees of freedom so that the t distribution using the unpooled variances is approximately correct
+- Welch corrected ANOVA does this same thing.  It uses an unpooled variance estimate and adjusts the degrees of freedom so that F distribution is approximately correct
+</div>
+
+## Welch's ANOVA
+
+$$ H_0: \mu_1 = \mu_2 = \cdots = \mu_k, \hspace*{.5in} H_a: \mbox{ not all the means are the same}$$
+
+Messy formulas but same idea as ANOVA
+$$ F' = \frac{\mbox{variance between groups}}{\mbox{variance within groups}}$$
+
+Correction for unequal variances.
+
+Welch's ANOVA is to ANOVA as unpooled $t$-test is to pooled $t$-test.
+
+<div class="notes">
+no audio
+</div>
+
+## Welch's ANOVA on Drug Study
+
+```{r echo=TRUE}
+oneway.test(response~treat,data=study,var.equal=F)
+```
+
+Population mean responses to drug are different.
+
+<div class='notes'>
+The function oneway.test can also do regular ANOVA if the var.equal is set to TRUE
+</div>
+
+## Effect Sizes for ANOVA
+
+\huge
+- How different are the means?  
+- Multiple comparisons - next week!
+
+<div class='notes'>
+- you should never report just a $P$ value, a small $P$ value is an indication of statistical significance, but practical significance is determined by looking at how big the effects are.
+- there are some effect sizes for ANOVA, but they aren't very meaninful from a practical perspective
+- ANOVA and the other tests this week are omnibus tests, that is, they test all of the means simultaneously to see if there may be a difference somewhere, but they don't tell you where or how big that difference is
+- Next week we'll look at multiple comparisons which are procedures for determining which means are different and estimating how different they are ... those differences are the effect that are often the most relevant.
+</div>
+
+## Non-normal distributions
+
+\Large
+
+- ANOVA is robust.
+- Use ANOVA except for very skewed or heavy-tailed distributions.
+- Use Welch ANOVA if different variances are suspected.
+
+<div class='notes'>
+- we've seen how to fix ANOVA when the population variances are different, but what if the populations are not normally distributed
+- ANOVA is robust to departures from normality as long as they aren't really severe
+- ANOVA is built on testing means and variances which are sensitive to extreme outliers
+- extreme outliers, typical in heavy-tailed and very skewed distributions, cause ANOVA to be inaccurate
+- we'll meet some alternatives to ANOVA below
+</div>
+
+
+## Kruskal-Wallis Test
+
+```{r echo=FALSE}
+x <- seq(0,7,length=400)
+shift <- .8
+y1 <- dlnorm(x)
+y2 <- dlnorm(x-shift)
+y3 <- dlnorm(x-shift*2)
+yupper <- max(y1)*1.1
+plot(x,y1,type="l",lwd=2,col='blue',ylim=c(0,yupper),xlab="",ylab="",main="",mar=c(.5,.5,.5,.5),
+     bty = 'n', xaxs = "i",xaxt="n",yaxs="i",yaxt="n",at=NULL)
+points(x,y2,type="l",lwd=2,col='red')
+points(x,y3,type="l",lwd=2,col='green')
+points(x,0*x,type="l",lwd=2,col='black')
+```
+
+Generalization of Wilcoxon Rank Sum test to multiple samples
+
+<div class='notes'>
+Under the right circumstances the Kruskal Wallis test can detect differences between the population medians of various groups
+</div>
+
+
+## Kruskal-Wallis Idea
+
+\Large
+
+- Rank pooled data
+- Average the ranks for each sample
+- Compare mean ranks
+
+<div class="notes">
+- formulas and examples may be found in your book
+- We'll see how to do this in R in a minute
+</div>
+
+## Misleading Hypotheses
+
+\Large
+
+- $H_0:$ the population distributions are the same
+- $H_1:$ the population distributions are not the same
+
+<div class="notes">
+- just as in your textbook these hypotheses are misleading
+- If the populations all have same shape and scale but are possibly shifted relative to each other, then KW can determine if there are shifts, ... are the medians different?
+- However there are differences in distributions that cannot be detected by the KW test.  One such example is in your homework for this week.
+</div>
+
+## Kruskal-Wallis Requirements
+
+to detect different medians
+
+- population distributions have same shape and scale
+- random variable is continuous (not too many ties)
+- normal distributions are not required
+- different groups can NOT have different shapes or scales (equal variances required)
+- as always, the observations must be independent
+
+<div class="notes">
+No audio.
+</div>
+
+## Example
+
+```{r echo=FALSE}
+set.seed(1234)
+x <- c( rlnorm(12), rlnorm(12)+.5, rlnorm(12) + 1)
+groups <- factor( (rep( c('A','B','C'), each=12 ) ) )
+d <- data.frame(x,groups)
+boxplot( x ~ groups, data = d, horizontal = TRUE )
+```
+
+<div class='notes'>
+- three samples of size 12 very skewed distribuitons
+- can see that the shapes are similar in the boxplot, but there are shifts
+- the extreme outliers can pose a problem for ANOVA, but OK for KW since average ranks are not sensitive to outliers
+</div>
+
+## Example continued
+```{r echo = TRUE}
+kruskal.test( x ~ groups, data = d )
+```
+
+<div class='notes'>
+- KW test is simple to run in R
+- small $P$ implies we should reject the null hypothesis
+- since the samples appear to come from distributions with the same shape and scale we 
+can conclude the population medians are different
+</div>
+
+
+## Summary so far
+
+\Large
+
+- distributions normal or a "little" non-normal
+    - \Large variances equal $\Rightarrow$ ANOVA
+    - \Large variances not equal $\Rightarrow$ Welch ANOVA
+- distributions really not normal
+    - \Large same shape and scale $\Rightarrow$ Kruskal-Wallis
+    - different shapes or scales $\Rightarrow$ bootstrap
+    
+<div class='notes'>
+- what does a little non-normal mean?  mound shaped is good, but even moderate skewness or mild outliers are not really a problem, extreme outliers or skewness can cause issues
+- if you're unsure what procedure to use, you can run multiple procedures
+    - this doesn't mean you get to keep trying until you get the result that you want
+    - but if the procedures all agree, then you know you are on the right track
+    - if different procedures produce different results, then you need to step back and think harder about your data and determine which procedure most closely matches what you know about your data ...
+- when we find ourselves having multiple groups that have different shapes or scales and convential methods don't apply, then consider resampling procedures such as bootstrap and permutation tests
+- bootstrap and permutation tests differ in how the resamples are selected and in how the results are interpreted.  We'll focus on bootstrap tests.
+</div>
+
+## Bootstrapping
+
+\Large 
+
+- no distributional requirements
+- still very important that observations are independent
+- may not work well for small samples (get more data!)
+
+## Bootstrap ANOVA - 1
+
+\Large 
+
+1. compute $F$ test statistic from observed data
+2. estimate sampling distribution of $F$
+3. treat observed sample as pseudo population
+4. sample repeatedly, with replacement, from pseudo population
+5. compute $F^*$ for each sample
+6. estimate $P$ from $F^*$ distribution
+
+<div class="notes">
+- if distributions aren't normal, then we don't have a theoretical sampling distribution for $F$
+- approximate it by pretending the observed data is the population and repeatedly resampling from the *pseudo* population to simulate $F$, we call these simulated values $F^*$
+</div>
+
+## Bootstrap ANOVA - 2
+
+Same data as above for Kruskal-Wallis
+
+```{r echo=FALSE}
+set.seed(1234)
+x <- c( rlnorm(12), rlnorm(12)+.5, rlnorm(12) + 1)
+groups <- factor( (rep( c('A','B','C'), each=12 ) ) )
+d <- data.frame(x,groups)
+boxplot( x ~ groups, data = d, horizontal = TRUE )
+```
+
+<div class='notes'>
+no audio
+</div>
+
+## Bootstrap ANOVA - 3
+
+First compute $F$ from observed data.  We'll use Welch ANOVA
+```{r echo=TRUE}
+F.obs <- oneway.test( x ~ groups, data = d)$statistic
+F.obs
+```
+
+<div class='notes'>
+- we use the Welch corrected ANOVA here since the large outlier gives group B a much larger standard deviation than the other groups
+- in any case, using Welch anova all the time is not a bad idea
+</div>
+
+## Bootstrap ANOVA - 4
+
+The observed data is now the pseudo-population.  Shift each group so that the null is true (compute the residuals for each group).
+
+```{r echo=TRUE}
+resA <- d$x[d$groups=='A'] - mean(d$x[d$groups=='A'])
+resB <- d$x[d$groups=='B'] - mean(d$x[d$groups=='B'])
+resC <- d$x[d$groups=='C'] - mean(d$x[d$groups=='C'])
+pop.null <- data.frame(res=c(resA,resB,resC),groups)
+with(pop.null, tapply( res, groups, mean) )
+```
+
+<div class='notes'>
+- The mean of each group of residuals, also called errors, is 0 to nearly machine precision
+- Now we a pseudopopulation consisting of three groups whose means are identially 0.  This is a surrogate for the population our data might have come from if the null hypothesis of equal means were true.
+</div>
+
+## Bootstrap ANOVA - 5
+
+Resample with replacement and compute $F^*$.  We have a choice to make here about how we resample.
+
+1.  Pool all the residuals and resample with replacment.
+    - makes sense when residuals have similar distributions for all groups
+2.  Resample from within each set of residuals.
+    - makes sense when residual distrbitions have different shapes, but requires larger group sizes
+
+<div class='notes'>
+Since the groups here all have the same approximate shape, except for an occasional outlier, it makes sense to pool the residuals.  We'll use the first resampling approach as it seems to make the most sense, but we'll cycle back and try the second approach also for comparison.
+</div>
+
+## Bootstrap ANOVA - 6 (pooled residuals)
+
+```{r echo = TRUE, cache = TRUE}
+B <- 10000; Fstar1 <- numeric(B)
+for (i in 1:B){
+  pop.null <- data.frame( 
+    res = sample( c(resA, resB, resC), replace = T), groups )
+  Fstar1[i] <- oneway.test( res~groups, data=pop.null, 
+                            var.equal=FALSE)$statistic
+}
+p.approx1 <- sum( Fstar1 > F.obs )/B; p.approx1
+```
+
+<div class='notes'>
+- using a for loop is a very inefficient way to sample, but we're aiming for clarity here and not speed
+- the $P$ value is just the proportion of values of F-star that are greater than the original observed F, that is ... F-star is our surrogate sampling distributiion
+- notice that the P-value here is very similar to what KW yielded, both agree that the populations are not all the same
+- this version of bootstrapping requires that groups have similar shapes and scales just like Kruskall-Wallis.  
+</div>
+
+## Bootstrap ANOVA - 7 (unpooled residuals)
+
+```{r echo = TRUE, cache = TRUE}
+B <- 10000; Fstar2 <- numeric(B)
+for (i in 1:B){
+  pop.null <- data.frame( 
+    res = c( sample( resA, replace = T ), 
+             sample( resB, replace = T ), 
+             sample( resC, replace = T ) ), groups )
+  Fstar2[i] <- oneway.test( res~groups, data=pop.null, 
+                            var.equal=FALSE)$statistic
+}
+p.approx2 <- sum( Fstar2 > F.obs )/B; p.approx2
+```
+
+<div class='notes'>
+- Whoa, that last approximated $P$-value is really different.
+- Since we are sampling within each group we need larger samples to soften the effect of the extreme outlier in group B
+- I'm more inclined to accept the result of the first method, particularly since it agrees with the KW test
+- small samples, extreme outliers, averages and standard deviations do not play nicely with each other
+</div>
+
+## A helper function for bootstrap ANOVA (method 1)
+
+```{r echo = TRUE, messages=FALSE, cache=TRUE}
+source('anovaResampleFast.R')
+out1 <- anovaResampleFast(x,groups,B=10000,method=1,var.equal=F)
+```
+
+<div class='notes'>
+- in your download for the week you should find the anovaResampleFast function as well as a slower version that uses a for loop.  
+- the for loop version is there for you to study if you want to see how it works
+- the fast version is much faster but at the cost of making the code harder to follow
+- notice the result is quite similar to the the simulated $P$ above
+</div>
+
+## A helper function (method 2)
+
+```{r echo = TRUE, messages=FALSE, cache=TRUE}
+source('anovaResampleFast.R')
+out1 <- anovaResampleFast(x,groups,B=10000,method=2,var.equal=F)
+```
+
+<div class='notes'>
+no audio
+</div>
+
+##  Which bootstrap?
+
+\Large
+
+1. similar shapes and scales $\Rightarrow$ pooled residuals
+2. different shapes or scales $\Rightarrow$ unpooled residuals
+    - \Large be wary of outliers, especially with small samples
+    
+## Outliers or Extreme Skewness
+
+- Compare medians or trimmed means instead. 
+- "Intro. to Robust Estimation and Hypothesis Testing" by Rand Wilcox
+- uses unpooled residual approach but relies on trimmed means for robustness
+
+```{r echo = TRUE, cache = TRUE}
+require('WRS2')  # install this package if needed
+# use 10% trimmed means 
+t1waybt(x~groups,data=d,tr=0.1,nboot=10000)
+```
+
+<div class='notes'>
+- if you've got extreme outliers or skewness in the data, it probably isn't a good idea to think about means anyway
+- in the last decade or two a lot of attention has been paid to robust methods
+- robust methods replace means with trimmed means or medians since those are not so sensitive to outliers and skewness
+- the t1waybt command in package WRS2 performs bootstrap ANOVA using unpooled residuals and Welch's correction, but it works on the trimmed means instead of the means
+- a 10% trimmed mean takes 10% of the data from each end before calculating the mean
+- a 50% trimmed mean is the median.  
+- for more details Wikipedia has a good entry about trimmed means.
+- Notice, this oneway bootstrapped anova on 10% trimmed means gives a small $P$-value indicating different group means.
+- Try running this code with trim set to 0 and you'll see that you get a large $p$ value just like we did with the unpooled approach above ... trimming fixes the outlier problem here.
+</div>

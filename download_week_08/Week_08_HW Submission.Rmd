@@ -1,0 +1,239 @@
+---
+title: 'Lab Assignment: Inference for Categorical Data'
+author: "Spencer Swartz"
+date: "March 13, 2017"
+output: word_document
+fontsize: 12pt
+---
+
+
+
+Create a Word document from this R Markdown file for the following exercises.  Submit the R markdown file and resulting Word document via D2L Dropbox.    
+
+## Exercise 1
+
+Chondromalatia patellae (CP) is a painful inflammation of the patella (kneecap).  It can be diagnosed without error arthroscopically.  However, a less invasive diagnostic test called Clarke’s Sign test can also be used to diagnose CP but is not 100% accurate.  The following contingency table contains data for 106 patients who were first diagnosed for CP using the Clarke’s Sign test and then went on to have arthroscopic surgery to confirm or deny the diagnosis (Doberstein ST, Romeyn RL, Reineke DM , J Athl Train. 2008 Apr-Jun;43(2):190-6.).
+
+| | Have CP | No CP | Total |
+| --- | :---: | :---: | :---: |
+| Positive Clarke's Sign | 9 | 27 | 36 |
+| Negative Clarke's Sign | 14 | 56 | 70 |
+Total | 23 | 83 | 106 |
+
+### Part 1a
+
+Conduct a chi-square test to determine if the outcome of the Clarke's Sign test and the presence of CP are associated.  Let $\alpha = 0.05$.
+
+### Answer 1a
+
+```{r}
+clarke <- matrix(c(9,27,14,56),nrow=2)
+clarke
+stats::prop.test(clarke,correct = F)
+
+```
+
+$H_0$ : The distribution of the outcome is independent of the Clarke result.
+$H_a$ : THere is a difference in the distrubution of responses to the Clarke result.
+
+At $\alpha = 0.05$, we do not have enough evidence to reject $H_0$ (p = 0.5542). this means that the Clarke test and CP may not be associated.
+
+### Part 1b
+
+For the population of all patients who have CP, construct and interpret a 95% confidence interval for the proportion of positive Clarke's Sign tests.
+
+### Answer 1b
+
+```{r}
+prop.test(9,23,correct = FALSE)
+
+```
+
+We are 95% confident that population is between .22 and .60 standard deviations from the mean
+
+### Part 1c  
+
+Compare the proportions of patients without CP who get a positive test to the proportion of patients with CP who get a positive test.  Do this by computing a 95% CI for difference of proportions of positive tests of those who have CP and those who don't.  Interpret the result.
+
+### Answer 1c
+
+```{r}
+posCl = c(27,9)
+CP = c(83,23)
+prop.test(posCl,CP,correct = F)
+
+```
+
+THe difference in proportions between those without CP and tested positive and those who have CP and test positive is between -0.29 and 0.16. 
+
+### Part 1d
+
+If one person is selected randomly, what is the risk of having CP given that the patient has a positive Clarke’s Sign test? (“risk” means probability)
+
+### Answer 1d
+
+```{r}
+CPpos= 9/36
+CPpos
+
+```
+
+### Part 1e
+
+If one person is selected randomly, what is the risk of having CP given that the patient has a negative Clarke’s Sign test?
+
+### Answer 1e
+
+```{r}
+CPneg= 14/70
+CPneg
+```
+
+### Part 1f
+
+Compute the relative risk of having CP for those who have a positive Clarke's Sign test compared to those who have a negative test.
+
+### Answer 1f
+
+```{r}
+rrCP <- CPpos/CPneg
+rrCP
+
+```
+
+### Part 1g
+    
+What are the odds of having CP given that the patient has a positive Clarke’s Sign test? 
+    
+### Answer 1g
+
+```{r}
+oddsCPpos <- CPpos/(27/36)
+oddsCPpos
+```
+
+### Part 1h
+
+What are the odds of having CP given that the patient has a negative Clarke’s Sign test?
+
+### Answer 1h
+
+```{r}
+oddsCPneg <- CPneg/(56/70)
+oddsCPneg
+
+```
+
+### Part 1i
+
+Compute the odds ratio (OR) of having CP for those who have a positive Clarke's Sign test compared to those who have a negative test.
+
+### Answer 1i
+
+```{r}
+require("mosaic")
+clarke <- matrix(c(9,14,27,56),nrow=2)
+OR <- oddsRatio(clarke, verbose = TRUE)
+OR
+
+```
+
+### Part 1j
+
+Write an interpretation of the odds ratio as a percent.
+
+### Answer 1j
+
+Replace this text with your interpretation here.
+
+### Part 1k
+
+Construct a 95% confidence interval for the OR of having CP for those who have a positive test compared to those who have a negative test.  Interpret the interval, leaving the endpoints as a multiples.
+
+### Answer 1k
+
+```{r}
+# Insert your R code here.
+
+```
+
+Replace this text with your interpretation here.
+
+## Exercise 2
+
+There are said to be six general personality types for dogs (see http://www.fl-k9.com/personalities.htm for more details about dog personalities if you are interested).  Suppose it has been hypothesized that the distribution of dog personalities is as follows.
+
+Personality Type | Hypothesized Proportion
+---|:---:
+Aggressive | 0.15
+Confident | 0.09
+Outgoing | 0.29
+Adaptable | 0.21
+Insecure | 0.12
+Independent | 0.14
+
+### Part 2a
+
+Consider a random sample of 125 dogs that have been categorized by personality in the table below.  
+
+Personality Type | Observed frequency
+---|:---:
+Aggressive | 14
+Confident | 15
+Outgoing | 22
+Adaptable | 30
+Insecure | 19
+Independent | 25
+Total | 125
+
+Create vectors for the counts and hypothesized probabilities, then conduct the chi-square test to determine if the distribution of dog personalities given above is correct.  Include all parts of the test.
+
+### Answer 2a
+
+```{r}
+# Insert your R code here.
+
+```
+
+Replace this text with your interpretation here.
+
+### Part 2b  
+
+Compute the expected cell counts and verify that they are all large enough for the chi-square test to be valid. Include a reference to the criterion you are using to determine if expected cell counts are large enough.
+
+### Answer 2b
+
+```{r}
+# Insert your R code here.
+
+```
+
+Replace this text with your interpretation here.
+
+## Exercise 3
+
+A researcher is studying seat belt wearing behavior in teenagers (ages 13 to 19) and senior citizens (over 65). A random sample of 20 teens is taken, of which 17 report always wearing a seat belt.  In random sample of 20 senior citizens, 12 report always wearing a seat belt.  Using a 5% significance level, determine if seat belt use is associated with these two age groups.
+
+### Part 3a
+
+Create a 2x2 matrix with the correct cell counts.  Arrange it so that the columns represent the age group (teen vs senior) and rows contain the seat belt usage (always wear vs not always wear).  
+
+### Answer 3a
+
+```{r}
+# Insert your R code here.
+
+```
+
+### Part 3b
+
+With the small cell counts in mind, use the appropriate test to determine if proportions of those who claim to "always wear" a seat belt is the same for these two age groups.  Use a 5% significance level.  Include all parts for the hypothesis test.
+
+### Answer 3b
+
+```{r}
+# Insert your R code here.
+
+```
+
+Replace this text with your answer here.

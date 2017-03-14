@@ -1,0 +1,270 @@
+
+---
+title: 'Week 6 HW Submission: ANOVA etc.'
+author: "Spencer Swartz"
+date: "Feb. 28, 2017"
+output: word_document
+fontsize: 12pt
+---
+
+Create a Word docx from this R Markdown file for the following exercise.  Submit the R markdown file and resulting Word docx file via D2L Dropbox.   
+
+## Exercise 
+
+This exercise is based on the data and experimental design from exercises 8.42 & 8.43 in the Ott textbook.
+
+A small corporation makes insulation shields for electrical wires using three different types of machines. The corporation wants to evaluate the variation in the inside diameter dimension of the shields produced by the machines. A quality engineer at the corporation randomly selects shields produced by each of the machines and records the inside diameters of each shield (in millimeters). The goal is to determine whether the location parameters (i.e. mean or median) of the three machines differ. 
+
+Load the data set shields from the DS705data package (alternately there is shields.rda file in the weekly download folder that can be loaded using the load() command)
+
+### Part 1
+
+Construct side-by-side boxplots for the inside diameters of the insulation shields for the three machines.
+
+### -|-|-|-|-|-|-|-|-|-|-|- Answer 1 -|-|-|-|-|-|-|-|-|-|-|-
+
+```{r}
+require(DS705data)
+data(shields)
+#head(shields)
+boxplot(shields$Diameter~shields$Machine)
+
+
+```
+
+----
+
+### Part 2
+
+Comment on what you see in the boxplots.  How do the medians compare visually?  Do the samples look like they have roughly the same variability?  Is there severe skewness or outliers in any of the samples?  Be specific.
+
+### -|-|-|-|-|-|-|-|-|-|-|- Answer 2 -|-|-|-|-|-|-|-|-|-|-|-
+
+It looks as if A and B may be more similar than C. the medians are quite close for A and B and a little ways off for C. the variability looks to be quite different for both  groups. There is an outlier in Machine B the others do not look to have one although Machine C looks to be possibly skewed.
+
+----
+
+### Part 3
+
+Which data conditions for ANOVA appear not to be met, if any?  Provide reasoning for your answer.
+
+### -|-|-|-|-|-|-|-|-|-|-|- Answer 3 -|-|-|-|-|-|-|-|-|-|-|-
+
+The distributions do not look similar across all of the sets, they also do not have a similar looking variance. It does not look as if all three samples have approximately the same central values.
+
+----
+
+### Part 4  
+
+Conduct an analysis of variance test (the standard one that assumes normality and equal variance).  (i) State the null and alternative hypotheses, (ii) use R to compute the test statistic and p-value, and (iii) write a conclusion in context at $\alpha=0.05$.
+
+### -|-|-|-|-|-|-|-|-|-|-|- Answer 4 -|-|-|-|-|-|-|-|-|-|-|-
+
+(i)
+$$H_0 : \mu_A = \mu_B = \mu_C$$
+$$H_a : at\ least\ one\ mean\ is\ different$$
+
+(ii)
+```{r}
+
+fit <- aov(shields$Diameter~shields$Machine)
+summary(fit)
+
+```
+
+(iii)
+At a $\alpha = 0.05$ we cannot reject $H_0$ ($p-value$ = 0.0939). In conclusion we say that at the 0.05 level of significance there is not sufficient evidence to reject the claim that all three machines have the same mean diameter.
+
+----
+
+### Part 5 
+
+Conduct an analysis of variance test with the Welch correction.  (i) State the null and alternative hypotheses, (ii) use R to compute the test statistic and p-value, and (iii) write a conclusion in context at $\alpha=0.05$.
+
+### -|-|-|-|-|-|-|-|-|-|-|- Answer 5 -|-|-|-|-|-|-|-|-|-|-|-
+
+(i)
+$$H_0 : \mu_A = \mu_B = \mu_C$$
+$$H_a : at\ least\ one\ mean\ is\ different$$
+
+(ii)
+```{r}
+
+oneway.test(shields$Diameter~shields$Machine, var.equal = F)
+
+
+```
+
+(iii)
+At a $\alpha = 0.05$ we cannot reject $H_0$ ($p-value$ = 0.06096???). In conclusion we say that at the 0.05 level of significance there is not sufficient evidence to reject the claim that all three machines have the same mean diameter.
+
+----
+
+### Part 6
+
+Which data conditions for Welch ANOVA are not met, if any?  Provide reasoning for your answer.
+
+### -|-|-|-|-|-|-|-|-|-|-|- Answer 6 -|-|-|-|-|-|-|-|-|-|-|-
+
+The data does not look to be normal which is a requirement for the Welch ANOVA. This is important to the test although the variance does not need to be similar.
+
+----
+
+### Part 7
+    
+Conduct a Kruskal-Wallis test.  (i) State the null and alternative hypotheses, (ii) use R to compute the test statistic and p-value, and (iii) write a conclusion in context using $\alpha=0.05$.
+    
+### -|-|-|-|-|-|-|-|-|-|-|- Answer 7 -|-|-|-|-|-|-|-|-|-|-|-
+
+(i)
+$H_0$ : The Population distributions are the same
+$H_a$ : The population distributions are not the same
+
+(ii)
+```{r}
+
+kruskal.test(shields$Diameter~shields$Machine)
+
+```
+
+(iii)
+At a $\alpha = 0.05$ we can reject $H_0$ ($p-value$ = 0.007114). In conclusion we say that at the 0.05 level of significance there is sufficient evidence to reject the claim that the population distributions are the same and that the population medians are different.
+
+----
+
+### Part 8
+
+Which data conditions for the Kruskal-Wallis test are not met, if any?  Provide reasoning for your answer.
+
+### -|-|-|-|-|-|-|-|-|-|-|- Answer 8 -|-|-|-|-|-|-|-|-|-|-|-
+
+It does not look as if the data sets have the same shape or scale as each other making this test not a good choice.
+
+----
+
+### Part 9 
+
+Conduct a bootstrapped ANOVA test using pooled residuals and unequal variances as in the notes.  (i) State the null and alternative hypotheses, (ii) use R to compute the test statistic and p-value, and (iii) write a conclusion in context $\alpha=0.05$.  Do not use a helper function, instead mimic the code in the notes using a for loop to construct the boostrapped sampling distribution.
+
+### -|-|-|-|-|-|-|-|-|-|-|- Answer 9 -|-|-|-|-|-|-|-|-|-|-|-
+
+(i)
+$$H_0 : \mu_A = \mu_B = \mu_C$$
+$$H_a : at\ least\ one\ mean\ is\ different$$
+
+(ii)
+```{r}
+
+
+
+F.obs <- oneway.test(Diameter~Machine, data = shields)$statistic
+
+resA <- shields$Diameter[shields$Machine=='A'] - mean(shields$Diameter[shields$Machine=='A'])
+resB <- shields$Diameter[shields$Machine=='B'] - mean(shields$Diameter[shields$Machine=='B'])
+resC <- shields$Diameter[shields$Machine=='C'] - mean(shields$Diameter[shields$Machine=='C'])
+
+B <- 10000
+Fstar1 <- numeric(B)
+for (i in 1:B){
+  pop.null <- data.frame(
+    res = sample( c(resA,resB,resC), replace = T),shields$Machine
+  )
+  Fstar1[i] <- oneway.test(res~shields$Machine, data=pop.null,
+                           var.equal = F)$statistic
+}
+p.approx1 <- sum(Fstar1 > F.obs)/B
+p.approx1
+
+```
+
+(iii)
+At a $\alpha = 0.05$ we cannot reject $H_0$ ($p-value$ = 0.0629). In conclusion we say that at the 0.05 level of significance there is not sufficient evidence to reject the claim that all three machines have the same mean diameter.
+
+----
+
+### Part 10 
+
+Repeat the bootstrapped ANOVA test using unpooled residuals and unequal variances as in the notes.  (i) State the null and alternative hypotheses, (ii) use R to compute the test statistic and p-value, and (iii) write a conclusion in context $\alpha=0.05$.  Go ahead and use the helper function or t1waybt do do this problem.
+
+### -|-|-|-|-|-|-|-|-|-|-|- Answer 10 -|-|-|-|-|-|-|-|-|-|-|-
+
+(i)
+$$H_0 : \mu_A = \mu_B = \mu_C$$
+$$H_a : at\ least\ one\ mean\ is\ different$$
+
+(ii)
+```{r}
+
+source('anovaResampleFast.R')
+anovaResampleFast(shields$Diameter,shields$Machine,B=10000,method=2,var.equal=F)
+
+```
+
+(iii)
+At a $\alpha = 0.05$ we cannot reject $H_0$ ($p-value$ = 0.3382). In conclusion we say that at the 0.05 level of significance there is not sufficient evidence to reject the claim that all three machines have the same mean diameter.
+
+----
+
+### Part 11
+
+Which seems better and why, the bootstrap procedure with the pooled or unpooled residuals?
+
+### -|-|-|-|-|-|-|-|-|-|-|- Answer 11 -|-|-|-|-|-|-|-|-|-|-|-
+
+Although our data sets have different shapes and scales, which is more condusive to the unpooled method, there are outliers in the data which can undermine this method. Because of this I would say that the pooled test is a better choice although it is not conducive to different shapes and scales. 
+
+----
+
+### Part 12 
+
+Do any of the four statistical inference procedures used here provide a clear answer to the question of whether or not the three machines produce the same average inside diameter for the insulation shields?
+
+### -|-|-|-|-|-|-|-|-|-|-|- Answer 12 -|-|-|-|-|-|-|-|-|-|-|-
+
+I would say no, there is at least one reason to not accept the results of the tests for each of the four tests run.
+
+----
+
+### Part 13 
+
+If you were responsible for conducting the statistical analysis here, what would you report to the engineer?
+
+### -|-|-|-|-|-|-|-|-|-|-|- Answer 13 -|-|-|-|-|-|-|-|-|-|-|-
+
+I would report that the tests returned not conclusive and that more samples are needed from each team to be able to have a more conclusive result.
+
+----
+
+### Part 14  
+
+What impact do you think samples of sizes 5, 5, and 10 play here?
+
+### -|-|-|-|-|-|-|-|-|-|-|- Answer 14 -|-|-|-|-|-|-|-|-|-|-|-
+
+Like stated before these sample sizes are too small for the tests that are being run. with more data points it may be possible to identify if the mean diameters are the same for all of the machines.
+
+----
+
+### Part 15
+
+Often the Kruskall Wallis test is presented as a test of 
+
+$H_0:$ the population distributions are all the same
+
+$H_1:$ the population distributions are not all the same,
+
+but this is not what KW tests as this example shows.  Take 3 random samples of size 100 from normal distributions having mean 0 and standard deviations 1, 10, and 50.  If KW were testing the hypotheses above, then we should reject $H_0$ since these three distributions are clearly different.  Run the KW test.  You should get a large $P$-value.  Why did you get a large $P$-value when the distributions are so different?
+
+### -|-|-|-|-|-|-|-|-|-|-|- Answer 15 -|-|-|-|-|-|-|-|-|-|-|-
+
+```{r echo = TRUE}
+set.seed(321)
+x <- c( rnorm(100,0,1), rnorm(100,0,10), rnorm(100,0,50))
+groups <- factor( (rep( c('A','B','C'), each=100 ) ) )
+kruskal.test(x~groups)
+
+```
+
+The groups of data do not follow the requirement of the Kruskal-Wallis test, it is required that the variances are the same.
+
+----
