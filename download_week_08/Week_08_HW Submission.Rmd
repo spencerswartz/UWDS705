@@ -34,7 +34,7 @@ stats::prop.test(clarke,correct = F)
 ```
 
 $H_0$ : The distribution of the outcome is independent of the Clarke result.
-$H_a$ : THere is a difference in the distrubution of responses to the Clarke result.
+$H_a$ : There is a difference in the distribution of responses to the Clarke result.
 
 At $\alpha = 0.05$, we do not have enough evidence to reject $H_0$ (p = 0.5542). this means that the Clarke test and CP may not be associated.
 
@@ -64,7 +64,7 @@ prop.test(posCl,CP,correct = F)
 
 ```
 
-THe difference in proportions between those without CP and tested positive and those who have CP and test positive is between -0.29 and 0.16. 
+The difference in proportions between those without CP and tested positive and those who have CP and test positive is between -0.29 and 0.16. 
 
 ### Part 1d
 
@@ -144,7 +144,7 @@ Write an interpretation of the odds ratio as a percent.
 
 ### Answer 1j
 
-Replace this text with your interpretation here.
+The Odds of having CP given a Positive Clarke's Test is 0.75 times as large as the odds for a Negative Clarke's Test.
 
 ### Part 1k
 
@@ -153,11 +153,11 @@ Construct a 95% confidence interval for the OR of having CP for those who have a
 ### Answer 1k
 
 ```{r}
-# Insert your R code here.
+OR
 
 ```
 
-Replace this text with your interpretation here.
+With 95% Confidence, the odds of having CP given a Positive Clarke's test is between 63 and 90 percent as high as for having CP given a Negative Clarke's test.
 
 ## Exercise 2
 
@@ -191,11 +191,18 @@ Create vectors for the counts and hypothesized probabilities, then conduct the c
 ### Answer 2a
 
 ```{r}
-# Insert your R code here.
+obs <- c(14,15,22,30,19,25)
+prop <- c(.15,.09,.29,.21,.12,.14)
+chisq.test(x=obs,p=prop)
 
 ```
 
-Replace this text with your interpretation here.
+$$H_0 : \pi_{aggresive}=0.15, \pi_{confident}=0.09, \pi_{outgoing}=0.29, \pi_{adaptable}=0.21, \pi_{insecure}=0.12, \pi_{independent}=0.14$$
+
+$H_a$ : At least one $\pi_i$ differs from another
+
+At $\alpha = 0.01$ we do not reject $H_0$ (p-value = .025). The distributions of Personality types in dogs look to be accurate to those identified in the table above.
+
 
 ### Part 2b  
 
@@ -204,11 +211,11 @@ Compute the expected cell counts and verify that they are all large enough for t
 ### Answer 2b
 
 ```{r}
-# Insert your R code here.
+125*prop
 
 ```
 
-Replace this text with your interpretation here.
+All proportions of the personality types are above 5 when computing the expected cell counts, this means that our chi-square test is accurate, as identified in the lecture.
 
 ## Exercise 3
 
@@ -221,7 +228,13 @@ Create a 2x2 matrix with the correct cell counts.  Arrange it so that the column
 ### Answer 3a
 
 ```{r}
-# Insert your R code here.
+age <- c("teen","teen","teen","teen","teen","teen","teen","teen","teen","teen","teen","teen","teen","teen","teen","teen","teen","teen","teen","teen","senior","senior","senior","senior","senior","senior","senior","senior","senior","senior","senior","senior","senior","senior","senior","senior","senior","senior","senior","senior")
+belt <- c("always wear","always wear","always wear","always wear","always wear","always wear","always wear","always wear","always wear","always wear","always wear","always wear","always wear","always wear","always wear","always wear","always wear","not always wear","not always wear","not always wear","always wear","always wear","always wear","always wear","always wear","always wear","always wear","always wear","always wear","always wear","always wear","always wear","not always wear","not always wear","not always wear","not always wear","not always wear","not always wear","not always wear","not always wear")
+belts <- data.frame(age, belt)
+#belts <- data.frame(matrix(c(17,3,12,8),nrow=2))
+#rownames(belts) <- c("always wear", "not always wear")
+colnames(belts) <- c("agerange", "beltanswer")
+table(belt,age)
 
 ```
 
@@ -232,8 +245,18 @@ With the small cell counts in mind, use the appropriate test to determine if pro
 ### Answer 3b
 
 ```{r}
-# Insert your R code here.
+chisq.test(age,belt)
+results = chisq.test(age,belt)
+results$expected
 
 ```
 
-Replace this text with your answer here.
+$H_0:$ Age and Belt preference are independent
+
+$H_a$ Age and Belt preference are associated
+
+Conclusion:
+
+Do not reject $H_0$ at $\alpha = 0.05$ There is insufficient evidence in this sample to claim that Age group and Belt preference are associated. (p-value = 0.16)
+
+With all the expected values above 5 we can assume that the chi-squared test is valid as noted in the lecture.
