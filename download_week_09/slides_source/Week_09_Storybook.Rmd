@@ -1,0 +1,1110 @@
+---
+title: 'Linear Regression and Correlation'
+author: "DS705"
+fontsize: '12pt'
+output:
+  beamer_presentation:
+    template: '../beamer169experimental.tex'
+    colortheme: "seahorse"
+    keep_tex: true
+    fonttheme: default
+---
+
+```{r global_options, include=FALSE, echo=FALSE}
+# use for beamer
+knitr::opts_chunk$set(fig.width=4, fig.height=3, fig.align='center',warning=FALSE, message=FALSE)
+library(knitr)
+library(car)
+# use for word
+# knitr::opts_chunk$set(fig.width=4, fig.height=3,warning=FALSE, message=FALSE)
+
+# save par defaults
+.pardefaults <- par()
+
+# Ott 11.45
+dose <- rep(c(2,4,8,16,32,64),c(3,2,2,3,2,3))
+strength <- c(5,7,3,10,14,15,17,20,21,19,23,29,28,31,30)
+drug <- data.frame(dose,strength)
+# Ott 11.12
+speed <- rep(c(60,80,100,120,140),each=4)
+lifetime <- .1*c(46,38,49,45,47,58,55,54,50,45,32,48,41,45,40,38,36,30,35,34) 
+drills <- data.frame(speed,lifetime)
+
+# example is from these lecture notes
+# http://scc.stat.ucla.edu/page_attachments/0000/0139/reg_1.pdf
+#
+# data is from Simon Sheather book "A Modern Approach to Regression with R"
+#production <- read.table("http://www.stat.tamu.edu/~sheather/book/docs#/datasets/production.txt", header=T, sep="")
+production <- read.table('./production.txt',header=T,sep="")
+production <- production[,c(3,2)]
+names(production)<-c("NumItems","Time")
+```
+
+## Relationships
+
+\hfill \includegraphics[width=5.5in]{./figures/Relationships_Table.pdf} \hspace*{\fill}
+
+<div class='notes'>
+- much of statistics is about exploring relationships between variables
+- In ANOVA for instance we could study the relationship between the type of curriculum taught and the reading score achieved by students.  
+    - the explanatory or independent variable $x$ is the type of curriculum
+    - the response or dependent variable $y$ is the reading score
+- This unit is about simple linear regression when there is a single quantitative explanatory variable and a single quantitative response variable
+- In future units, you'll learning about having multiple explanatory variables and/or response variables
+</div>
+
+## Explore Relationships and Make Predictions
+
+\Large 
+
+Manufacturing example: producing more items requires more time
+
+$$ x = \mbox{ number of items}, \hspace{.5in}  y = \mbox{ production time (minutes)}$$
+
+- Model the relationship.
+- Make predictions.
+
+<div class='notes'>
+- no audio
+</div>
+
+## Sample Data
+
+```{r echo=TRUE}
+head(production)
+```
+
+Data from *Business Analysis Using Regression: A Casebook* by Foster, Stine, and Waterman.
+
+<div class='notes'>
+- the production data is stored in a dataframe with two columns NumItems and Time
+- each row represents a single observation in which both the number of times and the production time were recorded
+</div>
+<!------------------------------------------------------------------>
+
+## Plot the data
+
+Always start with a scatterplot:
+
+```{r}
+with(production,plot(NumItems,Time))
+```
+
+<div class='notes'>
+- is there a linear trend?
+- real data almost never lies perfectly along a line
+- to use a linear model, the data should look like a line with some added noise or jitter
+</div>
+<!------------------------------------------------------------------>
+
+## Correlation
+
+How strong is the *linear* relation between $x$ and $y$?
+
+```{r}
+with(production, cor.test( NumItems, Time)$estimate )
+```
+
+Near $+1 \Rightarrow$ strong, positive linear relationship.
+
+*Pearson* correlation 
+
+<div class='notes'>
+- correlation is useful only for linear relationships.
+- we verified this was a linear relationship by inspecting the scatter plot.
+- cor.test produces more than simply the correlation coefficient, we'll look at some of the other stuff later.
+- this is the classical *Pearson* correlation coefficient, there are other ways to quantify correlation that are based on ranking the data
+</div>
+<!------------------------------------------------------------------>
+
+## Desired Model
+
+\Large 
+
+$$\hat{y} = \hat{\beta_0} + \hat{\beta_1} x$$
+
+- $x =$ number of items
+- $y =$ production time in minutes
+- $\hat{y}$ predicted value of $y$
+- $\beta_{0}$ estimated $y$-intercept
+- $\beta_{1}$ estimated slope of line
+
+<div class="notes">
+- no audio
+</div>
+
+## Confusion alert: too many $y$'s
+
+\Large
+
+- $\hat{y}$: response values predicted estimated model
+- $y$: theoretical response values from the true model
+- $y_i$: observed values of the response variable
+
+
+<div class='notes'>
+- no audio
+</div>
+<!------------------------------------------------------------------>
+
+## Residuals
+
+\vspace{-.3in}
+
+```{r echo=FALSE, fig.height=2.5,fig.width=5}
+linear.model <- lm(Time~NumItems,data=production)
+fits <- linear.model$fitted
+par(mar=c(4,4,.25,.25))
+with(production,plot(NumItems,Time))
+abline(linear.model)
+segments(x0=production$NumItems,y0=fits,x1=production$NumItems,y1=production$Time,lty="dotted")
+````
+
+residual $=e_i = \hat{y}_i - y_i$
+
+<div class='notes'>
+- finding the line is all about the residuals
+- a residual is the vertical difference between an observed y-value and the predicted y-value from the line
+- the least squares regression line is found by choosing the line that minimizes the sum square residuals
+- you should read about the equations used for finding the slope and intercept in your book
+- we'll see how to find the model and plot the line in the next few slides
+</div>
+<!------------------------------------------------------------------>
+
+## Least Squares Regression Concept
+
+Insert video here
+
+Add clickable link in lower box
+
+http://hspm.sph.sc.edu/courses/J716/demos/LeastSquares/LeastSquaresDemo.html
+
+
+<div class='notes'>
+video slide ... narrated presentation using the java applet
+</div>
+
+## Finding the model in R
+
+```{r eval = FALSE}
+linear.model <- with( production, lm( Time ~ NumItems ) )
+summary(linear.model)
+```
+
+```{r, echo=FALSE,warning=FALSE}
+# this is just tricks to trim the output to fit on one slide
+linear.model <- with( production, lm( Time ~ NumItems ) )
+require(utils)
+tmp <- noquote( 
+  capture.output( 
+    summary(linear.model)
+    )
+  )
+write.table(tmp[9:12],quote=F,row.names=F,col.names=F)
+```
+
+$$\hat{y} = 149.75 + 0.2592 x$$
+$$\mbox{Time } = 149.75 + 0.2592\mbox{ NumItems}$$
+
+<div class='notes'>
+- the summary command actually reports a whole lot more than the coefficients of the model and we'll look at more of it later, for now we are just interested in the coefficients of the model 
+- (Highlight the block (Intercept) 149.74770 and NumItems 0.25924)
+</div>
+
+## Plotting the least-squares line
+
+```{r}
+with( production, plot( NumItems, Time) )
+abline( linear.model, col = 'blue' )
+```
+
+<div class='notes'>
+- no audio
+</div>
+
+## Extracting Coefficients
+
+```{r}
+linear.model$coef[1]
+linear.model$coef[2]
+```
+
+*Average* production time increases 0.26 minutes for each additional item produced.
+
+- Type `str(linear.model)` to view the whole linear.model object
+
+<div class='notes'>
+The y-values predicted from the model are estimates of the *average* response value for each $x$
+</div>
+
+
+## Making Predictions (2)
+
+
+```{r}
+new <- data.frame( NumItems = seq(50,350,by=50) )
+new$Time <- predict( linear.model, new )
+new
+```
+
+<div class='notes'>
+- the predict function requires a dataframe containing the values of the explanatory variable to be used for making predictions
+
+- the estimated average time to produce 100 items is about 176 minutes
+- think of this estimate like a sample mean, it is a point estimate of the population mean production time
+- for a particular production run that produces the 100 items, the actual time is expected to vary significantly around 176 minutes
+</div> 
+<!------------------------------------------------------------------>
+
+## Outliers and Influential Observations
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, include=FALSE}
+par(mar=c(.25,.25,.25,.25),mfrow=c(1,1))
+```
+
+```{r}
+x <- c(2,7,7,8,11,13,15,33); y <- c(1,9,8,10,18,26,19,30)
+plot( x, y, ylim=c(0,50) )
+mod1 <- lm( y~x ); mod2 <- lm( y[-8] ~ x[-8] )
+abline(mod1); abline(mod2,lty='dashed')
+```
+
+<div class='notes'>
+- as always outliers are any observations that are outside the pattern, the point (33,30) is an outlier
+- an outlier doesn't have to be influential and an influential point need not be an outlier
+- to see if a point is influential, plot the line with all the data, this is the solid line
+- and plot the line with the point (33,30) removed resulting in the dashed line
+- since the line is much different with the point removed, the point (33,30 is an influential point
+- we should determine if we want to restrict our attention to x values between 2 and 15 in which case the dashed line is fine, or if we need to extend the model further then we probably need additional data before we can assess whether a linear model is appropriate
+- your book distinguishes between outliers, influential points, and points with so-called "leverage"   ... I don't find these distinctions important.  If a point doesn't seem to fit with the rest try modeling with and without the point to see if it has a large effect.
+</div>
+
+
+## Inference for Regression
+
+\Large  
+
+- estimate population slope
+- estimate population correlation
+- test for significant linear relationship / correlation
+- estimate average response at given $x$
+- estimate future individual response at given $x$
+
+<div class='notes'>
+- these are typical inference procedures for linear regression, but traditional, parametric approaches to 
+these procedures are based on some assumptions or requirements about the data
+- if those requirements aren't met, the parametric approaches may be invalid or inaccurate
+- we'll discuss those assumptions and how to check them in the next several slides
+</div>
+<!------------------------------------------------------------------>
+
+## Simple Linear Regression Model
+
+Simple Linear Regression: 
+$$y_i  = \beta_0 + \beta_1 x_i + \epsilon_i, \hspace{.5in}
+\epsilon_i \overset{\scriptsize\mbox{ind}}{\sim} N(0,\sigma_\epsilon)$$
+$$ x = \mbox{ explanatory, independent, predictor }, y = \mbox{ response, depdendent }$$
+
+Assumptions / Requirements:
+
+1. errors have mean 0
+2. errors have the same variance for all $x$
+3. errors are independent of each other
+4. errors are normally distributed.
+
+<div class='notes'>
+- of course you can fit a line to any data you like, but if you want to make inferences based on the linear relationship, you need need to first verify that these requirements are met.  
+- if the requirements are not met, then more advanced techniques, beyond those discussed below are needed.
+</div>
+
+
+## Errors vs. Residuals
+
+\Large
+
+- Errors are differences between the true, but unknown, line and the $y$ values 
+    - \large $\epsilon$ in the model
+- Residuals are the differences between the estimated line and the $y$ values
+- The residuals approximate the errors.
+- Inspect the residuals to see if the model requirements are plausible.
+
+<div class='notes'>
+- no audio
+</div>
+
+## Check Requirements before Inference
+
+Assumptions / Requirements:
+
+1. errors have mean 0
+2. errors have the same variance for all $x$
+3. errors are independent of each other
+4. errors are normally distributed.
+
+To make things simpler extract all the info. first:
+
+```{r}
+resids <- linear.model$resid # extract residuals from model
+NumItems <- production$NumItems
+Time <- production$Time
+TimeFit <- linear.model$fitted.values
+```
+
+<div class='notes'>
+- We are going to use the residuals as surrogates for the errors and by inspecting the residuals see if each requirement seems to be satisfied
+- The first requirement is automatic, since mathematically the residuals always add to zero.
+</div>
+<!------------------------------------------------------------------>
+
+## Equal Variances
+
+Do the errors have the same variance for all $x$?  (homoscedasticity)
+
+```{r}
+plot(NumItems,resids); abline(h=0,lty='dashed')
+```
+
+<div class='notes'>
+- we want to see the same amount of spread, vertically, at all values of $x$
+- some authors call this equal variances, others say the variance is constant, still others say the variance is 
+homoscedastic
+- this certainly seems to be true for this data
+- the next slide shows an example of the kind of residual plot we do not want to see
+</div>
+<!------------------------------------------------------------------>
+
+## Equal Variance (2)
+
+Equivalently, we can plot the residuals versus the fitted values
+
+```{r}
+plot(TimeFit, resids); abline( h=0, lty='dashed')
+```
+
+<div class='notes'>
+- the last two plots look exactly the same and for simple linear regression they are identical
+- in multiple regression there are multiple explanatory variables $x$ so we look at only the plot if the residuals versus the fitted values
+</div>
+<!------------------------------------------------------------------->
+
+## Equal Variance, n = 10
+
+```{r,echo=FALSE,fig.width=5,fig.height=2.5,fig.align='center'}
+n <- 10
+par(mfrow=c(2,5))
+par(mar=c(.25,.25,.25,.25))
+for (i in 1:10){
+  x <- runif(n)
+  y <- rnorm(n)
+  plot(x,y,xaxt='n',yaxt='n',ylim=c(-2.5,2.5)); abline( h = 0, lty='dashed',xaxt='n',yaxt='n')
+}
+par(mfrow=c(1,1))
+```
+
+<div class='notes'>
+- on this and the next couple of slides are multiple residual plots where the residuals are sampled from a normal distribution with constant variance so that the equal variance condition is satisfied.
+- inspect these plots to get an idea of what equal variances looks like
+- we start with 10 samples of size 10, notice it's very hard to tell with small samples
+- so unless the variances are quite different at different values of $x$, then assume equal variances
+</div>
+
+## Equal Variance, n = 30
+
+```{r,echo=FALSE,fig.width=5,fig.height=2.5,fig.align='center'}
+n <- 30
+par(mfrow=c(2,5))
+par(mar=c(.25,.25,.25,.25))
+for (i in 1:10){
+  x <- runif(n)
+  y <- rnorm(n)
+  plot(x,y,xaxt='n',yaxt='n',ylim=c(-2.5,2.5)); abline( h = 0, lty='dashed',xaxt='n',yaxt='n')
+}
+par(mfrow=c(1,1))
+```
+
+<div class='notes'>
+the variances are constant here too, it's easier to see with larger samples
+</div>
+
+## Equal Variance, n = 100
+
+```{r,echo=FALSE,fig.width=5,fig.height=2.5,fig.align='center'}
+n <- 100
+par(mfrow=c(2,5))
+par(mar=c(.25,.25,.25,.25))
+for (i in 1:10){
+  x <- runif(n)
+  y <- rnorm(n)
+  plot(x,y,xaxt='n',yaxt='n',ylim=c(-2.5,2.5)); abline( h = 0, lty='dashed',xaxt='n',yaxt='n')
+}
+par(mfrow=c(1,1))
+```
+
+<div class='notes'>
+- no audio
+</div>
+
+## Not Equal Variances
+```{r echo=FALSE,fig.height=2.5,fig.width=5,fig.align='center'}
+par(mfrow=c(2,2))
+par(mar=c(.25,.25,.25,.25))
+n <- 100
+
+# fanning
+x <- sort(10*runif(n))
+y <- rnorm(n)*x
+plot(x,y,xaxt='n',yaxt='n'); abline(h=0,lty='dashed')
+
+# fanning other direction with curvature
+x <- sort(10*runif(n))
+y <- rnorm(n)*((10-x)/2.5)^2
+plot(x,y,xaxt='n',yaxt='n'); abline(h=0,lty='dashed')
+
+# fanning
+x <- sort(10*runif(n))
+y <- rnorm(n)*sqrt(x)
+plot(x,y,xaxt='n',yaxt='n'); abline(h=0,lty='dashed')
+
+# fanning
+x <- sort(10*runif(n))
+y <- rnorm(n)*(5-abs(5-x))
+plot(x,y,xaxt='n',yaxt='n'); abline(h=0,lty='dashed')
+
+```
+
+<div class='notes'>
+- Here are some examples of residual plots showing what unequal variances look like.  
+- The first three of these plots show residuals that exhibit "fanning"
+- "fanning" is where the variance of the residuals increases, or decreases, as a function of the explanatory variable 
+- The fourth plot shows a diamond shape where the variance decreases as we move away from the middle
+- these residual plots indicate data sets that violate the requirements for the simple linear regression model, while it's still reasonable to fit a line to the data, we shouldn't try statistical inference with the standard procedures discussed here.
+- it might be possible to transform the data or use bootstrapping.  WE won't cover bootstrapping for linear regression, but an example of transformation is at the end of these slides.
+- in the next few slides we show what fanning looks like for various sample sizes
+</div>
+
+## Fanning (n=10)
+
+```{r echo=FALSE,fig.width=5,fig.height=2.5}
+
+n <- 10
+par(mfrow=c(2,5))
+par(mar=c(.25,.25,.25,.25))
+for (i in 1:10){
+  x <- sort(runif(n))
+  y <- rnorm(n)*x
+  plot(x,y,xaxt='n',yaxt='n',ylim=c(-1.5,1.5)); abline( h = 0, lty='dashed',xaxt='n',yaxt='n')
+}
+par(mfrow=c(1,1))
+```
+
+<div class='notes'>
+- again it can be very hard, for small samples, to see if the equal variances requirement is met, but these residual plots give you an idea of what it looks like
+- the best thing to do is get more data!
+</div>
+
+## Fanning (n=30)
+
+```{r echo=FALSE,fig.width=5,fig.height=2.5}
+
+n <- 30
+par(mfrow=c(2,5))
+par(mar=c(.25,.25,.25,.25))
+for (i in 1:10){
+  x <- sort(runif(n))
+  y <- rnorm(n)*x
+  plot(x,y,xaxt='n',yaxt='n',ylim=c(-1.5,1.5)); abline( h = 0, lty='dashed',xaxt='n',yaxt='n')
+}
+par(mfrow=c(1,1))
+```
+
+<div class='notes'>
+- no audio
+</div>
+
+## Fanning (n=100)
+
+```{r echo=FALSE,fig.width=5,fig.height=2.5}
+
+n <- 100
+par(mfrow=c(2,5))
+par(mar=c(.25,.25,.25,.25))
+for (i in 1:10){
+  x <- sort(runif(n))
+  y <- rnorm(n)*x
+  plot(x,y,xaxt='n',yaxt='n',ylim=c(-1.5,1.5)); abline( h = 0, lty='dashed',xaxt='n',yaxt='n')
+}
+par(mfrow=c(1,1))
+```
+
+<div class='notes'>
+- no audio
+</div>
+
+## Testing for equal variances
+
+The Bruesch-Pagan test.  A low $P$-value indicates unequal variances.
+$$ H_0: \mbox{equal variances}, \hspace{.5in} H_1: \mbox{unequal variances}$$
+
+```{r}
+require(lmtest) # install if needed
+bptest(linear.model)
+```
+
+<div class='notes'>
+- there are several hypothesis tests one can use to determine if the equal variances condition is violated
+- this one, called the Bruesch-Pagan test is described on page 800 of Ott's book.
+- just like testing for normality, you should not rely on a test for unequal variances very heavily
+- if you have a very small sample, the test won't have much power and will only detect severe unequal variances
+- if you have a very large sample, the test will flag very slightly unequal variances as statistically significant even though they likely have little impact on the linear regression assumptions
+- usually, a visual inspection of the residual plots is adequate, if there is a question, try to get more data
+</div>
+
+## Independence of errors
+
+\large
+
+- Errors should have no dependence on order, time, or space
+- Lack of independence includes:
+    - clusters or patterns
+    - serial correlation (order or time dependence)
+    - spatial association
+- Plots
+    - residuals vs explanatory variable(s)
+    - residuals vs order (and/or time)
+
+<div class='notes'>
+- we can use the residuals as surrogates for errors and inspect the residuals to see if there is reason to believe the residuals are dependent
+- essentially, the residuals should not exhibit any dependence on the explanatory variables or on the order they were selected ... 
+</div>
+
+## Evidence for independence
+
+\vspace{-.4in}
+
+```{r echo=FALSE,fig.width=5.6,fig.height=3.2}
+n <- 100
+x <- 10*runif(100)
+err <- rnorm(n)
+err.sort <- sort(err)
+for (i in 1:10){
+  ind <- ((i-1)*10 + 1):(i*10)
+  err.sort[ind]<-sample(err.sort[ind],replace=F)
+}
+y <- 2*x-1+err
+y.sort <- 2*x-1+err.sort
+res <- lm(y~x)$resid
+res.sort <- lm(y.sort~x)$resid
+par(mfrow=c(2,2))
+par(mar=c(1.8,1.8,1.8,1.8)*1.3)
+par(oma=c(1,1,0,0),
+    mgp=c(1.5,.75,0))
+plot(x,y,xlab='explanatory',ylab='response',mar=c(1.8,1.8,0,1.8))
+plot(1:n,y,xlab='observation number',ylab='response',mar=c(1.8,1.8,0,0))
+plot(1:n,x,xlab='observation number',ylab='explanatory',mar=c(1.8,1.8,1.8,1.8))
+plot(1:n,res,xlab='observation number',ylab='residual',mar=c(1.8,1.8,1.8,0))
+```
+
+<div class='notes'>
+- the first plot of the response versus the explanatory variable shows a nice linear trend that we 
+want to see for simple linear regression
+- it also shows that residuals, the vertical deviations from the line, don't depend on x, of course you plot just the residuals versus x to verify that, but we haven't shown that plot here
+- the next two plots show you that both the response and explanatory variables don't exhibit any dependence on the order of the observations.  This doesn't have to be the case since it would be reasonable to put the x's in some order
+- but the last plot, of residual versus x, shouldn't exhibit a different trend than either of plots 2 and 3 ... since x and y both don't depend on order, the residuals shouldn't depend on order either.
+- these plots suggest that the independence of errors requirement is plausible for this data
+</div>
+
+## Evidence for dependence
+
+\vspace{-.4in}
+
+```{r echo=FALSE,fig.width=5.6,fig.height=3.2}
+par(mfrow=c(2,2))
+par(mar=c(1.8,1.8,1.8,1.8)*1.3)
+par(oma=c(1,1,0,0),
+    mgp=c(1.5,.75,0))
+plot(x,y.sort,xlab='explanatory',ylab='response',mar=c(1.8,1.8,0,1.8))
+plot(1:n,y.sort,xlab='observation number',ylab='response',mar=c(1.8,1.8,0,0))
+plot(1:n,x,xlab='observation number',ylab='explanatory',mar=c(1.8,1.8,1.8,1.8))
+plot(1:n,res.sort,xlab='observation number',ylab='residual',mar=c(1.8,1.8,1.8,0))
+```
+
+<div class='notes'>
+- these plots are just like the ones on the previous slide, but the fourth plot looks different
+- notice that x and y are both independent of the observation number, but the residuals depend strongly on the order of the observations ... there is a relationship among the residuals so the requirement of independence may be violated and we should proceed with caution ... if the pairs were artificially sorted in order of increasing residuals, then there isn't a problem, but if the observations are in chronological order then that is a pattern of dependence we can't ignore in which case the requirements for the simple linear regression model are not met.
+</div>
+
+
+## Normality of Error Distribution
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, include=FALSE}
+par(mar=c(4,4,.2,.25))
+```
+
+```{r,fig.width=5,fig.height=3,fig.align='center'}
+par(mfrow=c(1,2)); hist( resids); qqnorm( resids); qqline( resids)
+```
+
+
+<div class='notes'>
+- the histogram and normal quantile plot both suggest that the residuals
+could be normally distributed so its plausible that the errors are normally distributed
+- having verified that are data seems to be the simple linear regression model, we can continue on to doing statistical inference for this problem
+</div>
+<!------------------------------------------------------------------>
+
+## What if requirements are violated?
+
+\Large
+
+Alternatives to the simple linear regression model include:
+
+- nonparametric procedures based on rank
+- bootstrapping 
+- Generalized Linear Model
+
+Beyond the scope of this class ...
+
+<div class='notes'>
+- bootstrap estimates of the population slope, population intercept, and population mean response for a fixed x are actually pretty easy to get, bootstrapping the prediction intervals is more complicated, I'd love to show you all the bootstrap stuff because it's some of my favorite material, but we don't have time to do it all.
+- the generalized linear model is a framework that allows
+    - more complicated functions of the data and parameters using what are called link functions
+    - different probability distributions for the error terms
+    - makes it possible to model unequal variances
+</div>
+
+## If the requirements are met 
+
+\Large 
+
+- then proceed to statistical inference using the classical methods described here and in the book
+
+<div class='notes'>
+- no audio
+</div>
+
+## Confidence interval for the slope
+
+```{r}
+confint(linear.model)
+```
+
+We are 95% confident that the population mean production time increases 0.18 to 0.34 minutes for each additional item produced.
+
+<div class='notes'>
+- Usually we are most interested in the population slope, beta_1, whose confidence interval estimate is given on the second line,
+- but if needed the CI for the population intercept, beta_0, is given on the first line
+- the intercept here suggests that 132 to 167 minutes are required if no items are produced ... that hardly seems reasonable, since all of the data is for production runs with 50 to 350 items produced, we shouldn't expect the model to give us meaningful information for 0 items produced ... this is an example of extrapolation
+</div>
+
+## Confidence interval for the correlation
+
+```{r}
+with(production, cor.test( NumItems, Time)$conf.int )
+```
+
+## Test for a significant linear relationship
+
+$$H_0: \beta_1 = 0, \hspace{.5in} H_a: \beta_1 \neq 0$$
+
+```{r eval = FALSE}
+linear.model <- with( production, lm( Time ~ NumItems ) )
+summary(linear.model)
+```
+
+<div class='notes'>
+- this interval estimate is less useful in most applications, but just in case you need it you can
+- see that is very easy to get a confidence interval estimate of the population correlation
+- this verifies that is moderate or strong positive correlation between the number of items produced and the production time.  
+</div>
+
+```{r, echo=FALSE,warning=FALSE}
+# this is just tricks to trim the output to fit on one slide
+linear.model <- with( production, lm( Time ~ NumItems ) )
+require(utils)
+tmp <- noquote( 
+  capture.output( 
+    summary(linear.model)
+    )
+  )
+write.table(tmp[9:12],quote=F,row.names=F,col.names=F)
+```
+
+<div class='notes'>
+- as part of computing the linear model R does a hypothesis test to determine if the unknown population slope is different than 0
+
+- The second line of the coefficients that begins with NumItems shows
+us
+    - the estimated slope .25924
+    - the standard error of the slope
+    - the test statistic for the test of the slope is 6.98
+    - the $P$-value is nearly 1.61 x 10^-6, so there is strong evidence of a statistically significant linear relationship between the production time and the number of items produced
+    - the super tiny $P$-value for the intercept indicates the population intercept is significantly different than 0, but this usually isn't of interest
+</div>
+
+## Checking for practical significance (effect size)
+
+coefficient of determination $R^2$
+
+```{r eval=FALSE}
+summary(linear.model)
+rsq <- linear.model$r.squared
+rsq.adj <- linear.model$adj.r.squared
+```
+
+```{r, echo=FALSE,warning=FALSE}
+# this is just tricks to trim the output to fit on one slide
+linear.model <- with( production, lm( Time ~ NumItems ) )
+require(utils)
+tmp <- noquote( 
+  capture.output( 
+    summary(linear.model)
+    )
+  )
+write.table(tmp[17],quote=F,row.names=F,col.names=F)
+```
+
+<div class='notes'>
+- $R^2 \approx$ proportion of total variation in $y$ that is explained by the linear relationship with $x$.  
+- the adjusted $R^2$ is an unbiased estimate of the population coefficient of determination and is usually very similar to the regular R^2
+- the adjusted R^2 suggests that about 72% of the total variation in production times is explained by the linear relationship between production time an the number of items produced.  This also means that 28% of the variation is unexplained by the linear relationship.
+- in this case the model has strong predictive power, but a low coefficient of determination might indicate that a model has little practical significance 
+- R^2 is often used as a standardized effect size for linear regression, its possible to have a tiny P-value indicating a statistically significant linear relationship and also have a small R^2 indicating that the linear relationship doesn't explain much ... the exact value of R^2 that indicates practical significance depends on the application
+</div>
+
+## ANOVA for Regression
+
+Partition the variance in the response variable
+
+\large
+
+$$ \mbox{SSTOT}  = \mbox{SSREG}  + \mbox{SSE} $$
+
+$$ \sum  (y_i - \overline{y})^2 = \sum (\hat{y}_i - \overline{y})^2 + \sum  (y_i - \hat{y}_i)^2$$
+
+$$ \mbox{df}_{\mbox{reg}} = 1, \hspace{.5in} \mbox{df}_{\mbox{errors}} = n - 2 $$
+
+<div class='notes'>
+- the test for a significant linear relationship that was reported a few slides ago is based on the t-test statistic, but the F-test is equivalent in the case of simple linear regression
+- for multiple regression, only the F-test works so its worth exploring here
+- the underlying idea is important also ... 
+- in ANOVA analysis of multiple population means, the Sum Squares total variation in the response variable is partitioned into two  components: the sum squares groups and the sum squares residuals
+- in ANOVA analysis for linear regression the sum squares total variation in the response variable is partitioned into the sum squares regression which is similar to the sum squares groups from before and the sum squares residuals
+- the next slide helps explain these two sources of variation
+</div>
+
+## Partition the variance picture
+
+\includegraphics[height=2.8in]{./figures/partition.pdf}
+
+<div class='notes'>
+make this into a video slide and show the two error components
+</div>
+
+## ANOVA Table for Regression
+
+\begin{table}[h!]
+        \centering
+        \begin{tabular}{lccccc}
+        Source & df & SS & MS & F  & $P$-value \\ \hline
+         & & & & & \\
+        Regression & $1$   & $SSREG$ & $MSREG=\frac{SSREG}{1}$ & $F_0 = \frac{MST}{MSE}$&$P(F_{1,n-2} > F_0 )$  \\[1em]
+        Error      & $n-2$ & $SSE$   & $MSE  =\frac{SSE}{n-2}$ & & \\[1em]  \hline
+        & & & & & \\
+        Total & $n-1$ & $SSTOT$  & &  & 
+        \end{tabular}
+\end{table}
+
+<div class='notes'>
+- once you have the sum squares and the degrees of freedom the remainder of the anova table follows just like it did with our past ANOVA analysis
+- the degrees of freedom for the sum squares is one less than the number of parameters in the model
+- notice that sum-squares regression has only 1 degree of freedom, whenever the degrees of freedom for the numerator is 1 in an F distribution, the F test statistic is just the square of the t-test statistic
+- in multiple regression there are more parameters in the model and the degrees of freedom for the numerator will be larger than one, so the F test statistic will no longer be equivalent to a t.
+</div>
+
+## ANOVA for Regression Example
+
+```{r}
+linear.model <- with( production, lm( Time ~ NumItems ) )
+anova(linear.model)
+```
+
+<div class='notes'>
+- here we have the anova table for the production example
+- you might notice that the P-value is the same as it was, except for rounding, when we reported the t-test a few slides ago
+- if you were to square the t-test statistic from before it would be the same as F here.
+</div>
+
+## Confidence Interval for Population Mean Response
+
+At a production level of 300 items, what is the average production time?
+
+```{r}
+x <- data.frame( NumItems = 300 )
+predict( linear.model, x , interval="confidence")
+```
+We are 95% confident that, for a production level of 300 items, the average production time is between 217 and 238 minutes.
+
+<div class='notes'>
+-no audio
+</div>
+
+
+## Prediction Interval for New Observed Value of Response
+
+At a production level of 300 items, what is a plausible range of values for the time of a single, new production run?
+
+```{r}
+x <- data.frame( NumItems = 300 )
+predict( linear.model, x , interval="prediction")
+```
+
+We are 95% confident that, for a production level of 300 items, the production time will be between 192 and 263 minutes.
+
+<div class='notes'>
+- as discussed in your text book, the prediction interval is saying that if we added one more observation to the data set, with the $x$ value of 300, then the e $y$-value will be between 192 and 263. 
+- the 95% says that for 95% of samples you'll get a prediction interval that actually contains the next observed response value
+- the prediction interval is often more relevant than the confidence interval because the prediction interval is telling us what $y$-values we can expect to observe at a given level of $x$, whereas the confidence interval tells us the *average* value of $y$ to expect.
+</div>
+
+## Confidence Bands - the code
+
+\small 
+```{r eval = FALSE}
+xplot <- data.frame( NumItems = seq( 50, 3, length=200) )
+fittedC <- predict(linear.model,xplot,interval="confidence")
+fittedP <- predict(linear.model,xplot,interval="prediction")
+
+# scatterplot
+ylimits <- c(min(fittedP[,"lwr"]),max(fittedP[,"upr"]))
+plot(NumItems,Time,ylim=ylimits)
+abline(linear.model)
+             
+# plot the confidence and prediction bands
+lines(xpts, fittedC[, "lwr"], lty = "dashed",col='darkgreen')
+lines(xpts, fittedC[, "upr"], lty = "dashed",col='darkgreen')
+lines(xpts, fittedP[, "lwr"], lty = "dotted",col='blue')
+lines(xpts, fittedP[, "upr"], lty = "dotted",col='blue')
+```
+
+<div class='notes'>
+- a nice summary plot is to show the scatterplot of the data, 
+- the fitted model
+- and both confidence and prediction intervals as each value of x
+- the OTT textbook has exactly this kind of plot on page 598.
+</div>
+
+## Confidence Bands 
+
+```{r echo = FALSE,fig.width=5.3,fig.height=2.9}
+par(mar=c(2.5,4,.15,.15))
+xplot <- data.frame( NumItems = seq( 50, 350, length=301) )
+fittedC <- predict(linear.model,xplot,interval="confidence")
+fittedP <- predict(linear.model,xplot,interval="prediction")
+
+# scatterplot
+ylimits <- c(min(fittedP[,"lwr"]),max(fittedP[,"upr"]))
+par(las=1)
+plot(NumItems,Time,ylim=ylimits,xaxt='n',yaxt='n',xlab='')
+axis(2,mgp=c(3,.5,0))
+axis(1,mgp=c(3,.3,0))
+mtext(side=1,text='NumItems',line=1.5)
+#mtext(side=2,text='Time',line=1.5)
+abline(linear.model)
+             
+# plot the confidence and prediction bands
+lines(xplot[,1], fittedC[, "lwr"], lty = "dashed", col='darkgreen',lwd=2)
+lines(xplot[,1], fittedC[, "upr"], lty = "dashed", col='darkgreen',lwd=2)
+lines(xplot[,1], fittedP[, "lwr"], lty = "dotted", col='blue',lwd=2)
+lines(xplot[,1], fittedP[, "upr"], lty = "dotted", col='blue',lwd=2)
+
+lines(xplot[201,1]*c(1,1),fittedP[201,c(2,3)],col="red",lty="dotted",lwd=2)
+```
+
+<div class='notes'>
+- to interpret this plot look at the vertical red line shown where the number of items is 250.
+- the vertical red line crosses through the dashed green lines at the lower and upper 95% confidence limits for the population mean production time when 250 items are produced
+- the vertical red line intersects the dotted blue lines at the lower and upper 95% prediction limits for the value of a new Production time at a production level of 250 minutes.
+- notice how the width of the intervals gets larger as we move away from the center of the plot
+- think of this as an extrapolation penalty, the uncertainty increases as we move away from the middle of the data, this is reflected in the term containing the sample mean x value in the formulas for the standard error
+</div>
+
+## Lack of Fit - An Example
+
+- relationship between drug dose ($x$) and strength of protective response ($y$) (Ott, problem 11.45)
+
+```{r, eval = FALSE}
+dose <- rep(c(2,4,8,16,32,64),c(3,2,2,3,2,3))
+strength <- c(5,7,3,10,14,15,17,20,21,19,23,29,28,31,30)
+drug <- data.frame(dose,strength); mod <- lm(strength~dose)
+plot(dose,strength); abline(mod)
+```
+
+<div class='notes'>
+- Ott describes the lack of fit test on pages 602 and 603
+- this test is a special case of a general F test that is used for comparing nested linear models
+</div>
+
+
+## Lack of Fit - Example Plot
+
+```{r, echo = FALSE,fig.height=3.5,fig.width=5}
+dose <- rep(c(2,4,8,16,32,64),c(3,2,2,3,2,3))
+strength <- c(5,7,3,10,14,15,17,20,21,19,23,29,28,31,30)
+drug <- data.frame(dose,strength); mod <- lm(strength~dose)
+plot(dose,strength); abline(mod)
+```
+
+<div class='notes'>
+- in this example we are trying the predict the strength of response to a drug from the dose of the drug
+- visually we can see that while the trend is for the strength of response to increase as the dose increases, but it isn't exactly linear
+- in this case the strength is increasing, but the rate of increase is decreasing as the dose increases
+- in other cases the lack of fit is more subtle, see the example on page 604 of Ott.
+</div>
+
+## RSquare doesn't tell the whole story
+
+```{r eval=FALSE}
+drug.model <- with( drug, lm( strength ~ dose ) )
+summary(drug.model)
+```
+
+```{r, echo=FALSE,warning=FALSE}
+# this is just tricks to trim the output to fit on one slide
+drug.model <- with( drug, lm( strength ~ dose ) )
+require(utils)
+tmp <- noquote( 
+  capture.output( 
+    summary(drug.model)
+    )
+  )
+write.table(tmp[17],quote=F,row.names=F,col.names=F)
+```
+
+<div class='notes'>
+- The R-squared and adjusted R-squared both suggest that about 74 to 76 percent of the overall variation in strength of response is due to the linear relationship with dose,
+- but visually we see that there should be a better model than a straight line ... we don't really need the lack of fit test to tell that here, but it isn't always so obvious
+- we'll go ahead with the lack of fit test just so we can see how it works in R
+</div>
+
+## The Lack of Fit F-test
+
+- requires some $x$ values to have multiple observed $y$ values
+- compares linear model to a "full" model that fits through mean of each group
+
+```{r echo=FALSE}
+drug.model.full <- with( drug, lm( strength ~ factor(dose) ) )
+with( drug, plot(dose, strength) )
+abline( drug.model, col = 'blue', lwd = 2)
+points( drug$dose, drug.model.full$fitted, type='b', col='darkgreen', lwd=2, pch=22 )
+```
+
+<div class='notes'>
+- we can only use this test if we have at least a few values of $x$ for which multiple values of $y$ are recorded similar to what we have in this drug study
+- essentially we're going to compare the variation of the residuals about the line to the variation within each group
+- loosely, we do this by fitting a model that goes through the mean of each group and comparing the residuals from the linear model to the residuals from the full model
+</div>
+
+## Lack of Fit test in R
+
+- math details in Ott, Section 11.5
+- small $P$ indicates that the "full" model explains significantly more of the variance in the response than the linear model
+
+$$ H_0: \mbox{line model}, \hspace{1in} H_a: \mbox{full model} $$
+
+```{r, eval=FALSE}
+drug.model <- with( drug, lm( strength ~ dose ) )
+drug.model.full <- with( drug, lm( strength ~ factor(dose) ) )
+anova( drug.model, drug.model.full )
+```
+
+output on next slide!
+
+<div class='notes'>
+- this is a case where R makes something very simple that seems complicated on paper
+- find the linear model based on the least squared line
+- find another linear model which fits to the mean of each group as in an ANOVA for multiple means, that's represented by the green curve here ... note, linear model refers to how the unknown coefficients appear in the model and not necessarily to a straight line
+- finally, use the general f-test, implemented in ANOVA to compare the two models.  this works as long as the models are nested ... in this case the linear model assumes that the population means are related by the line equation so this is a special case of the more general model that assumes no special relationship between the means, that is drug.model is nested inside of drug.model.full
+- the general F test can be used to compare any pair of nested models
+</div>
+
+## Lack of Fit test in R 
+
+\small
+```{r, echo=FALSE}
+drug.model <- with( drug, lm( strength ~ dose ) )
+drug.model.full <- with( drug, lm( strength ~ factor(dose) ) )
+anova( drug.model, drug.model.full )
+```
+
+
+\large
+
+- Small $P \Rightarrow$ linear model not a good fit.
+- Too much response variance not captured by the model.
+
+<div class='notes'>
+- the tiny P value confirms what we already knew, the full model fits better, or equivalently, there is a lack of fit the simple line model
+- we can develop a more complex model or perhaps find a simple model which fits better
+- be careful with more complex models, a very complex model with many parameters might fit the data perfectly but still be useless for making predictions for different values of x, this is called overfitting
+</div>
+
+
+## Finding a better model: transforms
+
+- review Ott pages 577-580
+
+```{r}
+with( drug, plot( log(dose), strength) )
+```
+
+straightened!
+
+<div class='notes'>
+- Ott discusses when to try different transformations, but since the data looks like a square root or logarithmic curve, those are both reasonable things to try
+- this shows the the logarithm of the dose and the strength of response are about as linear as possible
+</div>
+
+## Fitting the transformed model
+
+```{r}
+drug.model.logx <- with( drug, lm( strength ~ log(dose) ) )
+(b0 <- drug.model.logx$coef[1])
+(b1 <- drug.model.logx$coef[2])
+```
+
+\large
+$$\hat{y} = `r round(b0,2)` + `r round(b1,2)` \log(\mbox{dose})$$
+
+<div class='notes'>
+- no audio
+</div>
+
+## Transformed model plot
+
+```{r}
+with( drug, plot( dose, strength) )
+points( dose, b0 + b1* log(dose), type = 'l')
+```
+
+<div class='notes'>
+- no audio
+</div>
+
+
+## Use Lack of Fit to check new model
+
+\small
+```{r}
+anova( drug.model.logx, drug.model.full )
+```
+
+
+\normalsize
+
+- Large $P \Rightarrow$ no diff. between "full" and new models 
+- New model is a good fit, has low complexity, "full" model not significantly better
+
+<div class='notes'>
+- you can transform any data to straighten it and/or make the variances the same for all values few the explanatory variable
+- the lack of fit test, which we used here, only applies if the there are multiple response values for at least a few values of the explanatory variable, the more repeated measurements, the more powerful the test.
+</div>
