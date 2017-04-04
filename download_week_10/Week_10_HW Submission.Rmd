@@ -1,0 +1,418 @@
+
+---
+title: 'Lab Assignment: Multiple Linear Regression'
+author: "Spencer Swartz"
+date: "March 26, 2017"
+output: word_document
+fontsize: 12pt
+---
+
+
+
+Knit a Word file from this R Markdown file for the following exercises.  Submit the R markdown file and resulting Word file via D2L Dropbox.   
+
+## Exercise 1
+
+A personnel officer in a governmental agency administered three newly developed aptitude tests to a random sample of 25 applicants for entry-level positions in the agency.  For the purpose of the study, all 25 applicants were accepted for positions irrespective of their test scores.  After a probationary period, each applicant was rated for proficiency on the job.  
+
+The scores on the three tests (x1, x2, x3) and the job proficiency score (y) for the 25 employees are in the file JobProf.rda (load JobProf from DS705data)
+
+(Based on an exercise from Applied Linear Statistical Models, 5th ed. by Kutner, Nachtsheim, Neter, & Li)
+
+### Part 1a
+
+Create a scatterplot matrix and the correlation matrix for all of the variables in the data set. 
+
+Do any aptitude test scores appear to be linearly related to the proficiency score?  Do any relationships appear to be quadratic? Do any aptitude scores appear to be linearly related to each other?
+
+### Answer 1a
+
+```{r}
+require(DS705data)
+require(lmtest)
+require(HH)
+require(leaps)
+data(JobProf)
+pairs(y~x1+x2+x3,data=JobProf)
+mat <- cbind(JobProf$y,JobProf$x1,JobProf$x2,JobProf$x3)
+cor(mat)
+```
+
+Aptitude test 3 looks to be the most linearly related to the proficiently scored. Beyond that it looks as if they may be a slight correlation between multiple tests but nothing very strong.
+
+### Part 1b
+
+Obtain the model summary for the model composed of the three first-order terms and the three cross-product interaction terms (using the centered variables):
+
+$$y=\beta_0 + \beta_1 x_1 + \beta_2 x_2 + \beta_3 x_3 + \beta_4 x_1 x_2 + \beta_5 x_1 x_3 + \beta_6 x_2 x_3 + \epsilon$$
+
+Also use R to compute the VIF for each term in the model.  Are any of the VIFs over 10?
+
+This model is suffering from the effects of collinearity, which inflates the standard errors of the estimated coefficients.
+
+What do you notice about the overall model p-value (from the F-statistic) and the individual p-values for each term in the model?  Does it make sense that the overall model shows statistical significance but no individual term does?  
+
+
+### Answer 1b
+
+```{r}
+fit <- lm(y~x1+x2+x3+x1:x2+x1:x3+x2:x3,JobProf)
+summary(fit)
+vif(fit)
+```
+
+The overall p-value seems to show that the model is of good fit, but when looking at the p-values for each individual coefficient not one is significant. This is likely a cause of collinearity and that claim is supported in the VIF test output.
+
+### Part 1c  
+
+Many times, collinearity can be alleviated by centering the predictor variables.  Center the predictor variables x1, x2, and x3 and create new variables to hold them (call them cx1, cx2, and cx3).  Furthermore, create a quadratic term for the centered x2 variable.
+
+### Answer 1c
+
+```{r}
+cx1 <- JobProf$x1- mean(JobProf$x1)
+cx2 <- JobProf$x2- mean(JobProf$x2)
+cx3 <- JobProf$x3- mean(JobProf$x3)
+cx2sq <- cx2*cx2
+
+```
+
+### Part 1d
+
+Now obtain the model summary for the model composed of the three first-order terms and the three cross-product interaction terms using the centered variables:  
+
+$$y=\beta_0 + \beta_1 cx_1 + \beta_2 cx_2 + \beta_3 cx_3 + \beta_4 cx_1 cx_2 + \beta_5 cx_1 cx_3 + \beta_6 cx_2 cx_3 + \epsilon$$
+
+Use R to compute the VIF for each term in the model.  Have the VIF values decreased after the variables are centered?  What can you about the overall model p-value (from the F-statistic) and the individual p-values for each term in the model?  Does this make more sense?
+
+### Answer 1d
+
+```{r}
+newfit <- lm(y~cx1+cx2+cx3+cx1:cx2+cx1:cx3+cx2:cx3,JobProf)
+summary(newfit)
+vif(newfit)
+
+```
+
+Now that some of the coefficients p-value are significant, it now makes more since that the overall pvalues is below .05. the VIF terms seem to show that the problem of colinearity has been fixed.
+
+### Part 1e
+
+Test the significance of all three coefficients for the interaction terms as a subset.  Use a 5% level of significance.  State $H_0$ and $H_a$ and provide the R output as well as a written conclusion.
+
+Look back and check the individual p-values for the interactions terms from the previous model, how do they compare to the p-value when the interaction terms are tested together as a subset?
+
+### Answer 1e
+
+```{r}
+rednewfit <- lm(y~cx1+cx2+cx3,JobProf)
+summary(rednewfit)
+anova(rednewfit,newfit)
+
+```
+
+$H_0:$ All of the coefficients are 0.
+$H_a:$ At least one of the coefficients is not 0.
+
+At $\alpha$ = .05 we do not reject the $H_0$ that all of the coefficients are 0.
+
+
+
+### Part 1f
+
+Drop the interaction terms from the model and fit the following model with the quadratic term for $x_2$:
+
+$$y=\beta_0 + \beta_1 cx_1 + \beta_2 cx_2 + \beta_3 cx_3 + \beta_4 cx_2^2 +\epsilon$$
+
+Should the quadratic term be retained in the model at a 5% level of significance?
+
+### Answer 1f
+
+```{r}
+sqfit <- lm(y~cx1+cx2+cx3+cx2sq,JobProf)
+summary(sqfit)
+vif(sqfit)
+
+```
+
+At the $\alpha$ = 0.05 significance level the quadratic term should not be retained in the model.
+
+### Part 1g
+    
+Drop the quadratic term and fit the model with only the original uncentered variables:
+
+$$y=\beta_0 + \beta_1 x_1 + \beta_2 x_2 + \beta_3 x_3 + \epsilon$$
+
+Are there any other terms that should be dropped from the model using the criteria of a 5% level of significance?  
+ 
+### Answer 1g
+
+```{r}
+regfit <- lm(y~x1+x2+x3,JobProf)
+summary(regfit)
+vif(regfit)
+
+```
+
+Yes, x2 would be the next term to be dropped at the $\alpha=0.05$ level of significance.
+
+### Part 1h
+
+Fit the final model for predicting the proficiency score for the population of all employees for this government agency.
+
+### Answer 1h
+
+```{r}
+finalfit <- lm(y~x1+x3,JobProf)
+summary(finalfit)
+vif(finalfit)
+
+```
+
+
+### Part 1i
+
+Obtain the residuals for your final model and evaluate the residual plots using the "plot" function.  Does the regression line appear to be a good fit?  Does a visual inspection indicate that the model assumptions appear to be satisfied?  Comment.
+
+### Answer 1i
+
+```{r}
+plot(finalfit)
+
+```
+
+It looks that the regression model is pretty good fit. It also looks that the model assumptions are satisfied.
+
+### Part 1j
+
+Perform a Shapiro-Wilk test for normality.  Use $\alpha=0.05$.  Comment on the results.
+
+### Answer 1j
+
+```{r}
+shapiro.test(finalfit$resid)
+
+```
+
+Based on the p-value it looks as if the residuals come from a normal distribution.
+
+### Part 1k
+
+Perform a Bruesch-Pagan test for homogeneity of variance among the residuals.  Use $\alpha=0.05$.  Comment on the results.
+
+### Answer 1k
+
+```{r}
+bptest(finalfit)
+
+```
+
+At a 5% level of significance, this test indicates that the error variances are constant, breaking the model assumption.
+
+### Part 1l
+
+Perform a Durbin-Watson test for serial correlation the residuals.  Use $\alpha=0.05$.  Comment on the results.
+
+### Answer 1l
+
+```{r}
+dwtest(finalfit)
+
+```
+
+At a 5% level of significance, this test indicates that the residuals are serially correlated, breaking the model assumption.
+
+### Part 1m
+
+Obtain a 95% confidence interval for $\beta_3$ and interpret it in the context of this problem.
+
+### Answer 1m
+
+```{r}
+confint(finalfit)
+
+```
+
+with 95% confidence we can assume that the y intercept is between -153.90 and -101.29.
+with 95% confidence we can assume that the x1 coefficient is between 0.24 and 0.46.
+with 95% confidence we can assume that the x3 coefficient is between 1.57 and 2.08.
+
+### Part 1n
+
+Construct a 95% prediction interval for a randomly selected employee with aptitude scores of $x_1=99, x_2=112,$ and $x_3=105$ to forecast their proficiency rating at the end of the probationary period. Write an interpretation for the interval in the context of this problem.
+
+### Answer 1n
+
+```{r}
+newdata <- data.frame(x1=99,x2=112,x3=105)
+predict.lm(finalfit,newdata,interval="confidence")
+
+```
+
+The 95% prediction interval for a subject with aptitude scores of $x_1=99, x_2=112,$ and $x_3=105$ is between 95.82 and 100.85.
+
+## Exercise 2
+
+Consider the scenario from Exercises 12.5 and 12.7 on page 725 of Ott's textbook.  There are two categorical variables (Method and Gender) and one quantitative variable (index of English proficiency prior to the program).  See the textbook for details on how the qualitative variables are coded using indicator variables.
+
+### Part 2a
+
+Use data in the file English.rda to estimate the coefficients for the model in Exercise 12.5:
+
+$$y=\beta_0 + \beta_1 x_1 + \beta_2 x_2 + \epsilon$$ 
+
+Obtain the estimated intercept and coefficients and state the estimated mean English proficiency scores for each of the 3 methods of teaching English as a second language.
+
+### Answer 2a
+
+```{r}
+data(English)
+Engfit <- lm(y~x1+x2,English)
+summary(Engfit)
+vif(Engfit)
+
+
+```
+
+Replace the ## symbols with the parameter estimates:
+
+y = 44.75 + 61.4 $x_1$ + 3.95 $x_2$
+
+State the estimated mean English proficiency scores for each of the 3 methods:
+
+Estimated mean for Method 1 = 44.75
+Estimated mean for Method 2 = 106.15
+Estimated mean for Method 3 = 48.7
+
+### Part 2b  
+
+Before fitting the model of Exercise 12.7, create a centered variable for x4 (call it cx4).  
+
+Fit the model for Exercise 12.7 using the centered variable x4c:
+
+$$y=\beta_0 + \beta_1 cx_4 + \beta_2 x_1 + \beta_3 x_2 + \beta_5 x_1 cx_4 + \beta_6 x_2 cx_4 + \epsilon$$
+
+Using the estimated coefficients, write three separate estimated models, one for each method, relating the scores after 3 months in the program (y) to the index score prior to starting the program ($x_4$).
+
+### Answer 2b
+
+```{r}
+cx4 <- English$x4- mean(English$x4)
+Engfit <- lm(y~cx4+x1+x2+x1:cx4+x2:cx4,English)
+summary(Engfit)
+vif(Engfit)
+```
+
+$$y=44.76 + 0.12 cx_4 + 59.93 x_1 + 4.23 x_2 + 1.78 x_1 cx_4 + 0.30 x_2 cx_4 + \epsilon$$
+$x_1=0 |x_2 = 0$:
+$$y=44.76 + 0.12 cx_4 + \epsilon$$
+$x_1=1 |x_2 = 0$:
+$$y=104.69 +  1.90cx_4+ \epsilon$$
+$x_1=0 |x_2 = 1$:
+$$y=48.99 + 0.42 cx_4 +\epsilon$$
+$x_1=1 |x_2 = 1$:
+$$y=108.92 + 2.2 cx_4 + \epsilon$$
+
+
+## Exercise 3
+
+Ninety members (aged = 18.1 – 23.4 years) of three Division I women’s intercollegiate rowing teams (National Collegiate Athletic Association) within the Big Ten Conference volunteered to participate in a study to predict race time for female collegiate rowers from nineteen physical characteristics.
+
+Data is in the file rowtime.rda.  The race times are in the variable named "racetime".
+
+### Part 3a
+
+Load the data and use head(rowtime) to see the other variable names and the first 6 values of each.
+
+### Answer 3a
+
+```{r}
+data("rowtime")
+head(rowtime)
+
+```
+
+### Part 3b
+
+Use the **regsubsets** function to find the "best" model for predicting the response variable rowtime with up to 8 of the 19 predictor variables in the data set.  Produce the summary and the plot for the best single models with up to 8 predictors according to $R^2_{adj}$.
+
+Which independent variables are in the best model with 8 predictors when the $R^2_{adj}$ is the criterion for selection?
+
+### Answer 3b
+
+```{r}
+allmods <- regsubsets(racetime~.,nvmax=8, data=rowtime)
+summary(allmods)
+summary(allmods)$adjr2
+plot(allmods, scale="adjr2")
+```
+
+The selected variables are as follows:
+intercept
+calfcir
+biceps
+bestvj
+legpower
+meso
+ecto
+expvarsity
+preexper
+
+### Part 3c
+
+Use the **step** function with backward selection to find the "best" model for predicting the response variable rowtime.  Recall that the formula structure y~. will produce the model using y as the response variable and all other variables in the data set as the predictors; in this set racetime is the response(not y) and all other variables are potential predictors.
+
+Which independent variables are in this model?  What is the AIC value for this model? 
+
+### Answer 3c
+
+```{r}
+full <- lm(racetime~.,data=rowtime)
+step(full,direction="backward")
+
+```
+
+The variables in this model are:
+tall + calfcir + biceps + estfm + bestvj + legpower + meso + expvarsity + preexper
+
+The AIC for this model is:
+497.22
+
+### Part 3d
+
+Use the **step** function with forward selection to find the "best" model for predicting the response variable rowtime.  
+
+Which independent variables are in the model selected?  What is the AIC value for this model? 
+
+### Answer 3d
+
+```{r}
+lmnull <- lm(racetime~1,data=rowtime)
+step(lmnull,direction="forward",trace = 1, scope = ~tall + weight + armspan + flexarm + thighci + calfcir + 
+    tricep + biceps + thigh + estffm + estfm + bestsnr + bestvj + 
+    legpower + endo + meso + ecto + expvarsity + preexper)
+
+```
+
+The variables in this model are:
+estffm + expvarsity + tall + preexper + biceps + meso + calfcir + bestvj 
+
+The AIC for this model is:
+497.65
+
+### Part 3e
+
+Compute the AIC for the the best model with 8 predictors from the **regsubsets** function.  How does it compare with the AIC for the two models produced by the backward and forward selection procedure?
+
+Which model is the "best" according to the AIC?  (remember, smaller is better for AIC)
+
+### Answer 3e
+
+```{r}
+bestallmods <- lm(racetime~calfcir+biceps+bestvj+legpower+meso+ecto+expvarsity+preexper,data=rowtime)
+AIC(bestallmods)
+
+
+```
+
+The backwards and forwards model have very similar AIC which are both better that that of the best model based on R^2 out of the regsubsets, which is close to twice the size of the stepwise models.

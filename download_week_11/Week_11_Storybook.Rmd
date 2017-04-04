@@ -1,0 +1,433 @@
+---
+title: 'Logistic Regression'
+output:
+  beamer_presentation:
+    colortheme: default
+    fonttheme: default
+    keep_tex: yes
+    template: ../beamer169experimental.tex
+fontsize: '12pt'
+---
+
+```{r global_options, include=FALSE, echo=FALSE}
+# use for beamer
+knitr::opts_chunk$set(fig.width=3, fig.height=1.5, fig.align='center',warning=FALSE, message=FALSE)
+library(knitr)
+load("~/Google Drive/DS 705 CEOEL Folder/class_material/lessons/week 11/farmpond.rda")
+# use for word
+# knitr::opts_chunk$set(fig.width=4, fig.height=3,warning=FALSE, message=FALSE)
+```
+
+## The Logistic Regression Model
+
+$$\text{ln} \left( \frac{P(y=1)}{1-P(y=1)} \right) = \beta_0+\beta_1 x_1 + \beta_2 x_2 + \cdots + \beta_k x_k$$
+
+\begin{table}
+\centering
+\begin{tabular}{ll}
+$y=1$ if the event of interest occurs;  & $y=0$ otherwise  \\
+\end{tabular}
+\end{table}
+
+<div class="notes">
+
+Let me introduce you to the logistic regression model. This model is used when the response variable has a binary outcome.  That is, when the dependent variable has only two possible outcomes.  Typically these outcomes are labeled 0 and 1 where the 1 represents the outcome that we are particularly interested in.
+
+Many times the outcome of interest, the one labeled as 1, is often the occurrence of a particular event (like recurrence of of cancer for a patient in remission, default on a loan, or a sale is made).  This event may also be that the experimental unit has a particular characteristic (the subject is a homeowner, the subject has Type 1 diabetes, or the student passed the class).
+
+The natural logarithm of the odds of y taking on the value 1 is modeled as a linear combination of the predictor variables.  Recall that the odds of an event are defined as the probability of the event occurring divided by the probability of the event not occurring.
+
+The log-odds of y=1 is also called a logit transformation
+
+The independent variables can be quantitative or categorical or a combination of the two.
+
+Notice that there is no error term.  This is because through the logit function, we are modeling the probability of of an event directly, which determines the variance of a binary event.  So there is no need for a normally distributed error term with constant variance as with linear regression.
+
+bottom panel note: 
+There is a typo in the first paragraph on page 702 of Ottt's textbook - where it says "log-odds ratio" it should just read "log-odds."
+</div>
+
+----
+
+## Example: Farm Ponds
+
+In a study of small, constructed agricultural ponds in southeastern Minnesota, pond and the surrounding landscape features were used to assess their value as amphibian breeding sites. One measure of this was when the amphibian species richness was at least four.  
+
+Species richness is the number of different species observed at each pond.  
+
+
+<div class="notes">
+
+bottom panel note:
+Agricultural Ponds Support Amphibian Populations, by Knutson, et. al., Ecological Applications, 14(3), 2004, pp. 669–68.
+</div>
+
+----
+
+## Example: Farm Pond Variables
+
+__Dependent Variable__
+
+RICH = 1 if species richness is at least 4; RICH = 0 otherwise
+
+\vspace{2em}
+
+__Independent Variables__
+
+FISH = 1 if fish are present; FISH = 0 otherwise
+
+TOTNITR = total nitrogen in mg/L
+
+
+<div class="notes">
+
+In the data file farmponds.rda, the variables RICH, FISH, and TOTNITR are defined as shown here.  This data file contains quite a few variables, but the presence of fish and the amount of total nitrogen on the pond had an effect on whether or not the pond had a species richness of 4 or more, as we'll see shortly.
+
+</div>
+
+----
+
+## R Code for Farm Pond Example
+
+``` {r eval=FALSE}
+rich.out <- glm(RICH~FISH + TOTNITR,data=farmpond,family="binomial")
+summary(rich.out)
+```
+
+<div class="notes">
+
+Logistic regression output in R is obtained using the glm function with the option family="binomial."  As with linear regression, the output can be stored in a R object so that various aspect can be pulled out using other R functions on that object, such as the general summary, as shown here.
+
+</div>
+
+----
+
+## Farm Ponds: Logistic Regression Output
+
+```{r echo=FALSE}
+rich.out <- glm(RICH~FISH + TOTNITR,data=farmpond,family="binomial")
+# trim the output to fit on one slide
+require(utils)
+tmp <- noquote( 
+  capture.output( 
+    summary(rich.out)
+    )
+  )
+write.table(tmp[9:20],quote=F,row.names=F,col.names=F)
+```
+ 
+<div class="notes">
+
+In this portion of the output, we get the estimated regression coefficients - the estimated intercept, the coefficient for FISH, and the coefficient for total nitrogen.  
+
+We also get standard errors for each coefficient, which measure the variability of each estimate and are used to construct the Wald test statistics for individual hypothesis tests to determine of each coefficient is significantly different from 0.  The test statistic, z, for the Wald test is simply the estimated coefficient divided by its standard error and it follows a standard normal distribution.
+
+Standard normal distributions with the degrees of freedom shown are used to obtain the p-values shown.  Low p-values indicate evidence that the coefficients in the population are truly different from 0.  
+
+</div>
+
+----
+
+## Farm Pond - The Estimated Model
+
+Here is the estimated model, with the coefficients from the R output.
+
+$$\widehat{\text{ln} \left( \frac{P(y=1)}{1-P(y=1)} \right)} = 4.451 - 4.039 \cdot \text{FISH} - 4.195 \cdot \text{TOTNITR} $$
+ 
+<div class="notes">
+
+
+
+</div>
+
+----
+
+## Farm Pond Example - Interpreting Coefficients of Categorical Predictors
+
+Exponentiating the coefficients yields **odds ratios**.  Using the estimated coefficient of FISH, we have 
+
+$$e^{-4.039}=0.018$$
+
+The odds of having species richness of at least 4 at a pond where fish are present are only 1.8% as large as the odds of species richness being at least 4 at a pond where fish are not present, given that total nitrogen is held constant.  That is, they are 98.2% less!  
+ 
+<div class="notes">
+
+When interpreting exponentiated logistic regression coefficients for categorical factors, the wording is exactly like what we used previously when we discussed odds ratios.
+
+</div>
+
+----
+
+## Farm Pond Example - Interpreting Coefficients of Categorical Predictors (again)
+
+When coefficients are negative, the interpretation sometimes has more impact when we switch the perspective and use the reciprocal of the exponentiated coefficient.
+
+$$\frac{1}{e^{-4.039}}=e^{4.039}=56.8$$
+
+The odds of having species richness of at least 4 at a pond where fish are **not** present are  56.8 times as large as the odds of species richness being at least 4 at a pond where fish are present.   
+ 
+<div class="notes">
+
+The sign of the coefficient is determined by what we choose to let the 1 represent in the indicator function for fish presence.  Had we said that the absence of fish in the pond was defined as 1, then coefficient would have been positive 4.039 and we would have the result shown here directly.
+
+</div>
+
+----
+
+## Farm Pond Example - Interpreting Coefficients of Quantitative Predictors
+
+Using the estimated coefficient of TOTNITR, we have 
+
+$$e^{-4.195}=0.015$$
+
+The odds of having species richness of at least 4 decrease by 98.5% for each additional mg/L of total nitrogen.  
+ 
+<div class="notes">
+
+Interpreting exponentiated logistic regression coefficients for quantitative predictors is just a  little different that it is for categorical ones.  It is a little bit similar to the way partial slopes are interpreted for ordinary linear regression, only it refers to the change in odds for each 1 unit increase in the value of the independent variable.
+
+</div>
+
+----
+
+## More R Code for Farm Pond Example
+
+**Confidence intervals** for the odds ratios are available via the following R code.  
+
+``` {r warning=FALSE}
+rich.out <- glm(RICH~FISH + TOTNITR,data=farmpond,family="binomial")
+exp(confint(rich.out))
+```
+
+<div class="notes">
+
+Recall that confidence intervals that do not contain 1 can also be taken as significant evidence that a relationship exists between that particular predictor and the response variable.
+
+The function confint pulls the intervals for the estimated coefficients from the output object and raising e to the power of each results in the confidence interval bounds for the corresponding odds ratios.
+
+bottom panel note:
+
+Section 12.8 of he Ott text has the mathematical details of why this is true. 
+
+</div>
+
+----
+
+## Farm Pond Example: Predicted Probabilities
+
+```{r }
+rich.out <- glm(RICH~FISH + TOTNITR,data=farmpond,family="binomial")
+newdata <- data.frame(FISH=0,TOTNITR=0.8)
+predict(rich.out,newdata,type="response")
+```
+
+
+<div class="notes">
+
+Suppose we wanted to use out fitted model to predict the probability of a farm pond having a species richness of at least 4 for a pond with no fish and 0.8 mg/L of total nitrogen.  First, a new data frame must be created with these values for the variables FISH and TOTNITR, then the R function "predict" can be used with the option type="response" along with the object containing the model output, here labeled rich.out.  That pond has a probability of .749 of having at least 4 amphibian species living there.
+
+</div>
+
+----
+
+## Confidence Intervals for Predicted Probabilities
+
+``` {r}
+rich.out <- glm(RICH~FISH + TOTNITR,data=farmpond,family="binomial")
+newdata <- data.frame(FISH=0,TOTNITR=0.8)
+out <- predict(rich.out, newdata, se.fit=TRUE)
+C = .95  # define the level of confidence
+crit = qnorm(1-(1-C)/2)  # get the appropriate critical value
+lower = exp(out$fit-crit*out$se.fit)/(1+exp(out$fit-crit*out$se.fit))
+upper = exp(out$fit+crit*out$se.fit)/(1+exp(out$fit+crit*out$se.fit))
+c(lower,upper)
+```
+
+ 
+<div class="notes">
+
+A confidence interval for the predicted probability can be constructed using R code like this here.  Without the option type="response" that we used before, the predict value comes out on the logit scale.  By requesting the standard error of the predicted logit value, we can somewhat manually compute the confidence intervals for the predicted probabilities.  So with 95% confidence, the probability of a pond with no fish and 0.8 mg/L of total nitrogen will have a probability between .35 and .94 of having at least 4 amphibian species present. 
+
+</div>
+
+----
+
+## Farm Pond Example: Plotting Predicted Probabilities
+
+```{r eval=FALSE, echo=FALSE}
+rich.out <- glm(RICH~FISH + TOTNITR,data=farmpond,family="binomial")
+# set up the range for the x-axis (total nitrogen)
+xv <- seq(0,15,.1)
+# compute and plot probabilities for FISH=0
+newdata2 <- data.frame(FISH=rep(0,length(xv)),TOTNITR=xv)
+prob <- predict(rich.out,newdata2,type="response")
+plot(farmpond$TOTNITR,farmpond$RICH,xlab="Total Nitrogen (mg/L)",ylab="Probabiity of Species Richness of at least 4")
+lines(xv,prob,col="blue")
+# compute and plot probabilities for FISH=1
+newdata3 <- data.frame(FISH=rep(1,length(xv)),TOTNITR=xv)
+prob2 <- predict(rich.out,newdata3,type="response")
+lines(xv,prob2,col="red")
+
+legend("topright",c("FISH=0","FISH=1"),lty=c(1,2),col=c("blue","red"))
+```
+ 
+![](./figures/probplot.jpeg)
+ 
+<div class="notes">
+
+R can be used to plot the probability of the pond having species richness of at least 4 across the range of values for total nitrogen for ponds where fish are present as well as for those where fish are not present.  The original data points have been plotted along with the curve of the predicted probabilities 
+
+Recall the probability from the previous slide, when fish are not present, so FISH = 0, and total nitrogen is 0.8 mg/L was .749, which would be about here on this plot.  Since TOTNITR has a negative coefficient in the estimated model, the probability of success (that is having species richness of at least 4) declines as total nitrogen increases, and these probabilities are even lower when fish are present.  Fish eat amphibian larvae and tadpoles.
+
+bottom panel note:
+Look in the Week_11 Storybook.Rmd file to see the R code for making this plot.
+
+</div>
+
+----
+
+
+## Confidence Bands for Predicted Probabilities
+
+``` {r eval=FALSE, echo=FALSE}
+rich.out <- glm(RICH~FISH + TOTNITR,data=farmpond,family="binomial")
+xv <- seq(0,15,.1)
+newdata2 <- data.frame(FISH=rep(0,length(xv)),TOTNITR=xv)
+prob <- predict(rich.out, newdata2, se.fit=TRUE)
+# set up plot space
+plot(farmpond$TOTNITR,farmpond$RICH,type="n",main="Probabilites with 95% Confidence Bands (FISH = 0)",xlab="Total Nitrogen (mg/L)",ylab="Probabiity of Species Richness of at least 4")
+# plot predicted probablities
+with(newdata2, lines(xv, exp(prob$fit)/(1+exp(prob$fit)), col="blue"))
+# define the level of confidence
+C = .95
+# get the appropriate critical value for the given level of confidence
+crit = qnorm(1-(1-C)/2)
+# plot lower confidence band
+with(newdata2, lines(xv, exp(prob$fit-crit*prob$se.fit)/(1+exp(prob$fit-crit*prob$se.fit)), lty=4))
+# plot upper confidence band
+with(newdata2, lines(xv, exp(prob$fit+crit*prob$se.fit)/(1+exp(prob$fit+crit*prob$se.fit)), lty=4))
+```
+
+![](./figures/probbands.jpeg)
+ 
+<div class="notes">
+
+
+
+bottom panel note:
+Look in the Week_11 Storybook.Rmd file to see the R code for making this plot.
+
+</div>
+
+----
+
+## Model selection using AIC with "step" 
+
+Suppose the variable POND_AREA in the farmpond data set was suspected of having an effect on the species richness being at least 4.  Consider fitting the logistic regression model containing FISH, TOTNITR, and POND_AREA and all possible interactions among them.
+
+``` {r eval=FALSE}
+rich.out.full <- glm(RICH~FISH*TOTNITR*POND_AREA,data=farmpond,
+                     family="binomial")
+```
+ 
+<div class="notes">
+
+
+
+</div>
+
+----
+
+## Model selection using AIC with "step" 
+
+The R function **step** is used as follows to evaluate
+
+``` {r eval=FALSE}
+rich.out.full <- glm(RICH~FISH*TOTNITR*POND_AREA,data=farmpond,
+                     family="binomial")
+step(rich.out.full)
+```
+ 
+<div class="notes">
+
+The function "step" is used exactly the same way with logistic regression as with multiple linear regression.  The stepping can be performed forward, backward, or the default of both.
+
+</div>
+
+----
+
+## First step from the output of "step"  
+
+``` {r echo=FALSE}
+rich.out.full <- glm(RICH~FISH*TOTNITR*POND_AREA,data=farmpond,family="binomial")
+# trim the output to fit on one slide
+require(utils)
+tmp <- noquote( 
+  capture.output( 
+    step(rich.out.full)
+    )
+  )
+write.table(tmp[1:6],quote=F,row.names=F,col.names=F)
+```
+ 
+<div class="notes">
+
+Depending on the size of the full model, the step procedure can produce a great deal of output.  Only the first block is shown in this slide.
+
+With the default setting of both directions, the step procedure begins by fitting the full model and compares the AIC of that model to the model with the 3-way interaction term FISH-by-TOTNITR-by-Pond_AREA removed.  Since the AIC is lower without it, it is removed from the model and the procedure continues. 
+
+
+
+</div>
+
+----
+
+## Last step from the output of "step" 
+
+``` {r echo=FALSE}
+rich.out.full <- glm(RICH~FISH*TOTNITR*POND_AREA,data=farmpond,family="binomial")
+# trim the output to fit on one slide
+require(utils)
+tmp <- noquote( 
+  capture.output( 
+    step(rich.out.full)
+    )
+  )
+write.table(tmp[34:39],quote=F,row.names=F,col.names=F)
+```
+ 
+<div class="notes">
+
+After several iterations of dropping higher order terms and and working down to possibly dropping first-order terms, the procedure stops when no options produce a lower AIC.
+
+The final model given by this automated process is shown here to be the one that includes the main effect due to FISH and TOTNITR and the interaction of them.  Notice that the removal of the interaction between FISH and TOTNITR causes the AIC to increase, and so it is retained.
+
+POND AREA was totally eliminated from the model in a previous step.
+
+</div>
+
+----
+
+## Testing subsets of coefficients with "anova" 
+
+``` {r}
+rich.out <- glm(RICH~FISH + TOTNITR,data=farmpond,family="binomial")
+rich.out2 <- glm(RICH~FISH*TOTNITR + POND_AREA,data=farmpond,family="binomial")
+anova(rich.out,rich.out2,test="Chi")
+```
+
+ 
+<div class="notes">
+
+Two models may be compared directly using the R function "anova".  It is important to remember that the smaller model should be nested within the larger model, in keeping with the hierarchical approach to model-building.
+
+You must specify to conduct the test using the Chi-square distribution when testing logistic regression models. The test is based on a comparison of the deviance for each model and the test statistic follows a chi-square distribution - in this case with 2 degrees of freedom, since the full model has 2 additional terms- this is the difference in the df for the full and reduced models.  10.154 is the difference between the residual deviance of each model 25.591 for the reduced model minus 15.437 for the full model.
+
+In this example, we're testing to see if the coefficients of the interaction between FISH and TOTNITR as well as the first order term for POND AREA in one test.
+
+</div>
+
+----
+
+
+

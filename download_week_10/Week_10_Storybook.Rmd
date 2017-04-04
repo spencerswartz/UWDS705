@@ -1,0 +1,395 @@
+---
+title: 'Multiple Regression'
+output:
+  beamer_presentation:
+    colortheme: default
+    fonttheme: default
+    keep_tex: yes
+    template: ../beamer169.tex
+fontsize: '12pt'
+---
+
+```{r global_options, include=FALSE, echo=FALSE}
+# use for beamer
+knitr::opts_chunk$set(fig.width=3, fig.height=1.5, fig.align='center',warning=FALSE, message=FALSE)
+library(knitr)
+load("~/Google Drive/DS 705 CEOEL Folder/class_material/lessons/week 10/HealthExam.rda")
+# use for word
+# knitr::opts_chunk$set(fig.width=4, fig.height=3,warning=FALSE, message=FALSE)
+```
+
+## The General Linear Model
+
+$$y=\beta_0+\beta_1 x_1 + \beta_2 x_2 + \cdots + \beta_k x_k +\epsilon$$
+
+
+\vspace{3in}
+
+<div class="notes">
+
+Let me introduce you to the general linear model.  This is a very versatile and handy probabilistic model.  On the left hand side we have the response variable.  On the right we have a linear combination of independent variables or predictors.  
+
+The independent variables can be quantitative, categorical, or a mixture of both.  For the multiple regression models in sections 12.1 through 12.7, as well chapter 13, we'll assume that the error term epsilon represents independent random variables that are normally distributed with mean 0 and a common variance.
+The parameters in the model are an intercept term, beta naught, and a coefficient for each independent variable called a partial slope.  The partial slope tells us how much the average value of y would change - and in which direction - for each one unit increase in the variable that it is the coefficient of, given that all other predictor variables were held constant.
+
+bottom panel note:  The terms "predictor variable" and "independent variable" are synonymous.
+
+</div>
+
+----
+
+## Making Interaction and Quadratic Terms in R
+
+Make your own by multiplying (particularly for quadratic or cubic terms) 
+
+``` {r eval=FALSE}
+x1sq=x1*x1
+lm(y~x1 + x1sq, data=mydata)
+```
+
+Let R do the interactions, just enter them as x1*x2 or x1:x2 in the formula call like this
+
+``` {r eval=FALSE}
+lm(y~x1 + x2 + x1:x2, data=mydata)
+```
+
+
+<div class="notes">
+
+
+
+</div>
+
+----
+
+## The Hierarchical Approach to Model-Building  
+
+* Hierarchical
+
+    + $y=\beta_0 + \beta_1 x_1 + \beta_2 x_1^2 +\epsilon$
+    
+    + $y=\beta_0 + \beta_1 x_1 + \beta_2 x_2 + \beta_k x_1 x_2 +\epsilon$
+    
+\vspace{1em}    
+
+* NOT hierarchical
+
+    + $y=\beta_0 + \beta_2 x_1^2 +\epsilon$
+    
+    + $y=\beta_0 + \beta_1 x_1 + \beta_k x_1 x_2 +\epsilon$
+
+
+<div class="notes">
+
+When selecting an appropriate linear model, it makes sense to use a hierarchical approach.  That is, if an independent variable is involved in a higher order term (like a quadratic or interaction term) then the lower order terms involving that variable should remain in the model, even if their coefficients aren't significantly different from 0.
+
+Bottom panel note:  The term "hierarchical" can also refer to data that is nested or clustered due to the sampling scheme, which is a different matter.
+
+</div>
+
+----
+
+## Example: Model with One Quantitative and one Categorical Predictor
+
+Consider the HealthExam data set with the following definitions and linear model
+
+\begin{table}
+\centering
+\begin{tabular}{ll}
+$x_1=1$ if AgeGroup is 36 to 64,  & $x_1=0$ otherwise  \\
+$x_2=1$ if AgeGroup is 65+,  & $x_2=0$ otherwise  \\
+$x_3=$ SysBP & \\
+\end{tabular}
+\end{table}
+
+$$y=\beta_0 + \beta_1 x_1 + \beta_2 x_2 + \beta_3 x_3 + \beta_4 x_1 x_3 + \beta_5 x_2 x_3 + \epsilon$$
+
+<div class="notes">
+
+I'm sure you remember the HealthExam data set we've been using from time to time in this course.  
+While it isn't necessary to write statistical models with notation like x1, x2, x3 and so on, it can make it easier, so we'll relabel the 3 categories for Age Group using 2 dummy variables, x1 and x2 here.  Dummy variables are also called indicator variables.  
+
+Consider the model with the categorical predictor Age Group, represented by the two indicator variables previously defined, the quantitative predictor variable Systolic Blood Pressure, and the interaction terms associated with these two variables to predict Cholesterol level.
+
+</div>
+
+----
+
+## Example: How R Handles Categorical Predictors
+
+The following R code would be used to fit the model shown previously
+
+```{r eval=FALSE}
+model<-lm(Cholesterol~AgeGroup+SysBP+AgeGroup:SysBP,data=HealthExam)
+summary(model)
+```
+
+<div class="notes">
+
+One very nice feature in R is that we do NOT have to manually convert the categorical variable AgeGroup to the two dummy variables.  We can simply enter the variable names from the data file and R will convert them to dummy variables and use them accordingly.  
+
+You'll see in the output on the next slide that R recoded the categorical variable (as we showed it in the previous slide) and there will be two first-order terms - which will correspond to what we called x1 and x2, and by simply specifying the interaction between the categorical predictor AgeGroup and the quantitative predictor Systolic Blood pressure, R automatically fits both second-order interaction terms.
+
+R is pretty smart!  Well, just as smart as the people who write the program. 
+
+</div>
+
+----
+
+## Example: The Output
+
+```{r echo=FALSE}
+model <- lm(Cholesterol~AgeGroup + SysBP + AgeGroup:SysBP,data=HealthExam)
+# this is just tricks to trim the output to fit on one slide
+require(utils)
+tmp <- noquote( 
+  capture.output( 
+    summary(model)
+    )
+  )
+write.table(tmp[10:19],quote=F,row.names=F,col.names=F)
+```
+
+<div class="notes">
+In the R output here we see the estimated coefficients for the linear model. The estimated intercept, beta naught hat, is 523.98.  What R has automatically labeled as "AgeGroup36 to 64" corresponds to what we called x1, the dummy variable indicating that a subject was in the 36 to 64 age group.  The estimated coefficient for that dummy variable, beta 1 hat, is -1399.606.
+
+What R has labeled as "AgeGroup65+" corresponds to what we called x2, the dummy variable indicating that a subject was in the 65 and over age group.  The estimated coefficient for that dummy variable, beta 2 hat, is -407.333.
+
+We called SysBP x3, and we see the estimate partial slope here of -2.392.
+
+The two interaction terms are also included here with "AgeGroup36 to 64"and SysBP representing what we labeled as x1x3 in our model and "AgeGroup65+"and SysBP representing what we labeled as x2x3.
+
+Suppose we are using a 5% level of significance.  Then due to the significance of the interaction term between Age Group 36 to 64 and SysBP, we must also retain all of the Age Group levels and the first order SysBP term whether they are statistically significant or not.  This is what is meant by hierarchical model-building.
+
+</div>
+
+----
+
+## Example: Interpreting the Output
+
+The least squares estimated regression line is
+
+\vspace{2em}
+
+$$\widehat{y}=524 - 1399.6 x_1 - 407.3 x_2 - 2.39 x_3 + 13.04 x_1 x_3 + 4.21 x_2 x_3$$
+
+<div class="notes">
+
+Taking the estimated intercept and partial slopes from the R output, we put them in the regression equation to get the model.  I took the liberty of rounding some of them.  
+
+Recall that x1 was the indicator for the 36 to 64-year-old AgeGroup, x2  was the indicator for the 65 and over Age Group, and x3 represented Systolic Blood Pressure.  The regression equation could be written with the actual variable names in it, but it was rather long here and wouldn't have fit on one line.
+
+This regression model is actually 3 simple linear regression models in one!  There is a separate regression model for each category of the qualitative predictor variable AgeGroup.  To get these regression models for each age group, simply the corresponding combination of 0's and 1's in for x1 and x2 and simplify. 
+
+</div>
+
+----
+
+## Example: Estimated Models for Each Age Group
+
+For AgeGroup 18 to 35, let $x_1=0$ and $x_2=0$, which gives
+
+$$\widehat{y}=524 - 2.39 x_3$$
+
+For AgeGroup 36 to 64, let $x_1=1$ and $x_2=0$, which gives
+
+$$\widehat{y}=-875.6 + 10.65 x_3$$
+
+For AgeGroup 65+, let $x_1=0$ and $x_2=1$, which gives
+
+$$\widehat{y}=116.7 + 1.82 x_3$$
+
+
+<div class="notes">
+
+The model for Age Group 18 to 35 is easy, when x1 and x2 are 0, any term containing either one drops out and we're left with the original intercept and the slope for Systolic Blood Pressure.
+
+With x1=1 and x2=0 for the 36 to 64 Age Group, the intercept is 524 + -1399.6, which gives -875.6 and the slope is -2.39 + 13.04, which is 10.65.
+
+When the AgeGroup is 65+, x1=0 and x2=1, so by substituting these into the equation, it simplifies to have an intercept of 524 + -407.3, which is where the 116.7 comes from, and a slope of -2.39 + 4.21, or 1.82.
+
+</div>
+
+----
+
+## Example: The Scatterplot 
+
+``` {r eval=FALSE, echo=FALSE}
+# This code was used to generate the plot for this slide
+par(mar=c(4,5,2,1),mfrow=c(1,1))
+plot(HealthExam$SysBP,HealthExam$Cholesterol,xlab="Systolic Blood Pressure", ylab="Cholesterol", pch=unclass(HealthExam$AgeGroup),col=c(1,2,4))
+legend("topright",c("18 to 35","36 to 64","65+"),pch=c(1,2,3),col=c(1,2,4))
+abline(a=523.98,b=-3.392,col=1)
+abline(a=-875.626,b=10.649,col=2)
+abline(a=116.647,b=1.821,col=3)
+```
+
+![](./Alltogether_Plot.pdf)
+
+<div class="notes">
+
+The scatterplot of Cholesterol by Systolic Blood Pressure, using Age Group as a plotting symbol is shown here with each separate estimated regression model added to the plot.  It looks pretty busy, but you can see that the lines have different y-intercepts and different slopes.
+
+A difference in y-intercepts would be indicated by the statistical significance of the main effects (that is , the first order terms) for AgeGroup, and a difference of slopes would be indicated by the the statistical significance of the interaction effects between Age Group and Systolic Blood Pressure.
+
+</div>
+
+----
+
+## Example: Separate Plots and Lines for Each Age Group
+
+``` {r eval=FALSE, echo=FALSE}
+# This code was used to generate the plot for this slide
+par(mar=c(2.5,5,2,1),mfrow=c(3,1))
+
+plot(HealthExam$SysBP[HealthExam$AgeGroup=="18 to 35"],HealthExam$Cholesterol[HealthExam$AgeGroup=="18 to 35"],main="Age Group 18 to 35",xlab="Systolic Blood Pressure", ylab="Cholesterol",ylim=c(0,1300),pch=1,col=1)
+abline(a=523.98,b=-3.392,col=1)
+
+plot(HealthExam$SysBP[HealthExam$AgeGroup=="36 to 64"],HealthExam$Cholesterol[HealthExam$AgeGroup=="36 to 64"],main="Age Group 36 to 64",xlab="Systolic Blood Pressure", ylab="Cholesterol",ylim=c(0,1300),pch=2,col=2)
+abline(a=-875.626,b=10.649,col=2)
+
+plot(HealthExam$SysBP[HealthExam$AgeGroup=="65+"],HealthExam$Cholesterol[HealthExam$AgeGroup=="65+"],main="Age Group 65+",xlab="Systolic Blood Pressure", ylab="Cholesterol",ylim=c(0,1300),pch=3,col=3)
+abline(a=116.647,b=1.821,col=3)
+```
+
+![](./Separate_Plots.pdf)
+
+<div class="notes">
+
+Separating the plots makes it a bit easier to see how the resulting fitted line for each AgeGroup represents the relationship between Cholesterol and Systolic Blood Pressure for each Age Group. 
+
+</div>
+
+----
+
+## Model Selection Criterion
+
+* $R^2$ - higher is better
+
+* $R^2_{adj}$ - higher is better
+
+* $c_p$ - closer to the number of parameters (p) is better
+
+* PRESS - lower is better
+
+* AIC - lower is better
+
+* BIC - lower is better
+
+<div class="notes">
+
+In model-building, the idea is to find the simplest model that explains the most variation in the response variable. This is known as the principle of parsimony. Overfitting simply complicates the use and interpretations of the model.  
+
+Measures like adjusted R-square, Cp, AIC and BIC take into account the number of parameters in a model and provide a penalty for each additional one.  AIC and BIC are not mentioned in the Ott textbook, but they are major players in model building.
+
+</div>
+
+----
+
+## What's AIC?
+
+Akaike Information Criterion 
+
+$$AIC=n \cdot \text{ln}SSE-n \cdot \text{ln}n+2p$$ 
+
+\begin{center}
+(or some variation on this formula)
+\end{center}
+
+AIC is a measure of information loss and is particularly useful for comparing models - lower is better.
+
+<div class="notes">
+
+You didn't see this on our textbook, but its too good to leave out. 
+
+In the formula, n is the sample size, SSE is the sum of squares for error, and p is the number of parameters.
+
+BIC or Bayesian Information Criterion, also called SBC for Schwartz' Bayesian Criterion is much like it. Smaller is better.
+They have their own Wikipedia pages; look them up if you'd like to know more about them!
+
+</div>
+
+----
+
+## Collinearity/Multicollinearity
+
+* When two or more predictor variables are highly correlated in a linear regression model.
+
+* Indicated by large values of the Variance Inflation Factor (VIF), such as 10 or more
+
+
+
+<div class="notes">
+
+Collinearity is likely to be common in the life of a data scientist because the data a data scientist will generally be working with is not from a designed experiment and often contains so many variables that high correlations among predictors are inevitable. 
+
+Highly correlated variables basically are providing overlapping explanations of the same variation in the response variable.
+
+</div>
+
+----
+
+## The Effects of Collinearity
+
+* Large standard error for estimated regression coefficients
+
+* Higher p-values for tests of individual coefficients
+
+* Wider confidence intervals for coefficients
+
+
+<div class="notes">
+
+The effect of collinearity are primarily seen in the form of inflated standard error for the estimated regression coefficients, which in turn produces larger p-values for tests of individual coefficients and wider confidence intervals for coefficients.
+
+A signature clue is when the F test for the full model has a very low p-value, but no individual coefficient has a small enough p-value to indicate that it differs from 0.
+
+</div>
+
+----
+
+## What Collinearity Does NOT Affect
+
+* $F$-statistics & p-values for the full model or subsets of coefficients
+
+* $R^2$ 
+
+* $R^2_{adj}$
+
+* AIC
+
+* Predicted values 
+
+* Standard errors of predicted values (these can be slightly affected)
+
+<div class="notes">
+Much work can still be done with a regression model even in the presence of collinearity because there are a number of measures that are unaffected by it.  Particularly if your aim is to use the model to estimate values the response variable and make predictions. 
+
+
+</div>
+
+----
+
+## Can anything be done to alleviate collinearity?
+
+* Ignore it if it doesn't affect what you are doing with the regression model
+
+* Combine correlated variables in a meaningful way to make a single variable
+
+* Omit the predictor with the highest VIF
+
+* Centering often removes collinearity for quadratic, cubic and interaction terms (centering is to subtract the mean from each data value for a given variable)
+
+* Employ factor analysis to reduce the number of predictors (may be difficult to interpret results)
+
+<div class="notes">
+
+
+
+</div>
+
+----
+ 
+
+
+
