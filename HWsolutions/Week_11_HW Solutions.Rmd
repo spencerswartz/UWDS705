@@ -1,0 +1,180 @@
+
+---
+title: 'Lab Assignment: Logistic Regression'
+author: "Your name here"
+date: "Nov. ??, 2015"
+output: word_document
+fontsize: 12pt
+---
+
+``` {r}
+load("~/Google Drive/DS 705 /Class Materials/Weekly Content/week 11/anesthesia.rda")
+```
+
+
+Create a Word document from this R Markdown file for the following exercises.  Submit the R markdown file and resulting Word document via D2L Dropbox.   
+
+## Exercise 1
+
+A study was conducted whereby the type of anesthetic (A or B), nausea after the surgery (Yes or No), the amount of pain medication taken during the recovery period, and age for a random sample of 72 patients undergoing reconstructive knee surgery.  
+
+The data is in the file anesthesia.rda.
+
+### Part 1a
+
+Use R to create a two-way table with the type of anesthetic defining the rows and nausea after the surgery as the columns and also produce the output for a chi-square test for independence.
+
+Is there an association between these two categorical variables at a 5% level of significance?
+
+### -|-|-|-|-|-|-|-|-|-|-|- Answer 1a -|-|-|-|-|-|-|-|-|-|-|-
+
+```{r}
+counts <- table(anesthesia$anesthetic,anesthesia$nausea)
+counts
+chisq.test(anesthesia$anesthetic,anesthesia$nausea)
+```
+
+There is an association between these two categorical variables at a 5% level of significance (X-squared = 8.0559, df = 1, p-value = 0.004535).
+
+### Part 1b
+
+Obtain the output from R (including the Wald tests for coefficients - so use "summary" function) for the logistic regression model with nausea as the dependent variable and the type of anesthetic as the predictor variable.
+
+### -|-|-|-|-|-|-|-|-|-|-|- Answer 1b -|-|-|-|-|-|-|-|-|-|-|-
+
+```{r}
+naus.out <- glm(nausea~anesthetic,data=anesthesia,family="binomial")
+summary(naus.out)
+```
+
+Coefficients:
+            Estimate Std. Error z value Pr(>|z|)   
+(Intercept)   0.6931     0.3397   2.041  0.04129 * 
+anestheticB  -1.5261     0.5088  -2.999  0.00271 **
+
+### Part 1c  
+
+What is the outcome of the hypothesis test the coefficient of **anesthetic** is "zero" vs "not zero" at a 5% level of significance? (use the Pr(>|z|) from the R output from the logistic regression you performed, this is called a Wald test, though it is not labeled as such in the output)
+
+### -|-|-|-|-|-|-|-|-|-|-|- Answer 1c -|-|-|-|-|-|-|-|-|-|-|-
+
+The coefficient of **anesthetic** is "not zero" at a 5% level of significance (p=0.00271).
+
+### Part 1d
+
+Convert the estimated coefficient of **anesthesia** to an odds ratio and interpret it in the context of the problem.
+
+### -|-|-|-|-|-|-|-|-|-|-|- Answer 1d -|-|-|-|-|-|-|-|-|-|-|-
+
+```{r}
+exp(-1.5261)
+```
+
+The odds of having nausea with anesthetic B is 0.2173818 times the odds of having nausea when using anesthetic A.
+
+ALternatively, the odds of having nausea with anesthetic B is 78.3% less than for anesthetic A. [from (1-.217)100%=78.3%]
+
+### Part 1e
+
+Install the package "mosaic" (if you don't have it installed already), then load it.  Use the oddsRatio function to compute the odds ratio for having nausea for anesthetic A vs B.  You may have to refer back to Week 8 for details on odds ratios and the oddsRatio function in R.
+
+### -|-|-|-|-|-|-|-|-|-|-|- Answer 1e -|-|-|-|-|-|-|-|-|-|-|-
+
+```{r}
+require(mosaic)
+counts <- table(anesthesia$anesthetic,anesthesia$nausea)
+oddsRatio(counts,verbose = TRUE)  # can skip verbose=TRUE if you don't want extra info
+```
+
+
+The odds of having nausea with anesthetic A is 4.6 times the odds of having nausea when using anesthetic A. (360% higher)
+
+### Part 1f
+
+When logistic regression coefficients are negative, the interpretation sometimes has more impact when we switch the perspective and use the reciprocal of the exponentiated coefficient.  Find the odds ratio for having nausea for anesthetic B compared to anesthetic A (i.e. take the reciprocal of the odds ratio you computed in part **1d**).  
+
+Interpret this odds ratio in the context of the problem.
+
+### -|-|-|-|-|-|-|-|-|-|-|- Answer 1f -|-|-|-|-|-|-|-|-|-|-|-
+
+```{r}
+exp(1.5261)
+```
+
+
+### Part 1g
+    
+Compute the predicted probability of a reconstructive knee surgery patient having nausea after surgery when anesthetic A was used.
+    
+### -|-|-|-|-|-|-|-|-|-|-|- Answer 1g -|-|-|-|-|-|-|-|-|-|-|-
+
+```{r}
+naus.out <- glm(nausea~anesthetic,data=anesthesia,family="binomial")
+newdata <- data.frame(anesthetic="A")
+predict(naus.out, newdata, type="response")
+```
+
+----
+
+### Part 1h
+    
+Compute a 95% confidence interval for the predicted probability of a reconstructive knee surgery patient having nausea after surgery when anesthetic A was used.
+    
+### -|-|-|-|-|-|-|-|-|-|-|- Answer 1h -|-|-|-|-|-|-|-|-|-|-|-
+
+```{r}
+out <- predict(naus.out, newdata, se.fit=TRUE)
+C = .95  # define the level of confidence
+crit = qnorm(1-(1-C)/2)  # get the appropriate critical value
+lower = exp(out$fit-crit*out$se.fit)/(1+exp(out$fit-crit*out$se.fit))
+upper = exp(out$fit+crit*out$se.fit)/(1+exp(out$fit+crit*out$se.fit))
+c(lower,upper)
+```
+
+## Exercise 2
+
+Continue using the anesthesia.rda data set to do the following.
+
+### Part 2a
+
+Obtain the output from R (including the Wald tests for coefficients - so use "summary" function) for the logistic regression model with nausea as the dependent variable and the amount of pain medication taken as the predictor variable.  
+
+At $\alpha = 0.05$, is there a statistically significant relationship between nausea and the amount of pain medication taken?
+
+### -|-|-|-|-|-|-|-|-|-|-|- Answer 2a -|-|-|-|-|-|-|-|-|-|-|-
+
+```{r}
+naus.out2 <- glm(nausea~painmed,data=anesthesia,family="binomial")
+summary(naus.out2)
+```
+
+Yes, there a statistically significant relationship between nausea and the amount of pain medication taken (p=2.20e-05).
+
+### Part 2b  
+
+Convert the estimated coefficient of **painmed** to an odds ratio and interpret it in the context of the problem.
+
+### -|-|-|-|-|-|-|-|-|-|-|- Answer 2b -|-|-|-|-|-|-|-|-|-|-|-
+
+```{r}
+exp(0.037487)
+```
+
+The odds of having nausea increase by 1.038199 for each unit increase in painmed.
+
+### Part 2c
+
+Compute the predicted probabilities of a reconstructive knee surgery patient having nausea in the recovery time after surgery for when 50 units of pain medication are used and also for when 100 units of pain medication are used.
+
+Comment on these two probabilities.
+
+### -|-|-|-|-|-|-|-|-|-|-|- Answer 2c -|-|-|-|-|-|-|-|-|-|-|-
+
+```{r}
+newdata2 <- data.frame(painmed=c(50,100))
+predict(naus.out2, newdata2, type="response")
+```
+
+The probability of having nausea is 0.665 when 100 units of pain med are used compared to a probability of only 0.234 when 50 units are used.
+
+

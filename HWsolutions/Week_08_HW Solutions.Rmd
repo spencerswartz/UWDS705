@@ -1,0 +1,270 @@
+
+---
+title: 'Lab Assignment: Inference for Categorical Data - Solutions'
+author: "Professor X"
+date: 
+output: word_document
+fontsize: 12pt
+---
+
+Create a Word document from this R Markdown file for the following exercises.  Submit the R markdown file and resulting Word document via D2L Dropbox.    
+
+## Exercise 1
+
+Chondromalatia patellae (CP) is a painful inflammation of the patella (kneecap).  It can be diagnosed without error arthroscopically.  However, a less invasive diagnostic test called Clarke’s Sign test can also be used to diagnose CP but is not 100% accurate.  The following contingency table contains data for 106 patients who were first diagnosed for CP using the Clarke’s Sign test and then went on to have arthroscopic surgery to confirm or deny the diagnosis (Doberstein ST, Romeyn RL, Reineke DM , J Athl Train. 2008 Apr-Jun;43(2):190-6.).
+
+| | Have CP | No CP | Total |
+| --- | :---: | :---: | :---: |
+| Positive Clarke's Sign | 9 | 27 | 36 |
+| Negative Clarke's Sign | 14 | 56 | 70 |
+Total | 23 | 83 | 106 |
+
+```{r echo=FALSE, warning=FALSE, message=FALSE}
+if (!require(abd)){
+  install.packages('abd')
+  library(abd)
+}
+```
+
+### Part 1a
+
+Conduct a chi-square test to determine if the outcome of the Clarke's Sign test and the presence of CP are associated.  Let $\alpha = 0.05$.
+
+### Answer 1a
+
+```{r}
+posTest <- c(9,27)
+negTest <- c(14,56)
+cpTable <- rbind(posTest,negTest)
+dimnames(cpTable) <- list( Test = c("pos","neg"),CP =c ("yes","no") )
+out <- chisq.test(cpTable,correct=FALSE)
+out
+# it doesn't hurt to look at the expected cell counts to make sure they are all at least 5
+min(out$expected)
+```
+
+$H_0:$ Clarke's Sign test and the presence of CP are independent.
+
+$H_a:$ Clarke's Sign test and the presence of CP are dependent or associated.
+
+Do not reject $H_0$ at $\alpha = 0.05$ ($P = `r round(out$p.value,2)`$). There is not enough evidence to show that there is an association between the outcome of Clarke's Sign Test and having CP.
+
+### Part 1b
+
+For the population of all patients who have CP, construct and interpret a 95% confidence interval for the proportion of positive Clarke's Sign tests.
+
+### Answer 1b
+
+```{r}
+out <- prop.test(9,23,correct=FALSE)
+```
+
+The population proportion of patients who CP that test positive using Clarke's Sign Test is between `r round(out$conf.int[1],2)` and `r round(out$conf.int[2],2)`
+
+### Part 1c  
+Compare the proportions of patients without CP who get a positive test to the proportion of patients with CP who get a positive test.  Do this by computing a 95% CI for difference of proportions of positive tests of those who have CP and those who don't.
+
+### Answer 1c
+
+```{r}
+# the successes and failures for each population should come from the rows of the table passed to chisq.test
+# the rows in the current table represent the populations of pos test and neg test
+# the columns in the table represent the populations with and without CP, but we need these to be the rows
+# 
+# t() takes the transpose of a matrix (flips columns and rows)
+t(cpTable)
+# here I want to use the original prop.test in package stats and not the wrapper version that is provided in mosiac, so 
+out <- stats::prop.test(t(cpTable),correct=FALSE)
+out
+```
+
+We are 95% confident that there is not a statistically significant difference in the population proportions of patients who have a postive Clarke's sign test between those with and without CP.  This is because the interval `r round(min(out$conf.int),2)` to `r round(max(out$conf.int),2)` contains 0.
+
+### Part 1d
+
+If one person is selected randomly, what is the risk of having CP given that the patient has a positive Clarke’s Sign test? (“risk” means probability)
+
+### Answer 1d
+
+```{r}
+9/36
+```
+
+The risk of CP, if a patient as a positive Clarke's sign test, is 0.25.
+
+### Part 1e
+
+If one person is selected randomly, what is the risk of having CP given that the patient has a negative Clarke’s Sign test?
+
+### Answer 1e
+
+```{r}
+14/70
+```
+
+The risk of CP, if a patient has a negative Clarke's sign test, is 0.20.
+
+### Part 1f
+
+Compute the relative risk of having CP for those who have a positive Clarke's Sign test compared to those who have a negative test.
+
+### Answer 1f
+
+```{r}
+rr <- (9/36)/(14/70)
+rr
+```
+
+The rist of having CP for those with a positive Clarke's Sign test is `r round(100*rr)`% of the risk for those with a negative Clarke's sign test.
+
+### Part 1g
+    
+What are the odds of having CP given that the patient has a positive Clarke’s Sign test? 
+    
+### Answer 1g
+
+```{r}
+9/27
+```
+
+For a patient with a positive Clarke's sign test the odds of having CP are 1:3 or 1/3.
+
+### Part 1h
+
+What are the odds of having CP given that the patient has a negative Clarke’s Sign test?
+
+### Answer 1h
+
+```{r}
+14/56
+```
+
+For a patient with a positive Clarke's sign test the odds of having CP are 1:4 or 1/4.
+
+### Part 1i
+
+Compute the odds ratio (OR) of having CP for those who have a positive Clarke's Sign test compared to those who have a negative test.
+
+### Answer 1i
+
+```{r}
+oddsR <-(9/27)/(14/56)
+```
+
+For this sample, the odds of having CP are `r round(oddsR,2)` times greater for those with positive tests than negative tests.
+
+### Part 1j
+
+Write an interpretation of the odds ratio as a percent.
+
+### Answer 1j
+
+The odds of having CP are `r 100*(abs(1-round(oddsR,2)))`% greater for those with a positive Clarke's sign test, then a negative sign test.
+
+### Part 1k
+
+Construct a 95% confidence interval for the OR of having CP for those who have a positive test compared to those who have a negative test.  Interpret the interval, leaving the endpoints as a multiples.
+
+### Answer 1k
+
+```{r}
+# oddsRatio() computes the odds of the second row / odds first row
+cpSwitch <- rbind( cpTable[2,1:2],cpTable[1,1:2]); # switch the rows
+out <- oddsRatio(cpSwitch,conf.level=0.95,quiet=FALSE)
+```
+
+We are 95% confident that odds of having CP for those with a positive test is anywhere from `r round(attr(out,"lower.OR"),2)` to `r round(attr(out,'upper.OR'),2)` times the odds of having CP for those with a negative test.
+
+## Exercise 2
+
+There are said to be six general personality types for dogs (see http://www.fl-k9.com/personalities.htm for more details about dog personalities if you are interested).  Suppose it has been hypothesized that the distribution of dog personalities is as follows.
+
+Personality Type | Hypothesized Proportion
+---|:---:
+Aggressive | 0.15
+Confident | 0.09
+Outgoing | 0.29
+Adaptable | 0.21
+Insecure | 0.12
+Independent | 0.14
+
+### Part 2a
+
+Consider a random sample of 125 dogs that have been categorized by personality in the table below.  
+
+Personality Type | Observed frequency
+---|:---:
+Aggressive | 14
+Confident | 15
+Outgoing | 22
+Adaptable | 30
+Insecure | 19
+Independent | 25
+Total | 125
+
+Create vectors for the counts and hypothesized probabilities, then conduct the chi-square test to determine if the distribution of dog personalities given above is correct.  Include all parts of the test.
+
+### Answer 2a
+
+```{r}
+dProps = c(0.15, 0.09, 0.29, 0.21, 0.12, 0.14)
+dCounts = c(14, 15, 22, 30, 19, 25)
+out <- chisq.test(x=dCounts,p=dProps)
+out
+```
+
+$H_0$: $\pi_\mbox{Aggressive}=0.15, \pi_\mbox{Confident}=0.09, \pi_\mbox{Outgoing}=0.29, \pi_\mbox{Adaptable}=0.21, \pi_\mbox{Insecure}=0.12, \pi_\mbox{Independent}=0.14$
+
+$H_a$: At least one proportion is different.
+
+Reject $H_0$ at $\alpha = 0.05$ ($P = `r round(out$p.value,2)`).  There is sufficient evidence to show that the distribution of dog personality types is different from the hypothesized distribution.
+
+### Part 2b  
+
+Compute the expected cell counts and verify that they are all large enough for the chi-square test to be valid. Include a reference to the criterion you are using to determine if expected cell counts are large enough.
+
+### Answer 2b
+
+```{r}
+expected = sum(dCounts)*dProps
+expected
+min(expected)
+```
+
+The smallest expected cell count is `r min(expected)` which is larger than 5, thus the chi-square goodness of fit test is appropriate.
+
+## Exercise 3
+
+A researcher is studying seat belt wearing behavior in teenagers (ages 13 to 19) and senior citizens (over 65). A random sample of 20 teens is taken, of which 17 report always wearing a seat belt.  In random sample of 20 senior citizens, 12 report always wearing a seat belt.  Using a 5% significance level, determine if seat belt use is associated with these two age groups.
+
+### Part 3a
+
+Create a 2x2 matrix with the correct cell counts.  Arrange it so that the columns represent the age group (teen vs senior) and rows contain the seat belt usage (always wear vs not always wear).  
+
+### Answer 3a
+
+```{r}
+teenBelts = c(17,3)
+seniorBelts = c(12,8)
+observed <- cbind(teenBelts, seniorBelts)
+dimnames(observed) <- list(UsedBelts = c("Yes", "No"),Group = c("Teen","Senior"))
+observed
+```
+
+### Part 3b
+
+With the small cell counts in mind, use the appropriate test to determine if proportions of those who claim to "always wear" a seat belt is the same for these two age groups.  Use a 5% significance level.  Include all parts for the hypothesis test.
+
+### Answer 3b
+
+```{r}
+# use the fisher exact test since the cell counts are small
+out <- fisher.test(observed)
+out
+```
+
+$H_0: p_{\text{teens wear belt}} = p_{\text{seniors_wear_belts}}$
+
+$H_a: p_{\text{teens wear belt}} \neq  p_{\text{seniors_wear_belts}}$
+
+Do not reject $H_0$ at $\alpha = 0.05$ ($P = `r round(out$p.value,2)`$).  There is not sufficient evidence to show that the population proportions of seniors and teens who always wear seat belts are different.

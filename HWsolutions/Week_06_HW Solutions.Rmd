@@ -1,0 +1,255 @@
+
+---
+title: 'Week 6 HW Solutions: ANOVA etc.'
+author: "Professor X"
+date: "Oct. 14, 2015"
+output: word_document
+fontsize: 12pt
+---
+
+Create a Word docx from this R Markdown file for the following exercise.  Submit the R markdown file and resulting Word docx file via D2L Dropbox.   
+
+## Exercise 
+
+This exercise is based on the data and experimental design from exercises 8.42 & 8.43 in the Ott textbook.
+
+A small corporation makes insulation shields for electrical wires using three different types of machines. The corporation wants to evaluate the variation in the inside diameter dimension of the shields produced by the machines. A quality engineer at the corporation randomly selects shields produced by each of the machines and records the inside diameters of each shield (in millimeters). The goal is to determine whether the location parameters (i.e. mean or median) of the three machines differ. 
+
+Load the data set shields from the DS705data package (alternately there is shields.rda file in the weekly download folder that can be loaded using the load() command)
+
+### Part 1
+
+Construct side-by-side boxplots for the inside diameters of the insulation shields for the three machines.
+
+### -|-|-|-|-|-|-|-|-|-|-|- Answer 1 -|-|-|-|-|-|-|-|-|-|-|-
+
+```{r}
+require(DS705data)
+data(shields)
+boxplot(Diameter~Machine,data=shields)
+```
+
+----
+
+### Part 2
+
+Comment on what you see in the boxplots.  How do the medians compare visually?  Do the samples look like they have roughly the same variability?  Is there severe skewness or outliers in any of the samples?  Be specific.
+
+### -|-|-|-|-|-|-|-|-|-|-|- Answer 2 -|-|-|-|-|-|-|-|-|-|-|-
+
+Machines A and B seem to have similar median diameters, while Machine C seems to have a higher median diameter.  Sample A is fairly symmetric, sample B would be more or less symmetric except for one very large outlier, and sample C appears to be positively skewed.  Sample C shows much more variation (larger variance) than samples A and B whose variances might be similar.
+
+----
+
+### Part 3
+
+Which data conditions for ANOVA appear not to be met, if any?  Provide reasoning for your answer.
+
+### -|-|-|-|-|-|-|-|-|-|-|- Answer 3 -|-|-|-|-|-|-|-|-|-|-|-
+
+The populations do not have the same variance (they are heteroscedastic) and population C almost certainly isn't normally distributed.  Population A may be normally distributed.  Population B is also not likely to be normally distributed because it would be unlikely for a normal distribution to produce such a large outlier.
+
+----
+
+### Part 4  
+
+Conduct an analysis of variance test (the standard one that assumes normality and equal variance).  (i) State the null and alternative hypotheses, (ii) use R to compute the test statistic and p-value, and (iii) write a conclusion in context at $\alpha=0.05$.
+
+### -|-|-|-|-|-|-|-|-|-|-|- Answer 4 -|-|-|-|-|-|-|-|-|-|-|-
+
+(i)
+$H_0: \mu_A = \mu_B = \mu_C$
+
+$H_a:$ not all of the population mean diameters are the same.
+
+(ii)
+```{r}
+l.model <- lm( Diameter ~ Machine, data = shields)
+test <- anova(l.model)
+test
+P <- test$P[1]
+```
+
+(iii)
+Do not reject $H_0$ at $\alpha = 0.05$ ($P = `r round(P,3)`).  There is not significant evidence to show that the population mean inside diameters are different.
+
+----
+
+### Part 5 
+
+Conduct an analysis of variance test with the Welch correction.  (i) State the null and alternative hypotheses, (ii) use R to compute the test statistic and p-value, and (iii) write a conclusion in context at $\alpha=0.05$.
+
+### -|-|-|-|-|-|-|-|-|-|-|- Answer 5 -|-|-|-|-|-|-|-|-|-|-|-
+
+(i)
+$H_0: \mu_A = \mu_B = \mu_C$
+
+$H_a:$ not all of the population mean diameters are the same.
+
+(ii)
+```{r}
+test <- oneway.test(Diameter ~ Machine, data = shields, var.equal=FALSE)
+P <- test$p.value
+```
+
+(iii)
+Do not reject $H_0$ at $\alpha = 0.05$ ($P = `r round(P,3)`).  There is not significant evidence to show that the population mean inside diameters are different.
+
+----
+
+### Part 6
+
+Which data conditions for Welch ANOVA are not met, if any?  Provide reasoning for your answer.
+
+### -|-|-|-|-|-|-|-|-|-|-|- Answer 6 -|-|-|-|-|-|-|-|-|-|-|-
+
+Population C almost certainly isn't normally distributed.  Population A may be normally distributed.  Population B is also not likely to be normally distributed because it would be unlikely for a normal distribution to produce such a large outlier.
+
+----
+
+### Part 7
+    
+Conduct a Kruskal-Wallis test.  (i) State the null and alternative hypotheses, (ii) use R to compute the test statistic and p-value, and (iii) write a conclusion in context using $\alpha=0.05$.
+    
+### -|-|-|-|-|-|-|-|-|-|-|- Answer 7 -|-|-|-|-|-|-|-|-|-|-|-
+
+(i)
+$H_0:$ The populations have the same distribution
+
+$H_1:$ The populations do not have the same distribution.
+
+(These aren't quite )
+
+(ii)
+```{r}
+test <- kruskal.test( Diameter ~ Machine, data = shields)
+P <- test$p.value
+```
+
+(iii)
+Reject $H_0$ at $\alpha = 0.05$ ($P = `r round(P,3)`$).  There is significant evidence to show that the population median inside diameters are not all the same.
+
+----
+
+### Part 8
+
+Which data conditions for the Kruskal-Wallis test are not met, if any?  Provide reasoning for your answer.
+
+### -|-|-|-|-|-|-|-|-|-|-|- Answer 8 -|-|-|-|-|-|-|-|-|-|-|-
+
+The distributions do not have the same shape.  Population C seems to be much more spread out than the others.
+
+----
+
+### Part 9 
+
+Conduct a bootstrapped ANOVA test using pooled residuals and unequal variances as in the notes.  (i) State the null and alternative hypotheses, (ii) use R to compute the test statistic and p-value, and (iii) write a conclusion in context $\alpha=0.05$.  Do not use a helper function, instead mimic the code in the notes using a for loop to construct the boostrapped sampling distribution.
+
+### -|-|-|-|-|-|-|-|-|-|-|- Answer 9 -|-|-|-|-|-|-|-|-|-|-|-
+
+(i)
+$H_0: \mu_A = \mu_B = \mu_C$ 
+
+$H_a:$ not all the population means are the same.
+
+(ii)
+```{r cache=TRUE}
+# Insert your R code here.
+F.obs <- oneway.test( Diameter ~ Machine, data = shields, var.equal=FALSE)$statistic
+F.obs
+resA <- shields$Diameter[shields$Machine=='A'] - mean(shields$Diameter[shields$Machine=='A'])
+resB <- shields$Diameter[shields$Machine=='B'] - mean(shields$Diameter[shields$Machine=='B'])
+resC <- shields$Diameter[shields$Machine=='C'] - mean(shields$Diameter[shields$Machine=='C'])
+
+B <- 10000; Fstar1 <- numeric(B)
+for (i in 1:B){
+  pop.null <- data.frame(res = sample( c(resA, resB, resC), replace = T), Machine=shields$Machine )
+  Fstar1[i] <- oneway.test( res~Machine, data=pop.null, var.equal=FALSE)$statistic
+}
+# oneway.test will fail if any of the group standard deviations is zero, this can happen with resampling
+mask <- !is.na(Fstar1)
+p.approx1 <- sum( Fstar1[mask] > F.obs )/sum(mask); p.approx1
+```
+
+(iii)
+Do not reject $H_0$ at $\alpha = 0.05$ ($P = `r round(p.approx1,3)`).  There is not significant evidence to show that the population mean inside diameters are different.
+
+----
+
+### Part 10 
+
+Repeat the bootstrapped ANOVA test using unpooled residuals and unequal variances as in the notes.  (i) State the null and alternative hypotheses, (ii) use R to compute the test statistic and p-value, and (iii) write a conclusion in context $\alpha=0.05$.  Go ahead and use the helper function or t1waybt do do this problem.
+
+### -|-|-|-|-|-|-|-|-|-|-|- Answer 10 -|-|-|-|-|-|-|-|-|-|-|-
+
+(i)
+Replace this text with your answer here.
+
+(ii)
+```{r}
+source('anovaResampleFast.R')
+out10<-anovaResampleFast(shields$Diameter,shields$Machine,B=10000,method=2,var.equal=F)
+out10
+```
+
+(iii)
+Do not reject $H_0$ at $\alpha = 0.05$ ($P = `r round(out10$p.boot,3)`).  There is not significant evidence to show that the population mean inside diameters are different.
+
+----
+
+### Part 11
+
+Which seems better and why, the bootstrap procedure with the pooled or unpooled residuals?
+
+### -|-|-|-|-|-|-|-|-|-|-|- Answer 11 -|-|-|-|-|-|-|-|-|-|-|-
+
+The three populations have different shapes and spreads, so it doesn't make sense to combine or pool the residuals into a single sample.  Unfortunately, since the samples are very small, there is limited information in the unpooled residuals and the bootstrap does not work very well.  We can never escape the need to have representative samples.
+
+----
+
+### Part 12 
+
+Do any of the four statistical inference procedures used here provide a clear answer to the question of whether or not the three machines produce the same average inside diameter for the insulation shields?
+
+### -|-|-|-|-|-|-|-|-|-|-|- Answer 12 -|-|-|-|-|-|-|-|-|-|-|-
+
+Only one of the procedures, the Kruskal-Wallis test, gave a statistically significant result (at $\alpha = 0.05$) indicating that there might be different population centers.  However, the Kruskal-Wallis isn't really relevant here.  The ANOVA tests all require normality, but that doesn't seem reasonable for this problem either which casts into doubt the nearly significant result of the Welch ANOVA.  Bootstrapping with pooled residuals gave a nearly significant result, but pooling the residuals is suspect since the population variances seem quite different.  Boostrapping with unpooled residuals was not effective because of the very small sample sizes.  In short, none of these procedures give a clear answer.  But looking at the boxplot certainly suggests that machine C may have different inside diameters than machines A and B.
+
+----
+
+### Part 13 
+
+If you were responsible for conducting the statistical analysis here, what would you report to the engineer?
+
+### -|-|-|-|-|-|-|-|-|-|-|- Answer 13 -|-|-|-|-|-|-|-|-|-|-|-
+
+None of the statistical analyses gives reliable evidence to suggest the machines produce different inside wire diameters on average.
+
+----
+
+### Part 14  
+
+What impact do you think samples of sizes 5, 5, and 10 play here?
+
+### -|-|-|-|-|-|-|-|-|-|-|- Answer 14 -|-|-|-|-|-|-|-|-|-|-|-
+
+Replace this text with your answer here.
+
+----
+
+### Part 15
+
+Take 3 random samples of size 100 from normal distributions having mean 0 and standard deviations 1, 10, and 50.  Run a Kruskal-Wallis test.  The distributions are clearly different, yet you (should) get a large $P$-value.  What's going on?  Explain.
+
+### -|-|-|-|-|-|-|-|-|-|-|- Answer 15 -|-|-|-|-|-|-|-|-|-|-|-
+
+```{r echo = TRUE}
+set.seed(321)
+x <- c( rnorm(100,0,1), rnorm(100,0,10), rnorm(100,0,50))
+# complete the code here ...
+
+```
+
+Replace this text with your explanation.
+
+----

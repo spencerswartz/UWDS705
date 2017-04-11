@@ -1,0 +1,817 @@
+
+---
+title: "Exam 2"
+author: "Spencer Swartz"
+date: "April 11, 2017"
+output: word_document
+fontsize: 12pt
+---
+
+```{r echo=FALSE}
+# leave alone, this block for grading
+pts <- NULL
+pts.poss <- NULL
+display.grades <- TRUE
+scoreFunction <- function(prb,earned,possible){
+  pts[prb] <<- earned
+  pts.poss[prb] <<- possible
+  if (display.grades){
+      print( paste('Score for',prb,':',earned,'/',possible))
+  }
+}
+```
+
+## Problem 1
+
+People who are concerned about their health may prefer hot dogs that are low in sodium and calories. The data file contains sample data on the sodium and calories contained in each of 54 major hot dog brands. The hot dogs are classified by type: beef, poultry, and meat.
+
+The data file called hotdogs.rda contains the sodium and calorie content for random samples of each type of hot dog. This data set is included in the DS705data package.
+
+### Part 1a
+
+Make boxplots for the variable calories for the 3 types of hotdogs. Describe the 3 boxplots and the suitability of these samples for conducting analysis of variance.  
+
+### -|-|-|-|-|-|-|-|-|-|-|- Answer 1a -|-|-|-|-|-|-|-|-|-|-|-
+
+```{r}
+require(DS705data)
+data('hotdogs')
+boxplot(hotdogs$calories~hotdogs$type)
+
+```
+
+It looks as if the response variables in each poulation are normally distributed and have equal variance, assuming that the samples are selected randomly and independently, then these sets are sutables for conducting anova.
+
+```{r echo=FALSE}
+# leave alone, this block for grading
+scoreFunction("1a",0,3)
+```
+
+### Part 1b
+
+Conduct an analysis of variance test (the standard one that assumes normality and equal variance) to compare population mean calorie counts for these three types of hot dogs.  (i) State the null and alternative hypotheses, (ii) use R to compute the test statistic and p-value, and (iii) write a conclusion in context at $\alpha=0.10$.
+
+### -|-|-|-|-|-|-|-|-|-|-|- Answer 1b -|-|-|-|-|-|-|-|-|-|-|-
+
+(i)
+$H_0: \mu_A = \mu_B = \mu_C$
+
+$H_a:$ not all of the population mean calories are the same.
+
+(ii)
+```{r}
+l.model <- lm( calories ~ type, data = hotdogs)
+test <- anova(l.model)
+test
+
+```
+
+(iii)
+Reject $H_0$ at $\alpha = 0.05$ ($P$ = 0.0037).  There is significant evidence to show that the population mean calories are different between types.
+
+```{r echo=FALSE}
+# leave alone, this block for grading
+scoreFunction("1b",0,8)
+```
+
+### Part 1c
+
+Follow up with a Tukey-Kramer multiple comparison procedure and control the experimentwise error rate at $\alpha=0.10$.  Write an interpretation for your multiple comparison output in the context of the problem.
+    
+### -|-|-|-|-|-|-|-|-|-|-|- Answer 1c -|-|-|-|-|-|-|-|-|-|-|-
+
+```{r}
+TukeyHSD(aov(calories ~ type, data = hotdogs),conf.level = .9)
+
+
+```
+
+Hotdog Type C mean calories is between 5.3 and 55.8 more than Type B.
+Hotdog Type C mean calories is between 15.4 and 63.9 more than Type A.
+And hotdog Type B mean calories is between 15.1 less than and 33.4 more than Type B.
+
+```{r echo=FALSE}
+# leave alone, this block for grading
+scoreFunction("1c",0,5)
+```
+
+
+### Part 1d
+
+As part of a vigorous road test for independent random samples of size 20 for 4 different brands of tires, the tread wear was measured for comparison.  The data frame treadwear.rda contains the resulting data.
+
+Begin by exploring the sample means and standard deviations for each brand and looking at a boxplot comparison. That is, find the sample means and standard deviations and produce a boxplots of the tread wear measures for the four brands of tires.
+
+Conduct hypothesis tests for the normality of the tread wear for each brand using a 5% level of significance in each case.
+
+Also test for the homogeneity of the variances using $\alpha=0.05$.
+
+Comment on the results of each.
+    
+### -|-|-|-|-|-|-|-|-|-|-|- Answer 1d -|-|-|-|-|-|-|-|-|-|-|-
+
+```{r}
+data("treadwear")
+mean(treadwear$wear[treadwear$brand=="A"])
+mean(treadwear$wear[treadwear$brand=="B"])
+mean(treadwear$wear[treadwear$brand=="C"])
+mean(treadwear$wear[treadwear$brand=="D"])
+sd(treadwear$wear[treadwear$brand=="A"])
+sd(treadwear$wear[treadwear$brand=="B"])
+sd(treadwear$wear[treadwear$brand=="C"])
+sd(treadwear$wear[treadwear$brand=="D"])
+boxplot(treadwear$wear~treadwear$brand)
+
+shapiro.test(treadwear$wear[treadwear$brand=="A"])
+shapiro.test(treadwear$wear[treadwear$brand=="B"])
+shapiro.test(treadwear$wear[treadwear$brand=="C"])
+shapiro.test(treadwear$wear[treadwear$brand=="D"])
+
+```
+
+Based on the Shapiro Wilk tests, we cannot reject $H_0$ that the sample comes from a population which has a normal distrobution for any of the diferent tire brands. (pvalues in alphabetical order: 0.3177, 0.1003, 0.4301, 0.3871)
+
+```{r echo=FALSE}
+# leave alone, this block for grading
+scoreFunction("1d",0,6)
+```
+
+### Part 1e
+
+What is the most appropriate inference procedure to compare population mean tread wear for these four brands of tires?  Perform this procedure.  
+
+(i) State the null and alternative hypotheses, (ii) use R to compute the test statistic and p-value, and (iii) write a conclusion in context at $\alpha=0.05$.
+    
+### -|-|-|-|-|-|-|-|-|-|-|- Answer 1e -|-|-|-|-|-|-|-|-|-|-|-
+
+Replace this text with your answer here.
+
+(i)$H_0: \mu_A = \mu_B = \mu_C$
+
+$H_a:$ not all of the population mean wear are the same.
+
+(ii)
+```{r}
+oneway.test(wear ~ brand, data = treadwear, var.equal=FALSE)
+
+```
+
+(iii) Reject $H_0$ at $\alpha = 0.05$ ($P$ = 0).  There is significant evidence to show that the population mean tread wears are different.
+
+
+```{r echo=FALSE}
+# leave alone, this block for grading
+scoreFunction("1e",0,8)
+```
+
+### Part 1f
+
+Conduct the most appropriate multiple comparisons procedure which brands have significantly different tread wear.  Use a familywise error rate of $\alpha=0.05$.
+Use complete sentences to interpret the results in the context of the problem.
+    
+### -|-|-|-|-|-|-|-|-|-|-|- Answer 1f -|-|-|-|-|-|-|-|-|-|-|-
+
+```{r}
+onewayComp(wear~brand,data = treadwear,var.equal=FALSE,adjust='one.step',alpha=0.05)
+
+```
+
+We are 95% confident that the population mean tread wear of brand C is 151.8 to 347.6 more than that of brand A, and 78.4 to 231.4 more than that of Brand B. Similarly the population mean tread wear of brand D is 174.2 to 379.8 more than that of Brand A, and 99.1 to 265.3 more than that of brand B. There appear to be no other significant population mean differences.
+
+```{r echo=FALSE}
+# leave alone, this block for grading
+scoreFunction("1f",0,5)
+```
+
+## Problem 2
+
+This dataset contains the prices of ladies' diamond rings and the carat
+size of their diamond stones.  The rings are made with gold of 20
+carats purity and are each mounted with a single diamond stone. The data was presented in a newspaper advertisement suggesting the use of simple
+linear regression to relate the prices of diamond rings to the carats
+of their diamond stones.
+
+The data is in the file diamond.rda and is included in the DS705data package.
+
+### Part 2a
+
+Does it appear that a linear model is at least possibly a plausible model for predicting the price from carats of the diamonds for these rings? 
+
+Begin by creating a scatterplot and comment on the suitability of a linear regression model. 
+
+### -|-|-|-|-|-|-|-|-|-|-|- Answer 2a -|-|-|-|-|-|-|-|-|-|-|-
+
+```{r}
+data("diamond")
+diamond = diamond[-42,]
+carat <- diamond$carat
+price <- diamond$price
+plot(carat,price,xlab="Carat",ylab="Price",main="")
+```
+
+Replace this text with your answer here.
+
+```{r echo=FALSE}
+# leave alone, this block for grading
+scoreFunction("2a",0,2)
+```
+
+### Part 2b  
+
+Obtain the estimated slope and y-intercept for the estimated regression equation and write the equation in the form price$=\hat{\beta_0} + \hat{\beta_1}$carats (only with $\hat{\beta_0}$ and $\hat{\beta_1}$ replaced with the numerical estimates from your R output).
+
+### -|-|-|-|-|-|-|-|-|-|-|- Answer 2b -|-|-|-|-|-|-|-|-|-|-|-
+
+```{r}
+linear.model <- lm(price~carat,data=diamond)
+b0 <- linear.model$coef[1]
+b1 <- linear.model$coef[2]
+b0
+b1
+
+```
+
+Replace the ## symbols with your slope and intercept
+
+price = ## + ## carat  
+
+```{r echo=FALSE}
+# leave alone, this block for grading
+scoreFunction("2b",0,5)
+```
+
+### Part 2c
+
+Compute the sample Pearson correlation coefficient and test whether or not the population Pearson correlation coefficient between price and carat is zero using a 1% level of significance.  (i) State the null and alternative hypotheses, (ii) test statistic, (iii) the p-value, and (iv) conclusion.
+
+### -|-|-|-|-|-|-|-|-|-|-|- Answer 2c -|-|-|-|-|-|-|-|-|-|-|-
+
+```{r}
+cor.test(price,carat, alpha=.01)
+
+
+```
+
+Sample correlation:
+
+(i)$H_0:$ true correlation is equal to 0
+
+$H_a:$ true correlation is not equal to 0
+
+
+(ii)
+
+
+(iii)
+
+
+(iv)
+
+
+```{r echo=FALSE}
+# leave alone, this block for grading
+scoreFunction("2c",0,8)
+```
+
+### Part 2d
+
+Provide a 95% confidence interval to estimate the slope of the regression equation and interpret the interval in the context of the application (do not us the word “slope” in your interpretation).
+
+### -|-|-|-|-|-|-|-|-|-|-|- Answer 2d -|-|-|-|-|-|-|-|-|-|-|-
+
+```{r}
+cor.test(price,carat, alpha=.01)$conf.int
+
+```
+
+We are 95% confident the population correlation between diamond type and carat lies in the range 0.978 to 0.993.
+
+```{r echo=FALSE}
+# leave alone, this block for grading
+scoreFunction("2d",0,5)
+```
+
+### Part 2e
+
+Check to see if the linear regression model assumptions are reasonable for this data.
+
+(Step 1) Are the residuals normal?  Construct a histogram, normal probability plot, and boxplot of the residuals and perform a Shapiro-Wilk test for normality.  
+
+### -|-|-|-|-|-|-|-|-|-|-|- Answer 2e.1 -|-|-|-|-|-|-|-|-|-|-|-
+
+```{r}
+resids <- linear.model$resid
+
+hist(resids)
+qqnorm(resids)
+qqline(resids)
+boxplot(resids)
+shapiro.test(resids)
+
+```
+
+Replace this text with your answer here
+
+
+```{r echo=FALSE}
+# leave alone, this block for grading
+scoreFunction("2e.1",0,3)
+```
+
+(Step 2) Plot the residuals against the fitted values.  Does the equal variances assumption seem reasonable?  Does the linear regression line seem to be a good fit?
+
+### -|-|-|-|-|-|-|-|-|-|-|- Answer 2e.2 -|-|-|-|-|-|-|-|-|-|-|-
+
+```{r}
+diamond.fit <- linear.model$fitted.values
+plot(diamond.fit,resids)
+plot(carat,resids)
+```
+
+Replace this text with your answer here
+
+
+```{r echo=FALSE}
+# leave alone, this block for grading
+scoreFunction("2e.2",0,3)
+```
+
+
+(Step 3)  Perform the Bruesch-Pagan test for equal variances of the residuals.  What does the test tell you?
+
+### -|-|-|-|-|-|-|-|-|-|-|- Answer 2e.3 -|-|-|-|-|-|-|-|-|-|-|-
+
+```{r}
+require(lmtest)
+bptest(linear.model)
+
+```
+
+Replace this text with your answer here
+
+```{r echo=FALSE}
+# leave alone, this block for grading
+scoreFunction("2e.3",0,3)
+```
+
+### Part 2f
+
+Calculate and interpret the coefficient of determination $r^2_{yx}$ (same as $R^2$).
+
+### -|-|-|-|-|-|-|-|-|-|-|- Answer 2f -|-|-|-|-|-|-|-|-|-|-|-
+
+```{r}
+out <- summary(linear.model)
+r.sq <- out$r.squared
+r.sq.adj <- out$adj.r.squared
+r.sq.adj
+r.sq
+
+```
+
+The coefficient of determination, .975 suggests that 97.5% of the total variation in diamond price is explained by the linear relationship between price and carat.  We can also say that 2.5% of the total variation in heart rates is not explained by the linear relationship.
+
+```{r echo=FALSE}
+# leave alone, this block for grading
+scoreFunction("2f",0,5)
+```
+
+### Part 2g
+
+Should the regression equation obtained for price and carats be used for making predictions?  Explain your answer.
+
+### -|-|-|-|-|-|-|-|-|-|-|- Answer 2g -|-|-|-|-|-|-|-|-|-|-|-
+
+Replace this text with your answer here.
+
+```{r echo=FALSE}
+# leave alone, this block for grading
+scoreFunction("2g",0,2)
+```
+
+### Part 2h
+
+What would be the straightforward interpretation of the y-intercept in this regression model?  Does it make sense here?  Why would this not be appropriate as a stand-alone interpretation for this scenario? (hint: what is extrapolation?)
+
+### -|-|-|-|-|-|-|-|-|-|-|- Answer 2g -|-|-|-|-|-|-|-|-|-|-|-
+
+Replace this text with your answer here.
+
+```{r echo=FALSE}
+# leave alone, this block for grading
+scoreFunction("2h",0,3)
+```
+
+### Part 2i
+
+Create 95% prediction and confidence limits for the population mean price for the carats given in the sample data and plot them along with a scatterplot of the data.
+
+### -|-|-|-|-|-|-|-|-|-|-|- Answer 2i -|-|-|-|-|-|-|-|-|-|-|-
+
+```{r}
+x <- data.frame( carat = mean(carat) )
+predict( linear.model, x, interval="confidence")
+predict( linear.model, x, interval="prediction")
+plot(carat,price)
+points(mean(carat),487.611, col='red')
+
+```
+
+```{r echo=FALSE}
+# leave alone, this block for grading
+scoreFunction("2i",0,5)
+```
+
+## Problem 3
+
+Blood type is classified as “A, B, or AB”, or O.  In addition, blood can be classified as Rh+ or Rh -.  In a survey of 500 randomly selected individuals, a phlebotomist obtained the results shown in the table below.
+
+|Rh Factor | A, B, or AB |O | Total |
+| --- | :---: | :---: | :---: |
+| Rh+ | 226 | 198 | 424 |
+| Rh- | 46 | 30 | 76 |
+|Total | 272 | 228 | 500 |
+
+### Part 3a
+
+Conduct the appropriate test of significance to test the following research question “Is Rh factor associated with blood type?”  Use a 5% level of significance and include all parts of the test.
+
+### -|-|-|-|-|-|-|-|-|-|-|- Answer 3a -|-|-|-|-|-|-|-|-|-|-|-
+
+```{r}
+Rhpos <- c(226,198)
+Rhneg <- c(46,30)
+BloodTable <- rbind(Rhpos,Rhneg)
+dimnames(BloodTable) <- list( Rh = c("pos","neg"),Type =c ("A,B,AB","O") )
+BloodTable
+out <- chisq.test(BloodTable,correct=FALSE)
+out
+
+
+```
+
+$H_0:$ Blood type and Rh factor are independent.
+
+$H_a:$ Blood type and Rh factor are dependent or associated.
+
+Do not reject $H_0$ at $\alpha = 0.05$ ($P$ = .2442). There is not enough evidence to show that there is an association between the Blood type and Rh factor.
+
+```{r echo=FALSE}
+# leave alone, this block for grading
+scoreFunction("3a",0,8)
+```
+
+### Part 3b
+
+Compute and interpret the odds ratio of having Type O blood for Rh+ compared to Rh-.
+
+### -|-|-|-|-|-|-|-|-|-|-|- Answer 3b -|-|-|-|-|-|-|-|-|-|-|-
+
+```{r}
+oddsR <-(198/226)/(30/46)
+oddsR
+100*(abs(1-round(oddsR,2)))
+
+```
+
+Replace this text with your answer here.
+
+```{r echo=FALSE}
+# leave alone, this block for grading
+scoreFunction("3b",0,5)
+```
+
+### Part 3c
+
+Construct and interpret a 90% confidence interval for the population proportion of people with Type O blood who are Rh-.
+
+### -|-|-|-|-|-|-|-|-|-|-|- Answer 3c -|-|-|-|-|-|-|-|-|-|-|-
+
+```{r}
+out <- prop.test(30,228,correct=FALSE, conf.level = .9)
+out
+
+```
+
+The population proportion of patients who have blood type O and have Rh- is between 0.099 and 0.173.
+
+```{r echo=FALSE}
+# leave alone, this block for grading
+scoreFunction("3c",0,5)
+```
+
+## Problem 4
+
+The carinate dove shell is a yellowish to brownish colored smooth shell found along shallow water coastal areas in California and Mexico.  A study was conducted to determine if the shell height of the carinate dove shell could be accurately predicted and to identify the independent variables needed to do so.  Data was collected for a random sample of 30 of these gastropods and 8 variables that researchers thought might be good predictors were recorded.
+
+The shell heights (in mm) are labeled in the file as Y and the potential predictor variables are simply named as X1, X2, X3, X4, X5, X6, X7, and X8.  Independent variables X1 through X7 are quantitative while X8 is categorical.
+
+The data is in the file shells.rda and is included in the DS705data package.
+
+### Part 4a
+
+Use stepwise model selection with AIC as the stepping criterion and direction = "both" to identify the best first-order model for predicting shell height (Y).  
+
+Identify the predictor variables in the final model as well as the AIC for that model.
+
+### -|-|-|-|-|-|-|-|-|-|-|- Answer 4a -|-|-|-|-|-|-|-|-|-|-|-
+
+```{r}
+data("shells")
+lm.full = lm(Y~., data=shells) # regress y on everything in data set
+step(lm.full,direction="both")
+
+```
+
+Replace this text with your answer here.
+
+```{r echo=FALSE}
+# leave alone, this block for grading
+scoreFunction("4a",0,5)
+```
+
+### Part 4b
+
+Compute the variance inflation factor for the final model from part 4a.  
+
+Does this model suffer from multicollinearity?  Explain your answer.
+
+### -|-|-|-|-|-|-|-|-|-|-|- Answer 4b -|-|-|-|-|-|-|-|-|-|-|-
+
+```{r}
+fit <- lm(formula = Y ~ X1 + X2 + X4 + X6 + X7, data = shells)
+summary(fit)
+require(car)
+vif(fit)
+
+```
+
+The overall model p-value is very small at p=5.821e-15, and the individual p-values are all under 0.05 (the exception being the intercept at 0.064).  This makes it seem as if the model does not suffer from collinerarity/multicollinearity.
+
+VIFs are all less than 10 for all terms futher supporting the idea that this model is not suffering from collinerarity/multicollinearity.
+
+```{r echo=FALSE}
+# leave alone, this block for grading
+scoreFunction("4b",0,5)
+```
+
+### Part 4c
+
+Let's define **Model B** as follows:
+
+Y = $\beta_0 + \beta_1 X_1 + \beta_2 X_2 + \beta_3 X_2^2 + \beta_4 X_4 + \beta_5 X_6 +\epsilon$
+
+Fit **Model B** and compare the AIC of it to the model that the stepwise selection procedure identified as best in 4a, which you may refer to as **Model A**.
+
+Which model is the better fitting model according to AIC?  Explain your answer.
+
+### -|-|-|-|-|-|-|-|-|-|-|- Answer 4c -|-|-|-|-|-|-|-|-|-|-|-
+
+```{r}
+xSqr <- shells$X2*shells$X2
+fit2 <- lm(formula = Y ~ X1 + X2 + xSqr + X4 + X6, data = shells)
+summary(fit2)
+AIC(fit2)
+```
+
+Model A's AIC is -121.99 and Model B's is -42.35, when looking at AIC as a criteria to pick a model smaller is better and Model A has the smaller AIC.
+
+```{r echo=FALSE}
+# leave alone, this block for grading
+scoreFunction("4c",0,5)
+```
+
+### Part 4d
+
+Compute the variance inflation factor for **Model B** from part 4c.  
+
+Does this model suffer from multicollinearity?  Explain your answer.
+
+### -|-|-|-|-|-|-|-|-|-|-|- Answer 4d -|-|-|-|-|-|-|-|-|-|-|-
+
+```{r}
+vif(fit2)
+
+```
+
+It looks as if the model may suffer from multicollinearity as X2 and xSqr both have vif values above 10, 373.7 and 369.5 respectively.
+
+```{r echo=FALSE}
+# leave alone, this block for grading
+scoreFunction("4d",0,2)
+```
+
+### Part 4e
+
+Center the variable X2 and compute the quadratic term associated with it (call them cX2 and cx2sq, respectively).  We'll identify this as **Model C**.  Compute the variance inflation factor for **Model C**.  
+
+Does this model suffer from multicollinearity?  Explain your answer.
+
+### -|-|-|-|-|-|-|-|-|-|-|- Answer 4e -|-|-|-|-|-|-|-|-|-|-|-
+
+```{r}
+cx2 <- shells$X2-mean(shells$X2)
+cx2sq <- cx2^2
+fit3 <- lm(formula = Y ~ X1 + cx2 + cx2sq + X4 + X6, data = shells)
+summary(fit3)
+vif(fit3)
+
+```
+
+No.
+
+```{r echo=FALSE}
+# leave alone, this block for grading
+scoreFunction("4e",0,2)
+```
+
+### Part 4f
+
+Compare the adjusted R-squared for **Models A and C**.  
+
+Explain what adjusted R-squared measures and state which model is "better" according to this criterion. 
+
+### -|-|-|-|-|-|-|-|-|-|-|- Answer 4f -|-|-|-|-|-|-|-|-|-|-|-
+
+```{r}
+summary(fit)
+summary(fit3)
+
+```
+
+Adjusted R-squared indicates how much a model explains the variability of the response data around its mean. So for model A it explains 94.1% and for model C it explains 95.4%, there for based on Adjusted R-squared model B is the better predictor model. 
+
+```{r echo=FALSE}
+# leave alone, this block for grading
+scoreFunction("4f",0,2)
+```
+
+### Part 4g
+
+Test the residuals of **Model C** for serial correlation.  Use a 5% level of significance.  
+
+Describe the outcome of this test.
+
+### -|-|-|-|-|-|-|-|-|-|-|- Answer 4g -|-|-|-|-|-|-|-|-|-|-|-
+
+```{r}
+dwtest(fit3)
+
+```
+
+There is not sufficient evidence at $\alpha=0.05$ to reject $H_0$, that the residuals are not serially correlated (p=.9895).
+
+```{r echo=FALSE}
+# leave alone, this block for grading
+scoreFunction("4g",0,4)
+```
+
+### Part 4h
+
+Using **Model C**, construct a 95% prediction interval for the shell height (Y) for a randomly selected shell with $X1=3.6, X2=2.4, X4=3.0, and X6=48$. 
+
+Write an interpretation for the interval in the context of this problem.  
+
+### -|-|-|-|-|-|-|-|-|-|-|- Answer 4h -|-|-|-|-|-|-|-|-|-|-|-
+
+```{r}
+newcx2 <- 2.4-mean(shells$X2)
+newcx2sq <- newcx2*newcx2
+newdata <- data.frame(X1=3.6,cx2=newcx2,cx2sq=newcx2sq,X4=3.0,X6=48)
+predict.lm(fit3,newdata,interval="prediction")
+
+```
+
+With 95% confidence, the predicted shell height (Y) for a randomly selected shell with X1=3.6, X2=2.4, X4=3.0, and X6=48, is between 6.907 and 7.365.
+
+```{r echo=FALSE}
+# leave alone, this block for grading
+scoreFunction("4h",0,5)
+```
+
+## Problem 5
+
+A study on the Primary News Source for Americans was conducted using a random sample of 115 Americans in 2015.  The results are shown below.  
+
+| | TV | Radio | Newspaper | Internet
+| --- | :---: | :---: | :---: | :---: |
+| Sample from 2015 | 38 | 20 | 15 | 42 |
+| Distribution in 1995 | 45% | 18% | 16% | 21% |
+
+Conduct the hypothesis test to determine if the distribution of Primary News Source for Americans is the same in 2015 as it was in 1995.  Use $\alpha = 0.10$.  State your hypotheses, test statistic, df, p-value, and conclusions, including a practical conclusion in the context of the problem.
+
+### -|-|-|-|-|-|-|-|-|-|-|- Answer 5 -|-|-|-|-|-|-|-|-|-|-|-
+
+```{r}
+dis95 = c(0.45, 0.18, 0.16, 0.21)
+Counts15 = c(38, 20, 15, 42)
+out <- chisq.test(x=Counts15,p=dis95)
+out
+
+```
+
+$H_0$: $\pi_\mbox{TV}=0.45, \pi_\mbox{Radio}=0.18, \pi_\mbox{Newspaper}=0.16, \pi_\mbox{Internet}=0.21$
+
+$H_a$: At least one proportion is different.
+
+Reject $H_0$ at $\alpha = 0.10$ ($P$ = 0.0006).  There is sufficient evidence to show that the distribution of primary newssources in 2015 are different from the 1995 distribution.
+
+```{r echo=FALSE}
+# leave alone, this block for grading
+scoreFunction("5",0,8)
+```
+
+## Problem 6
+
+In an effort to make better cheese, a company has a random sample of 30 cheese consumers taste 30 specially prepared pieces of Australian cheddar cheese (1 piece for each person).  Each subject rated the taste of their piece of cheese as “acceptable” or “not acceptable.”  One variable measured was called ACETIC and was a quantitative variable ranging from 4.5 to 6.5 units.  The other variable recorded was whether the person was a child or an adult 
+
+The data file called cheese.rda.  This data set is included in the DS705data package.
+
+### Part 6a
+
+Fit the first order model for predicting whether or not the taste of the cheese is acceptable from the acetic value and also whether the person was a child or an adult.
+
+At a 5% level of significance, should either variable be dropped from the model?
+
+### -|-|-|-|-|-|-|-|-|-|-|- Answer 6a -|-|-|-|-|-|-|-|-|-|-|-
+
+```{r}
+data("cheese")
+taste.out <- glm(taste~acetic+person,data=cheese,family="binomial")
+summary(taste.out)
+
+```
+
+Both Remain.
+
+```{r echo=FALSE}
+# leave alone, this block for grading
+scoreFunction("6a",0,4)
+```
+
+### Part 6b
+
+Convert the estimated coefficient of **acetic** to an odds ratio and interpret it in the context of the problem.
+
+### -|-|-|-|-|-|-|-|-|-|-|- Answer 6b -|-|-|-|-|-|-|-|-|-|-|-
+
+
+```{r}
+exp(2.787)
+
+```
+
+The odds of having acceptable cheese increase by 16.23 for each unit increase in acetic.
+
+```{r echo=FALSE}
+# leave alone, this block for grading
+scoreFunction("6b",0,4)
+```
+
+### Part 6c
+
+Compute the predicted probability of a child finding the taste of the cheese acceptable when the value for acetic is 6.
+    
+### -|-|-|-|-|-|-|-|-|-|-|- Answer 6c -|-|-|-|-|-|-|-|-|-|-|-
+
+```{r}
+newdata2 <- data.frame(acetic=6,person='Child')
+predict(taste.out, newdata2, type="response")
+
+```
+
+```{r echo=FALSE}
+# leave alone, this block for grading
+scoreFunction("6c",0,3)
+```
+
+### Part 6d
+
+Compute a 95% confidence interval for the predicted probability of a child finding the taste of the cheese acceptable when the value for acetic is 6.
+    
+### -|-|-|-|-|-|-|-|-|-|-|- Answer 6d -|-|-|-|-|-|-|-|-|-|-|-
+
+```{r}
+out <- predict(taste.out, newdata2, se.fit=TRUE)
+C = .95  # define the level of confidence
+crit = qnorm(1-(1-C)/2)  # get the appropriate critical value
+lower = exp(out$fit-crit*out$se.fit)/(1+exp(out$fit-crit*out$se.fit))
+upper = exp(out$fit+crit*out$se.fit)/(1+exp(out$fit+crit*out$se.fit))
+c(lower,upper)
+
+```
+
+```{r echo=FALSE}
+# leave alone, this block for grading
+scoreFunction("6d",0,5)
+```
+
+----
+
+```{r echo=FALSE}
+# leave along, this block for grading
+if (display.grades){
+  pts.tot <- sum(pts)
+  pts.poss.tot <- sum(pts.poss)
+  print(paste('Total points earned',pts.tot,'out of',pts.poss.tot))
+}

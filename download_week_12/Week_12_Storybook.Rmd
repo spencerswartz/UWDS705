@@ -1,0 +1,1049 @@
+---
+title: 'MANOVA and Linear Discriminant Analysis'
+author: "DS705"
+fontsize: '12pt'
+output:
+  beamer_presentation:
+    template: '../beamer169experimental.tex'
+    colortheme: "seahorse"
+    keep_tex: true
+    fonttheme: default
+---
+
+```{r global_options, include=FALSE, echo=FALSE}
+# use for beamer
+knitr::opts_chunk$set(fig.width=4, fig.height=3, fig.align='center',warning=FALSE, message=FALSE)
+library(knitr)
+library(car)
+# use for word
+# knitr::opts_chunk$set(fig.width=4, fig.height=3,warning=FALSE, message=FALSE)
+
+# save par defaults
+.pardefaults <- par()
+```
+
+## Multivariate Data
+
+- usually observe more than one variable
+```{r}
+head(iris) # data built into R
+```
+
+- each row is called a case
+
+<div class='notes'>
+- often we observe multiple characteristics
+- this yields multivariate data
+</div>
+
+## Multivariate Data Matrix
+
+$$ \large \mathbf{X} = \left[ 
+\begin{array}{cccc}
+x_{11} & x_{12} & \cdots & x_{1q} \\
+\vdots & \vdots & \ddots & \vdots \\
+x_{n1} & x_{n2} & \cdots & x_{nq} \\
+\end{array} \right]$$
+
+- $n$ is number of units
+- each observation is a vector of $q$ measurements on a unit, this vector is one row in the matrix
+- $x_{ij}$ is value of the *j*th variable for the *i*th unit
+
+<div class='notes'>
+- each row in the data matrix corresponds to a separate case or individual
+</div>
+
+
+## Scatterplots
+
+```{r}
+with(iris,plot(Sepal.Length,Sepal.Width))
+```
+
+<div class='notes'>
+- scatterplots give us a way to explore the interactions between variables
+- we can look at the variables one pair at a time as shown on this slide
+</div>
+
+## Scatterplots (2)
+
+\small
+```{r, fig.height=2.5}
+require(ggplot2)
+ggplot(iris) + geom_point(aes(x=Sepal.Length,y=Sepal.Width),size=2.5)
+```
+
+<div class='notes'>
+- here we see the same graph as it is produced by the ggplot package which makes nicer graphics than the base package, but ggplot takes some getting used to
+</div>
+
+## Scatterplots (3)
+\small
+```{r, fig.height=2.5}
+ggplot(iris) + theme(legend.position='none') + geom_point(aes(x=
+  Sepal.Length,y=Sepal.Width,color=Species,shape=Species),size=2.5)
+```
+
+<div class='notes'>
+- here is the scatterplot with the different colors showing irises of different species
+</div>
+
+## Scatterplot Matrix - code
+
+```{r eval=FALSE}
+pairs(~Sepal.Length+Sepal.Width+Petal.Length+Petal.Width,data=iris)
+```
+
+<div class='notes'>
+- this produces scatterplots for all the variables simultaneously
+- the plot is on the next slide
+</div>
+
+## Scatterplot Matrix - the plot
+
+```{r echo = FALSE, figure.height=5}
+pairs(~Sepal.Length+Sepal.Width+Petal.Length+Petal.Width,data=iris)
+```
+
+<div class='notes'>
+- note that the pairs are symmetric with graphs across the main diagonal being reflections of each other
+- its tough to see much here, but we can tell all the variable pairs are positively correlated.  
+- try making this picture on your own in a larger window to get a better idea of how this works
+</div>
+
+
+## Summarizing Multivariate Data
+```{r echo=TRUE, eval = FALSE}
+summary(iris)
+```
+
+```{r, echo=FALSE,warning=FALSE}
+# this is just tricks to trim the output to fit on one slide
+require(utils)
+tmp <- noquote( 
+  capture.output( 
+    summary(iris)
+    )
+  )
+write.table(tmp[1:11],quote=F,row.names=F,col.names=F)
+```
+
+<div class='notes'>
+- can take means, variances, etc. for each colum
+- since there are four quantitative variables, think of the mean as a vector quantity containing all of the means, the median is a vector of 4 medians, etc.
+- in multivariate statistics we analyze the variables together so we can account for interactions and correlations among the variables that we would miss if we treated each variable individually
+</div>
+
+## Column Means
+```{r}
+apply( iris[,-5], 2, mean)
+colMeans( iris[,-5] )
+```
+
+<div class='notes'>
+- we can find a mean for each variable, that is, for each column separately by using the apply() command.
+- notice the mean is a vector consisting of 4 sample means, one for each variable
+- recall, the -5 index removes the 5th column with the categorical species variable
+
+</div>
+
+## Column Variances
+
+\small
+```{r}
+apply( iris[,-5], 2, var)
+var( iris[,-5])
+```
+
+<div class='notes'>
+- no audio
+</div>
+
+## Population Covariance Matrix
+$$\sigma_{ij} = \mbox{Cov}(x_i,x_j) = E[ (x_i - \mu_i)(x_j- \mu_j)]$$
+
+\large
+$$\pmb{\Sigma} = \left( \begin{array}{cccc}
+\sigma_{11} & \sigma_{12} & \cdots & \sigma_{1q} \\
+\sigma_{21} & \sigma_{22} & \cdots & \sigma_{2q} \\
+\vdots & \vdots & \ddots & \vdots \\ 
+\sigma_{q1} & \sigma_{q2} & \cdots & \sigma_{qq} \end{array} \right)$$ 
+
+
+<div class='notes'>
+- watch out, these are variances, not standard deviations, the diagonal entries are the population variances of each variable, the notation here is standard, but a little confusing
+</div>
+
+## Sample Covariance Matrix
+
+$$s_{ij} = \frac{1}{n-1} \sum_{k=1}^n (x_{ik} - \overline{x}_i)(x_{jk} - \overline{x}_j)$$
+
+$x_{ik} =$ the kth observation of variable $x_i$  
+$x_{jk} =$ the kth observation of variable $x_j$  
+
+\large
+$$\mathbf{S} = \left( \begin{array}{cccc}
+s_{11} & s_{12} & \cdots & s_{1q} \\
+s_{21} & s_{22} & \cdots & s_{2q} \\
+\vdots & \vdots & \ddots & \vdots \\ 
+s_{q1} & s_{q2} & \cdots & s_{qq} \end{array} \right)$$ 
+
+<div class='notes'>
+- the diagonal entries of the sample covariance matrix are the sample variances for each individual variable
+- the off diagonal entries measure the interactions between variables and are related to the correlation
+- if the variables were perfectly indepedent of each other, the off diagonal entries would be zero
+</div>
+
+## Example Sample Covariance Matrix
+
+\columnsbegin
+
+\column{.45\textwidth}
+```{r}
+x <- c(9,11,13,18,19)
+y <- c(19,17,13,4,7)
+sum( (x - mean(x))^2 )/(5-1)
+sum( (y - mean(y))^2 )/(5-1)
+```
+
+\column{.45\textwidth}
+```{r}
+sum( (x - mean(x))*
+       (y - mean(y)) )/(5-1)
+cov(cbind(x,y))
+```
+\columnsend
+
+<div class='notes'>
+- if you want to see how the entries in the covariance matrix are found, study the two columns in this slide and compare the results to the cov() command
+</div>
+
+
+## Sample Correlation Matrix
+
+\large
+$$\mbox{cor}(x_i,x_j) = r_{ij} =  \frac{1}{n-1} 
+\displaystyle \sum_{k=1}^n 
+\frac{(x_{ik} - \overline{x}_i)}{s_i}
+\frac{(x_{jk} - \overline{x}_j)}{s_j}$$ 
+
+$x_{ik} =$ the kth observation of variable $x_i$  
+$x_{jk} =$ the kth observation of variable $x_j$  
+
+Note: $r_{ii} = 1$
+
+<div class='notes'>
+- the entry in row i, column j, is the correlation coefficient between the ith variable and the jth variable.  
+- note that each variable is perfectly correlated with itself so the diagonal entries are 1
+</div>
+
+## Example Sample Correlation Matrix
+
+\columnsbegin
+
+\column{.45\textwidth}
+```{r}
+x <- c(9,11,13,18,19)
+y <- c(19,17,13,4,7)
+sx <- sd(x); mx <- mean(x)
+sy <- sd(y); my <- mean(y)
+1/(5-1)*sum((x-mx)^2)/(sx*sx)
+1/(5-1)*sum((y-my)^2)/(sy*sy)
+```
+
+\column{.45\textwidth}
+```{r}
+1/(5-1)*sum(((x-mx)/sx)*
+              ((y-my)/sy))
+cor(cbind(x,y))
+```
+\columnsend
+
+
+<div class='notes'>
+- this slide walks through an example of finding the correlation matrix for two quantitative variables x and y
+- we don't have to do all these calculations, rather they show us what goes into the matrix
+- compare the result to that produced by the cor() command
+</div>
+
+## Compare Covariance and Correlation
+
+\columnsbegin
+
+\column{.45\textwidth}
+```{r}
+cov(cbind(x,y))
+```
+
+\column{.45\textwidth}
+```{r}
+cor(cbind(x,y))
+```
+
+\columnsend
+
+\large
+
+- Covariance matrix is unstandardized correlation matrix
+- Divide covariance matrix rows and columns by each standard deviation
+
+<div class='notes'>
+- you can find the correlation matrix by starting with covariance matrix and computing individual standard deviations as the square root of the variances along the diagonal
+- then divide the first row and column by the first standard deviation, the second row and column by the second standard deviation, etc.
+</div>
+
+## Multivariate Normal Distribution
+
+$$\huge \mathbf{x} \sim \Huge N\left( \huge \pmb{\mu}, \pmb{\Sigma}\right)$$
+
+- \large $\mathbf{x}$ is a vector of $q$ numbers
+- $\pmb{\mu}$ is the population mean vector of length $q$
+- $\pmb{\Sigma}$ is the $q \times q$ population covariance matrix
+
+<div class='notes'>
+- for a multivariate normal distribution we specify a vector of means and the population covariance matrix
+- a matrix is required since we are specifying how the variables interact
+</div>
+
+## Example
+```{r eval = FALSE}
+require(MASS)
+mu <- c(12,30); Sigma <- rbind( c(.8,.5),c(.5,2) )
+x <- mvrnorm(1000,mu,Sigma)
+plot(x[,1],x[,2],xlim=c(8,16),ylim=c(26,34))
+ellipse(mu,Sigma,sqrt(qchisq(.5,2)),col='blue')
+ellipse(mu,Sigma,sqrt(qchisq(.95,2)),col='blue')
+```
+
+- Plot on next page.
+
+<div class='notes'>
+- here we show how to generate random numbers from a multivariate distribution
+- the added code produces some ellipses that should contain approximately 50% and 95% of the observations
+- the plot is shown on the next page
+</div>
+
+## Example Plot
+```{r echo = FALSE,fig.height=4,fig.width=4}
+require(MASS)
+mu <- c(12,30); Sigma <- rbind( c(.8,.5),c(.5,2) )
+x <- mvrnorm(500,mu,Sigma)
+plot(x[,1],x[,2],xlim=c(8,16),ylim=c(26,34),xlab='',ylab='',mar=c(.25,.25,.25,.25),
+     xaxt='n',yaxt='n')
+ellipse(mu,Sigma,sqrt(qchisq(.5,2)),col='blue')
+ellipse(mu,Sigma,sqrt(qchisq(.95,2)),col='blue')
+axis(2,mgp=c(3,.5,0))
+axis(1,mgp=c(3,.3,0))
+```
+
+<div class='notes'>
+- the ellipses shown here are contours that contain about 50% of the observations and 95% of the observations
+- the shape of the ellipse is determined by the covariance and the radius the ellipse is determined by a chi-square distribution
+- we haven't studied chi-square distributions much, though we've used them, a variable with a chi-square distribution is a sum of independent squared standard normal random variables
+- don't worry too much about the details of chi-squares, the main thing is that the squared distance from the mean of an observation in a multivariate normal essentially follows a chi-square distribution
+</div>
+
+## Mahalanobis Distance
+
+- Multivariate version of "how many standard deviations from the mean?"
+
+- Idea: "divide" by the covariance matrix
+
+$$D_M( \mathbf{x} ) = \sqrt{ 
+\left( \mathbf{x} - \pmb{\mu} \right)^T 
+\pmb{\Sigma}^{-1} 
+\left( \mathbf{x} - \pmb{\mu} \right)}$$
+
+
+$$D_M( \mathbf{x} ) = \sqrt{ 
+\left( \mathbf{x} - \overline{\mathbf{x}} \right)^T 
+\mathbf{S}^{-1} 
+\left( \mathbf{x} - \overline{\mathbf{x}} \right)}$$
+
+<div class="notes">
+- because the covariance is given by a matrix division means multiplying by the inverse of the matrix which is a linear algebra idea
+- fortunately we can still work with this distance in R even if we don't know the linear algebra
+</div>
+
+## Mahalanobis Example
+
+```{r eval=FALSE}
+mu <- c(12,30); Sigma <- rbind( c(.8,.5),c(.5,2) )
+x <- mvrnorm(500,mu,Sigma)
+dsquare <- mahalanobis(x,mu,Sigma)
+hist(dsquare,prob=TRUE,breaks=30)
+curve(dchisq(x, df=2), 
+          col="darkblue", lwd=2, add=TRUE, yaxt="n")
+```
+
+Plot on next slide.
+
+<div class="notes">
+- computing Mahalanobis distance is the multivariate version of the z-score 
+- when we compute z-scores we expect the data from a normal distribution to follow a standard normal distriubtion
+- when we compute Mahalanobis distance, we expect the squared distances to follow a chi-square distribution
+- the plot is on the next slide
+</div>
+
+## Mahalanobis Example Plot
+
+```{r echo=FALSE}
+mu <- c(12,30); Sigma <- rbind( c(.8,.5),c(.5,2) )
+x <- mvrnorm(500,mu,Sigma)
+dsquare <- mahalanobis(x,mu,Sigma)
+hist(dsquare,prob=TRUE,breaks=30,main='')
+curve(dchisq(x, df=2), 
+          col="darkblue", lwd=2, add=TRUE, yaxt="n")
+```
+
+<div class='notes'>
+- here we are showing a histogram of the squared mahalanobis distances for our multivariate normal random sample
+- also plotted for comparison is the density curve of a chi-square distribution with 2 degrees of freedom for comparision
+- the degrees of freedom is the same as the number of dimensions in each observation, here our multivariate normal is two dimensional
+</div>
+
+## Chi square quantile plot
+
+```{r}
+plot(sort(dsquare),qchisq(ppoints(500),df=2),
+     xlab='Squared Mahal. Distance', ylab='Chi square quantile')
+```
+
+<div class='notes'>
+- by comparing the squared distances to the mean to the theoretical quantiles from a chi-square distribution we get a kind of normal probability plot for assessing multivariate normality
+- we will see a simpler way to produce a chi square quantile plot in a few slides
+</div>
+
+## Assessing Multivariate Normality
+
+- Chi square quantile plot $\rightarrow$ want a straight line
+- no *best* hypothesis test
+- MVN paackage
+    - Henze-Zinkler - `hzTest()`
+    - Royston - `roystonTest()`
+    - Mardia - `mardiaTest()`
+- try all three
+    - good agreement $\Rightarrow$ stop
+    - marginal significance or inconsistent results $\Rightarrow$ look harder
+- beware of small samples
+
+<div class='notes'>
+- to assess multivariate normality
+- start with a chi square quantile plot and look for something that is approximately linear, only a strong systematic deviation from linear should lead to rejecting normality
+- for small samples, allow a lot of latitude before rejecting normality
+</div>
+
+## Assessing MVN example
+
+```{r eval=FALSE}
+require(MVN) # install if needed
+setosa <- as.matrix(iris[iris$Species=="setosa",1:4])
+hzTest(setosa)
+```
+
+```{r, echo=FALSE,warning=FALSE}
+require(MVN) # install if needed
+setosa <- as.matrix(iris[iris$Species=="setosa",1:4])
+# this is just tricks to trim the output to fit on one slide
+require(utils)
+tmp <- noquote( 
+  capture.output( 
+    hzTest(setosa)
+    )
+  )
+write.table(tmp[c(1,2,3,5,6,8)],quote=F,row.names=F,col.names=F)
+```
+
+<div class='notes'>
+- we'll start with the usual hypothesis tests of normality
+- the null hypothesis the that the distribution is multivariate normal
+- the alternative is that the distribution is NOT multivariate noramal
+- frequently you may find that the hypothesis tests are not completely in agreement
+- the Henze Zinkler test just barely rejects normality
+</div>
+
+## Assessing MVN example (2)
+
+```{r eval=FALSE}
+mardiaTest(setosa)
+```
+
+```{r, echo=FALSE,warning=FALSE}
+require(MVN) # install if needed
+setosa <- as.matrix(iris[iris$Species=="setosa",1:4])
+# this is just tricks to trim the output to fit on one slide
+require(utils)
+tmp <- noquote( 
+  capture.output( 
+    mardiaTest(setosa)
+    )
+  )
+write.table(tmp[c(7,11,14,15,16)],quote=F,row.names=F,col.names=F)
+```
+
+<div class='notes'>
+- the Mardia test really tests for two things separately
+- it tests for skewness (lack of symmetry)
+- it also tests for kurtosis which essentially is asking if the tails decay at the right rate
+- the p.value.small is another version of the skewness p-value that includes a small sample correction
+- in this case, all of the p-values are large giving us no reason to reject normality
+</div>
+
+## Assessing MVN example (3)
+
+```{r eval=FALSE}
+roystonTest(setosa)
+```
+
+```{r, echo=FALSE,warning=FALSE}
+require(MVN) # install if needed
+setosa <- as.matrix(iris[iris$Species=="setosa",1:4])
+# this is just tricks to trim the output to fit on one slide
+require(utils)
+tmp <- noquote( 
+  capture.output( 
+    roystonTest(setosa)
+    )
+  )
+write.table(tmp[1:8],quote=F,row.names=F,col.names=F)
+```
+
+<div class='notes'>
+- the Royston test strongly rejects normality because of the very small P-value
+- so now we have three different hypothesis test that essentially said not sure, yes, no, so now what?
+</div>
+
+## Assessing MVN example (4)
+
+- tests ambiguous so `hzTest(setosa,qqplot=TRUE)`
+
+```{r echo=FALSE}
+hzTest(setosa, qqplot=TRUE)
+```
+
+<div class='notes'>
+- the simplest way to make a normal quantile plot is set the qqplot variable to true and call one of the multivariate normality tests
+- at the upper end of the chi-square quantile plot the observations deviate significantly from the expected linear trend
+- since the points lie below the line this indicates that the observations are not as far from the mean as they should be, that is, the distribution has light tails
+- since there is a distinct pattern in the deviation from linear, combined with the normality tests, we reject normality for this data
+</div>
+
+## A multivariate problem
+
+Height and weight of apes measured at 3 locations: A, B, C. 
+```{r echo=FALSE,fig.height=2.5,fig.width=4}
+require(ggplot2)
+height.del <- .15
+weight.del <- .1
+shift <- -30
+height.mean1 <- 180 + shift
+weight.mean1 <- 70
+height.sd <- 10
+weight.sd <- 5
+height.mean2 <- height.mean1-height.del*height.sd
+weight.mean2 <- weight.mean1+weight.del*weight.sd
+height.mean3 <- height.mean1-2*height.del*height.sd
+weight.mean3 <- weight.mean1+2*weight.del*weight.sd
+mu1 <- c(height.mean1,weight.mean1)
+mu2 <- c(height.mean2,weight.mean2)
+mu3 <- c(height.mean3,weight.mean3)
+
+
+D <- rbind( c(height.sd,0),c(0,weight.sd))
+R <- rbind( c(1,.7),c(.7,1) )
+C <- D %*% R %*% D
+
+set.seed(15)
+n <- 100
+require(MASS)
+x <- rbind( mvrnorm(n, mu1, C), mvrnorm(n, mu2, C), mvrnorm(n, mu3, C))
+g <- rep(c('A','B','C'),each=n)
+apes <- data.frame(height=x[,1],weight=x[,2],location=g)
+ggplot(apes) + geom_point(aes(x=height,y=weight,color=location,shape=location))+scale_shape_manual(values=c(0,1,2))+scale_size_manual(values=2*c(1,1,1))
+#+scale_color_manual(values = c('#999999','#E69F00', '#56B4E9'))
+```
+
+<div class="notes">
+- a biologist has collected height and weight data for 100 random apes at each of 3 locations
+- are there significant differences between the population mean vectors of height and weight for these three populations of apes?
+- we can, of course look at height and weight separately, but since there is a strong correlation between height and weight it may not make sense to look at these variables separately
+- over the next few slides we'll look at what happens if we do analyze height and weight separately
+</div>
+
+## Different mean heights?
+
+```{r echo=FALSE}
+hlo <- 150 + shift; hhi <- 210 + shift
+wlo <- 55; whi <- 90 
+ggplot(apes, aes(height, color=location)) + geom_density(alpha=.3) + theme(legend.position="none") + xlim(hlo,hhi)
+```
+
+<div class="notes">
+- shown here are approximated density curves that are fit to the sample height data for each of the three groups, they are all centered very close together so it will be difficult to separate the groups
+- note that the distributions look roughly normal and all have the same variance, so a one-variable anova would be appropriate to analyze the height.
+</div>
+
+## ANOVA on heights
+
+```{r echo=TRUE}
+aov.model <- aov(height~location,data=apes)
+summary(aov.model)
+```
+
+<div class="notes">
+- here we show the results of conducting the oneway ANOVA to test for differences in the population mean heights
+- the large P-value, .121, indicates that there are not statistically significant differences in the population mean heights
+</div>
+
+
+## Different mean weights?
+
+```{r echo=FALSE}
+hlo <- 150 + shift; hhi <- 210 + shift
+wlo <- 55; whi <- 90 
+ggplot(apes, aes(weight, color=location)) + geom_density(alpha=.3) + theme(legend.position="none") + xlim(wlo,whi)
+```
+
+<div class="notes">
+- shown here are approximated density curves that are fit to the sample data for each of the three groups, they are all centered very close together so it will be difficult to separate the groups
+- note that the distributions look roughly normal and all have the same variance, so a one-variable anova would be appropriate to analyze the height.
+</div>
+
+## ANOVA on weights
+
+```{r echo=TRUE}
+aov.model <- aov(weight~location,data=apes)
+summary(aov.model)
+```
+
+<div class='notes'>
+- again the large P value, .479, indicates there are not significant differences in the population mean weights
+</div>
+
+## Why not multiple ANOVA?
+
+\Large
+
+- univariate analysis of each variable misses correlations
+- multiple tests requires correction to maintain FWER so power is lost
+
+<div class='notes'>
+- doing multiple single variable ANOVAs doesn't account for correlations between variables.
+- also, if doing multiple ANOVA, we have the usual multiple comparisons problem and have to take care to ensure that the family wise error rate is preserved.  A Bonferroni correction could be applied for instance.
+</div>
+
+
+## MANOVA
+
+\large
+
+- Multivariate analysis of variance
+- do groups have different population mean vectors?
+$$ H_0: \pmb{\mu}_1 = \pmb{\mu}_2 = \cdots \pmb{\mu}_k$$
+$$ H_a: \mbox{at least one mean vector is different}$$
+
+
+<div class='notes'>
+- Multivariate Analysis of Variance, or MANOVA, tests to see if there are statistically significant differences among the population mean vectors
+- in the MANOVA context, the independent variable is the factor or group variable and the dependent variables are the those that might depend on the group such as height and weight.
+- the analysis takes into account correlations among the dependent variables, such as weight and height
+</div>
+
+## MANOVA is not always appropriate
+
+\Large
+
+- if dependendent variables are uncorrelated, then use ANOVA on each variable and correct for multiple tests
+- if dependent variables are multicollinear, then should eliminate redundant variables before trying MANOVA
+
+<div class='notes'>
+- if the dependent variables are uncorrelated then use multiple single variable ANOVAs and correct for multiple tests
+- if there are redundancies among the variables then the redundant variables should be removed before running ANOVA, this can be done by looking for variables with very large Variance Inflaction Factors and eliminating those variables as is done in multiple linear regression
+</div>
+
+## MANOVA requirements
+
+\large
+
+- independent random samples from each population
+- data is from multivariate normal distributions
+- each distribution has the same covariance matrix
+
+<div class='notes'>
+- these requirements are the multavriate versions of the requirements for one variable ANOVA
+</div>
+
+## MANOVA Idea
+
+Like ANOVA
+$$ \text{test stat} \approx \frac{\text{covariance between groups}}{\text{covariance within groups}}$$
+
+but,
+
+- the (co)variances are now matrices 
+- at least four ways to compute a test statistic
+
+<div class='notes'>
+- if you want to know about the matrices involved here, there are plenty of textbooks and online resources to find that information.  A background in linear algebra is helpful.
+- because the test statistic is a matrix, there are multiple ways to compute a single test statistic from the matrix, all the different ways result in something which has approximately an F distribution like in ANOVA.
+</div>
+
+## MANOVA Test Statistic
+
+arranged from least likely to make Type I errors to most likely
+
+- Pillai (default in R)
+- Wilks Lambda
+- Hotelling-Lawley 
+- Roy
+
+`?summary.manova` for options.  None is uniformly most powerful. We will use Pillai.
+
+<div class='notes'>
+- the Pillai test statistic is the most conservative which means less likely to make type I errors, but also generally less powerful
+- the Roy test statistic is the most liberal which means more type I errors, but generally more powerful
+</div>
+
+## MANOVA Example (1)
+
+Are the apes at locations A, B, and C different in terms of mean height and weight? (different mean vectors?)
+
+$$ H_0: \pmb{\mu}_A = \pmb{\mu}_B = \pmb{\mu}_C$$
+$$ H_a: \mbox{at least one mean vector is different}$$
+
+<div class='notes'>
+- just like ANOVA, MANOVA is an omnibus test.  it can tell us there are significant differences, but it can't tell what those differences are
+- first we'll check the conditions for MANOVA
+</div>
+
+## MANOVA Example (2)
+
+Check condition: is data multivariate normal?
+```{r eval = FALSE,results='hide'}
+require(mvoutlier) # install if necessary for chisq plot
+old.par <- par()  # save graphics parameters
+par(mfrow=c(1,3))
+out <- with(apes,hzTest(apes[location=='A',c('height','weight')],qqplot=TRUE))
+out <- with(apes,hzTest(apes[location=='B',c('height','weight')],qqplot=TRUE))
+out <- with(apes,hzTest(apes[location=='C',c('height','weight')],qqplot=TRUE))
+par(old.par) # reset graphics parameters
+```
+
+Plots on next slide.
+
+<div class='notes'>
+- there is a little bit of funny business here to supress the output of the hzTest and show only the plots, you can mimic this in your homework, but change eval=FALSE to echo=FALSE
+</div>
+
+## MANOVA Example (3)
+
+```{r echo = FALSE,results='hide'}
+require(mvoutlier) # install if necessary for chisq plot
+old.par <- par()  # save graphics parameters
+par(mfrow=c(1,3))
+out <- with(apes,hzTest(apes[location=='A',c('height','weight')],qqplot=TRUE))
+out <- with(apes,hzTest(apes[location=='B',c('height','weight')],qqplot=TRUE))
+out <- with(apes,hzTest(apes[location=='C',c('height','weight')],qqplot=TRUE))
+par(old.par) # reset graphics parameters
+```
+
+<div class='notes'>
+- the chi square quantile plots are reasonably linear suggesting the three samples come from multivariate distributions
+</div>
+
+
+## MANOVA Example (4)
+
+Equal covariance matrices? Box's M Test can be used to test for equality of covariances.
+
+```{r}
+source('BoxMTest.R')
+out<-BoxMTest(as.matrix(apes[,1:2]),apes$location)
+```
+
+Do not reject $H_0$.  There is not evidence to show the population covariance matrices are different at locations A, B, and C.
+
+<div class='notes'>
+- Box's M test isn't readily available in an R package that we could find, but the source code is in the download packet and you can include it as shown above, make sure it is in your working directory
+- equal covariances and multivariate normals means we're ready to apply MANOVA
+</div>
+
+## MANOVA Example (5)
+
+```{r echo=TRUE}
+lmodel <- lm(cbind(height,weight)~location,data=apes)
+m.out <- manova(lmodel)
+summary(m.out,test="Pillai")
+```
+
+Reject $H_0$.  There is strong evidence to show apes at the three locations are different in terms of population mean weight and height.
+
+<div class='notes'>
+- the MANOVA analysis shows that there are clear differences between groups of Apes for the population mean vectors when height and weight are considered together
+- now we'll try to answer the question - which groups are significantly different?
+</div>
+
+## Posthoc Analysis
+
+Often follow up with univariate ANOVAs.  Shortcut:
+
+```{r echo=TRUE}
+summary.aov(m.out)
+```
+
+
+<div class='notes'>
+- some statisticians say that the univariate ANOVAs are 'protected' by the MANOVA if you choose a conservative test statistic such as Pillai or Wilks Lambda
+- protected means that it isn't necessary to correct for multiple comparisons when running multiple ANOVA
+- however, strictly speaking there is no protection unless the null is totally true or the alternative is totally true, so we should apply a bonferroni correction and use alpha / 2 for each univariate ANOVA
+- in this case, it doesn't matter, the univariate ANOVAs suggest that are no significant differences in population mean weights or heights when considered separately
+</div>
+
+## Separating the groups
+
+Linear Discriminant Analysis (LDA)
+
+- idea: combine original independent variables to produce new variables
+- e.g. x = 0.3 * height + 0.5 * weight
+- LDA finds the linear combination(s) that maximizes group separation while minimizing within group variance
+
+<div class='notes'>
+- the univariate ANOVA's cannot capture the relationships among the dependent variables
+- Linear Discriminant Analysis attempts to find a combination of the variables which maximizes the separation between groups
+- the underlying computation is based on eigenvectors of a matrix, but we can see how to use the tools in R
+- Discriminant Analysis is primarily used as a means of classifying new observations into groups and comes up in machine learning, but it is also useful here.
+</div>
+
+## LDA - picture 1
+
+```{r echo=FALSE}
+set.seed(2014)
+library(MASS)
+library(DiscriMiner) # For scatter matrices
+library(ggplot2)
+library(grid)
+# Generate multivariate data
+mu1 <- c(1, -1)
+mu2 <- c(1, 1)
+rho <- 0.8
+s1 <- 2
+s2 <- 2
+Sigma <- matrix(c(s1^2, rho * s1 * s2, rho * s1 * s2, s2^2), byrow = TRUE, nrow = 2)
+n <- 50
+# Multivariate normal sampling
+X1 <- mvrnorm(n, mu = mu1, Sigma = Sigma)
+X2 <- mvrnorm(n, mu = mu2, Sigma = Sigma)
+#X <- rbind(X1, X2)
+X <- rbind(X1,X2)
+# Center data
+Z <- scale(X, scale = FALSE)
+# Class variable
+y <- rep(c(0, 1), each = n)
+
+# Scatter matrices
+B <- betweenCov(variables = X, group = y)
+W <- withinCov(variables = X, group = y)
+
+# Eigenvectors
+ev <- eigen(solve(W) %*% B)$vectors
+slope <- - ev[1,1] / ev[2,1]
+intercept <- ev[2,1]
+
+
+
+# Create projections on 1st discriminant
+P <- Z %*% ev[,1] %*% t(ev[,1])
+
+# ggplo2 requires data frame
+my.df <- data.frame(Z1 = Z[, 1], Z2 = Z[, 2], P1 = P[, 1], P2 = P[, 2], XZERO=0*P[,1],YZERO=0*P[,2])
+slope2 <- -1/slope
+intercept2 <- 0
+linear.model <- lm( P2~P1,data=my.df)
+
+
+plt <- ggplot(data = my.df, aes(Z1, Z2))
+plt <- plt + geom_point(aes(color = factor(y)))
+plt <- plt + scale_colour_brewer(palette = "Set1")
+plt <- plt + coord_fixed()
+plt <- plt + xlab(expression(X[1])) + ylab(expression(X[2]))
+plt <- plt + theme_bw()
+plt <- plt + theme(axis.title.x = element_text(size = 8),
+                   axis.text.x  = element_text(size = 8),
+                   axis.title.y = element_text(size = 8),
+                   axis.text.y  = element_text(size = 8),
+                   legend.position = "none")
+plt
+```
+
+<div class='notes'>
+- how does linear discriminant analysis works
+- imagine we two multivariate data sets, the red and the blue
+- while they overlap, they clearly seem to have different centers
+</div>
+
+## LDA - picture 2
+
+```{r echo=FALSE}
+  plt <- ggplot(data = my.df, aes(Z1, Z2))
+  plt <- plt + geom_segment(aes(xend = Z1, yend = YZERO), size = 0.2, color = "gray")
+  plt <- plt + geom_point(aes(color = factor(y)))
+  plt <- plt + geom_point(aes(x = Z1, y = YZERO, colour = factor(y)))
+  plt <- plt + scale_colour_brewer(palette = "Set1")
+  plt <- plt + geom_abline(intercept=0,slope=0,size=0.2)
+  plt <- plt + coord_fixed()
+  plt <- plt + xlab(expression(X[1])) + ylab(expression(X[2]))
+  plt <- plt + theme_bw()
+  plt <- plt + theme(axis.title.x = element_text(size = 8),
+                     axis.text.x  = element_text(size = 8),
+                     axis.title.y = element_text(size = 8),
+                     axis.text.y  = element_text(size = 8),
+                     legend.position = "none")
+  plt;
+```
+
+<div class='notes'>
+- this picture shows what happens when we consider only the first variable x1
+- you can think of this as projecting the data onto the horizontal or x1 axis
+- notice how the red and blue data are still intermingled and overlapping when projected onto the x1 axis
+</div>
+
+## LDA - picture 3
+
+```{r echo=FALSE}
+  plt <- ggplot(data = my.df, aes(Z1, Z2))
+  plt <- plt + geom_segment(aes(xend = XZERO, yend = Z2), size = 0.2, color = "gray")
+  plt <- plt + geom_point(aes(color = factor(y)))
+  plt <- plt + geom_point(aes(x = XZERO, y = Z2, colour = factor(y)))
+  plt <- plt + scale_colour_brewer(palette = "Set1")
+  plt <- plt + geom_vline(xintercept=0)
+  plt <- plt + coord_fixed()
+  plt <- plt + xlab(expression(X[1])) + ylab(expression(X[2]))
+  plt <- plt + theme_bw()
+  plt <- plt + theme(axis.title.x = element_text(size = 8),
+                     axis.text.x  = element_text(size = 8),
+                     axis.title.y = element_text(size = 8),
+                     axis.text.y  = element_text(size = 8),
+                     legend.position = "none")
+  plt;
+```
+
+<div class='notes'>
+- this picture shows what happens when we consider only the second variable x2
+- we are projecting the data onto the vertical or x2 axis
+- again the red and blue data are still intermingled and overlapping
+</div>
+
+## LDA - picture 4
+
+```{r echo=FALSE}
+  plt <- ggplot(data = my.df, aes(Z1, Z2))
+  plt <- plt + geom_segment(aes(xend = P1, yend = P2), size = 0.2, color = "gray")
+  plt <- plt + geom_point(aes(color = factor(y)))
+  plt <- plt + geom_point(aes(x = P1, y = P2, colour = factor(y)))
+  plt <- plt + scale_colour_brewer(palette = "Set1")
+  #plt <- plt + geom_abline(intercept = intercept, slope = slope, size = 0.2)
+  plt <- plt + geom_abline(intercept=intercept2,slope=slope2,size=0.2)
+  plt <- plt + coord_fixed()
+  plt <- plt + xlab(expression(X[1])) + ylab(expression(X[2]))
+  plt <- plt + theme_bw()
+  plt <- plt + theme(axis.title.x = element_text(size = 8),
+                     axis.text.x  = element_text(size = 8),
+                     axis.title.y = element_text(size = 8),
+                     axis.text.y  = element_text(size = 8),
+                     legend.position = "none")
+  plt;
+```
+
+<div class='notes'>
+- Linear Discriminant Analysis forms linear combinations of the original variables that maximize the separation between groups while minimizing the within group variance 
+- Think of it as choosing a new axis so that when the data is projected onto the new axis the separation is maximized
+- Notice how the red and blue data is less mingled and less overlapping on the new axis
+- we can test the new combination of variables for differences between the groups
+</div>
+
+## How to separate groups
+
+\large
+
+- use linear discriminant analysis to find combination of variables that maximizes group separation
+- apply univariate multiple comparison procedure to new variable
+
+<div class='notes'>
+- no audio
+</div>
+
+## Separating Groups of Apes
+
+Here is the R code:
+
+```{r}
+fit <- lda( location~height+weight,data=apes) # fit model
+plda <- predict(object=fit, newdata=apes) # compute combinations
+ld1 <- plda$x[,1] # extract most separating combination
+ld2 <- plda$x[,2] # second most separating combination
+```
+
+<div class='notes'>
+- linear discriminant analysis actually produces multiple separating directions, one fewer than the number of groups, these separating directions are used to classify new data into groups
+- we'll focus on the first linear combination, ld1, this direction accounts for the largest proportion of the total separation among the groups
+</div>
+
+## New variables scatterplot - code
+
+```{r, eval = FALSE}
+apes <- data.frame(apes,ld1=ld1,ld2=ld2)
+ggplot(apes) 
+  + geom_point( aes( x=ld1, y=ld2, color=location, shape=location) )
+  + scale_shape_manual( values=c(0,1,2) )
+  + scale_size_manual( values=2*c(1,1,1) )
+```
+<div class='notes'>
+- here we use the new variables ld1 and ld2 as axes in a scatterplot
+- the code is shown here and the scatterplot is shown on the next slide
+</div>
+
+## New variables scatterplot - the plot
+
+```{r, echo = FALSE}
+apes <- data.frame(apes,ld1=ld1,ld2=ld2)
+ggplot(apes) + geom_point(aes(x=ld1,y=ld2,color=location,shape=location))+scale_shape_manual(values=c(0,1,2))+scale_size_manual(values=2*c(1,1,1))
+```
+
+<div class='notes'>
+- the groups aren't exactly distinctly separated, but notice that the blue group, from location C seems to be mostly to the right, while the red and green groups from locations A and B seem to be mostly to the left
+</div>
+
+## Density Plots for LD1
+
+```{r}
+ggplot(apes, aes(ld1, color=location)) + geom_density(alpha=.3)
+```
+
+<div class='notes'>
+- here are estimated density curves for the variable ld1 at locations A, B, and C,
+- notice how the density curve for group C appears shifted to the right of the density curves for the other groups
+- compare this to the density curves for height and weight that we showed near the beginning of the presentation
+</div>
+
+## Apply Tukey to LD1
+
+```{r}
+linear.model<-aov(ld1~location,data=apes)
+TukeyHSD(linear.model)
+```
+
+<div class='notes'>
+- now that we have the variable ld1 which is a combination of height and weight, we can apply a multiple comparisions procedure to this new variable
+- since variances are equal and distributions normal, the Tukey procedure is a reasonable choice
+- we'll write the statistical conclusions on the next page
+</div>
+
+## Posthoc Conclusions
+
+\large
+At the 5% significance level there is strong evidence that the population mean vectors of height and weight for the apes at locations A and B both differ from those at location C.  There is not a significant difference in population mean height and weight for the apes at locations A and B.
+
+<div class='notes'>
+- no audio
+</div>
+

@@ -1,0 +1,361 @@
+
+---
+title: 'Lab Assignment: Multiple Comparisons/Post Hoc Procedures'
+author: "Professor X"
+date: "Oct. 9, 2015"
+output: word_document
+fontsize: 12pt
+---
+
+Create a Word document from this R Markdown file for the following exercises.  Submit the R markdown file and the knitted Word document via D2L Dropbox.  
+
+## Preliminaries
+
+Cars were selected at random from among 1993 passenger car models that were listed in both the Consumer Reports issue and the PACE Buying Guide. Pickup trucks and Sport/Utility vehicles were eliminated due to incomplete information in the Consumer Reports source. Duplicate models (e.g., Dodge Shadow and Plymouth Sundance) were listed at most once.  Use the data set Cars93 to do the following. (Type ?Cars93 to learn more about the data.)
+
+For the first couple of exercises we are going to use the Cars93 data set from the MASS package.  We'll delete the data having to do with vans so that we are only dealing with cars.  The code to load and prepare the data is here:
+
+```{r}
+if (!require(MASS)){
+  install.packages('MASS')
+  library(MASS)
+}
+data(Cars93)
+Cars93 <- Cars93[Cars93$Type != 'Van',]
+Cars93$Type <- factor(Cars93$Type) # recasting Type forces the factor levels to reset
+# shorten level labels to make them fit on boxplots
+# Cm = Compact
+# Lg = Large
+# Md = Midsize
+# Sm = Small
+# Sp = Sporty
+Cars93$Type <- factor(Cars93$Type,labels=c('Cm','Lg','Md','Sm','Sp'))
+```
+
+Here is another trick which will simplify your analysis a bit.  You can attach a data frame so that it's simple to refer to the variables.
+
+```{r}
+attach(Cars93)
+summary(Price) # Price is one of the variables in the Cars93 data frame, after attaching we don't have to refer to the data frame.  Don't forget to detach(Cars93) after you're done.
+````
+
+ 
+
+## Exercise 1
+
+We are going to look for differences in population mean engine revolutions per minute at maximum horsepower (RPM) of the different types of cars (Type). Assume that the RPM distributions are normal and have equal variances for the different types of cars.  To use onewayComp() you'll have to load the DS705data package.
+
+### Part 1a
+
+Use a one step procedure to find a family of 95% simulataneous confidence intervals for the difference in population means.  
+
+### -|-|-|-|-|-|-|-|-|-|-|- Answer 1a -|-|-|-|-|-|-|-|-|-|-|-
+
+```{r}
+# replace with your code
+require(DS705data)
+out <- onewayComp(RPM~Type,var.equal=TRUE,adjust='one.step')
+out$comp[,c(3,4,6,7)] # select only columns 3 and 4 with the intervals, they are stored in the comp element of the list named out, I added column 6 to see the adjusted p-values for comparison to part 1d
+```
+
+---
+
+### Part 1b
+
+Use the multcompView package to produce a boxplot and letters/T display illustrating the differences in population means. (Review slides 17-19 in Multiple Comparisons Part 2 presentation.)
+
+### -|-|-|-|-|-|-|-|-|-|-|- Answer 1b -|-|-|-|-|-|-|-|-|-|-|-
+
+```{r}
+# replace with your code
+require(multcompView)
+padj_extract <- function(formula,data){out$comp[,'p adj']}
+multcompBoxplot(RPM~Type,data=Cars93,horizontal=T,compFn="padj_extract")
+```
+
+---
+
+### Part 1c  
+
+Summarize your findings about the differences in population mean RPM for the different types of cars.  Which means are different and by how much?  You should start with "We are 95% confident that ..."
+
+### -|-|-|-|-|-|-|-|-|-|-|- Answer 1c -|-|-|-|-|-|-|-|-|-|-|-
+
+We are 95% confident that the population mean RPM for large cars is lower than for the other types of cars, but there are no other significant differences in population mean RPM for the other types of cars.
+
+---
+
+### Part 1d
+
+Use the REGWQ multi-step procedure (function regwqComp in DS705data) to test for pairwise differences in population mean RPM at $\alpha 0.05.$  (Don't forget each comparison includes an adjusted P-value and an adjusted significance level.  See the presentation for more details.) How do the results compare to the one-step procedure you chose in 1b)?  
+
+### -|-|-|-|-|-|-|-|-|-|-|- Answer 1d -|-|-|-|-|-|-|-|-|-|-|-
+
+```{r}
+require(DS705data)
+out <- regwqComp(RPM~Type,data=Cars93)
+out[,4:6] # print only the adjusted p-values, adj alphas and conclusions
+padj_extract <- function(formula,data){out[,'p adj']}
+multcompBoxplot(RPM~Type,data=Cars93,horizontal=T,compFn="padj_extract")
+```
+
+Even though the REGWQ procedure is more powerful, it reveals the same differences in population mean RPM as did the Tukey procedure.
+
+---
+
+## Exercise 2
+
+Now we are going to analyze differences in prices for different types of cars in the Cars93 data set.  The boxplot below shows that the prices are skewed and variances are different.   
+
+```{r}
+boxplot(Price~Type,horizontal=TRUE)
+```
+
+### -|-|-|-|-|-|-|-|-|-|-|- Answer 2a -|-|-|-|-|-|-|-|-|-|-|-
+
+It should be fairly clear that the price data is not from  normal distributions, at least for several of the car types, but ignore that for now and use the Games-Howell procedure with confidence level 90% to do simultaneous comparisons (if interpreting the $P$-values use $\alpha=0.1$).  
+
+```{r}
+# replace this with your code
+out <- onewayComp(Price~Type,var.equal=FALSE,adjust='one.step',alpha=0.1)
+out$comp[,c(2,3,6,7)]
+```
+
+---
+
+### Part 2b
+
+Use the multcompView package to produce a boxplot and letters/T display illustrating the differences in population means.  We want to make the comparisons at $\alpha = 0.1$, but the multcompBoxplot command assumes $\alpha = 0.05$ and that is difficult to change.  So instead divide the adjusted p-values by 2 before calling the multcompBoxplot (something like this should work: `out$comp[,'p adj'] <- out$comp[,'p adj']/2` ).
+
+### -|-|-|-|-|-|-|-|-|-|-|- Answer 2b -|-|-|-|-|-|-|-|-|-|-|-
+
+```{r}
+# replace this with your code
+out$comp[,'p adj'] <- out$comp[,'p adj']/2
+padj_extract <- function(formula,data){out$comp[,'p adj']}
+multcompBoxplot(Price~Type,data=Cars93,horizontal=T,compFn="padj_extract")
+```
+
+---
+
+### Part 2c
+
+Summarize the differences in the population mean prices for the different cars at $\alpha=0.1$.  Since you have confidence intervals you should explain how the mean prices differ and by how much. 
+
+### -|-|-|-|-|-|-|-|-|-|-|- Answer 2c -|-|-|-|-|-|-|-|-|-|-|-
+
+We are 95% confident that the population mean price of Medium cars is $66 to $17,946 more than that of Compact cars.  Similarly the population mean price of Small cars is  from $9,194 to $24,909 less than that of Medium cars, $2,796 to $13,296 less than that of Compact cars, $7,802 to $20,464 less than that of Large cars, and $2,457 to $15,996 less than that of Sport cars.  There appear to be no other significant population mean differences.  
+
+---
+
+## Exercise 3.
+
+Since the price data is likely not normally distributed, the Games-Howell procedure was not entirely appropriate.  However we can use bootstrapping to estimate the P-values and confidence intervals since the theoretical sampling distribution is likely not accurate.
+
+### Part 3a
+
+Repeat part 2a) using bootstrapping, by setting nboot=10000, in the onewayComp() function.
+
+### -|-|-|-|-|-|-|-|-|-|-|- Answer 3a -|-|-|-|-|-|-|-|-|-|-|-
+
+```{r}
+# replace with your code
+set.seed(4321)
+out <- onewayComp(Price~Type,var.equal=FALSE,alpha=0.1,adjust='one.step',nboot=10000)
+out$comp[,c(2,3,6,7)]
+```
+
+---
+
+### Part 3b
+
+Repeat 2b) using the results produced by bootstrapped Games-Howell.  Again use $\alpha =0.1$.
+
+### -|-|-|-|-|-|-|-|-|-|-|- Answer 3b -|-|-|-|-|-|-|-|-|-|-|-
+
+```{r}
+# replace with your code
+out$comp[,'p adj'] <- out$comp[,'p adj']/2
+padj_extract <- function(formula,data){out$comp[,'p adj']}
+multcompBoxplot(Price~Type,data=Cars93,horizontal=T,compFn="padj_extract")
+```
+
+---
+
+### Part 3c
+
+Explain these results in context as you did in 2c).
+
+### -|-|-|-|-|-|-|-|-|-|-|- Answer 3c -|-|-|-|-|-|-|-|-|-|-|-
+
+Perhaps unsurprisingly, the results from the bootstrapped version of the Games-Howell procedure are somewhat different.  This may be attributed to the fact that non-bootstrapped version of the Games-Howell procedure only applies to normal distributions.  Using the bootstrapped procedure we are 95% confident that the population mean price of Small cars is  from $8,870 to $25,233 less than that of Medium cars, $2,718 to $13,373 less than that of Compact cars, $8,088 to $20,179 less than that of Large cars, and $2,514 to $15,938 less than that of Sport cars.  There appear to be no other significant population mean differences.
+
+(Overall, the predicted differences aren't that different than those predicted using the original Games-Howell procedure.  The primary difference is that we can no longer say that mean prices differ for Medium and Compact car types.)
+
+---
+
+## Exercise 4.
+
+One step procedures like Tukey-Kramer and Games-Howell are conservative (lower power) so they can miss significant differences between population means.  If you don't need the confidence intervals, then a multi-step procedure such as the Bonferroni-Holm step-down procudere may be used to get more power.  
+
+### Part 4a
+
+Repeat 2a, but this time use the Bonferroni-Holm procedure at $\alpha=0.1$ to compare the population mean prices for the different types of cars.  Use bootstrapping and unequal variances.
+
+### -|-|-|-|-|-|-|-|-|-|-|- Answer 4a -|-|-|-|-|-|-|-|-|-|-|-
+
+```{r}
+out <- onewayComp(Price~Type,var.equal=FALSE,adjust='holm',nboot=10000)
+out$comp[,6:7]
+```
+
+---
+
+### Part 4b
+
+Repeat 2b to produce the boxplot with T and letter displays for the output in 4a.  Don't forget to manually adjust the P-values to "fool" the plot into use the $\alpha = 0.1$ significance level to produce the plot.
+
+### -|-|-|-|-|-|-|-|-|-|-|- Answer 4b -|-|-|-|-|-|-|-|-|-|-|-
+
+```{r}
+out$comp[,'p adj'] <- out$comp[,'p adj']/2
+padj_extract <- function(formula,data){out$comp[,'p adj']}
+multcompBoxplot(Price~Type,data=Cars93,horizontal=T,compFn="padj_extract")
+```
+
+---
+
+### Part 4c
+
+As in 2c, explain the mean price comparisons in context.  Did you find any mean price differences that weren't previously revealed?
+
+### -|-|-|-|-|-|-|-|-|-|-|- Answer 4c -|-|-|-|-|-|-|-|-|-|-|-
+
+At significance level $\alpha=0.1$ we can say that the population mean price of Small cars is different than all of the other car types.  Also, the population mean prices of Medium and Compact cars are different.  There are no ther significant differences.  With the Bonferroni-Holm procedure we are only hypothesis testing and no longer estimating the differences in the population means.
+
+---
+
+### Part 4d
+
+In Exercises 2, 3, and 4 you used 3 different methods to analyze the differences in population mean prices for the different types of cars.  Which analysis do you think is the most reliable?  Why?
+
+### -|-|-|-|-|-|-|-|-|-|-|- Answer 4d -|-|-|-|-|-|-|-|-|-|-|-
+
+I trust the bootstrap methods more than the others.  If we need to estimate the differences in population mean difference, that the boostrapped Games-Howell seems to be a good choice.  If we only care about separating the differences, then the Bonferroni-Holm procedure applied to two-sample unpooled t-tests seems best.
+
+---
+
+## Exercise 5
+
+Build a custom contrast matrix that compares the the average of average small and compact prices to the average of the other car types and also compares the mean prices of the midsize and compact cars. (You may have to use `levels(Type)` to see the ordering of the levels)  Use the Bonferroni-Holm procedure at the 10% significance level with bootstrapping and unequal variances to make the comparisons.  Summarize your results.
+
+### -|-|-|-|-|-|-|-|-|-|-|- Answer 5 -|-|-|-|-|-|-|-|-|-|-|-
+
+```{r}
+# you'll have to look at the levels to figure out where the weights go and then do something like this:
+# #K <- rbind( c( 1/2, -1/3, -1/3, 1/2, -1/3), c( -1, 0, 1, 0, 0) )
+#
+# or do something like where we name the columns using the levels and then set
+# the weights by referring to the levels.  
+#
+# first initialize with zeros and name the rows and columns
+K <-matrix(0,2,5,dimnames=list(c('ave2-ave3','mid-cmpct'),levels(Type)))
+K['ave2-ave3',c('Cm','Sm','Lg','Md','Sp')] <- c(-1/2,-1/2,1/3,1/3,1/3)
+K['mid-cmpct',c('Md','Cm')] <- c(1,-1)
+
+out <- onewayComp(Price~Type,var.equal=FALSE,adjust='holm',nboot=10000, con = K)
+out
+```
+
+---
+
+## Exercise 6
+
+Since the price distributions are skewed it makes more sense to talk about median prices than mean prices.  
+
+### Part 6a
+
+The Kruskal-Wallis and Dunn procedures aren't appropritate for comparing population median prices, why?  Explain.
+
+### -|-|-|-|-|-|-|-|-|-|-|- Answer 6a -|-|-|-|-|-|-|-|-|-|-|-
+
+Because the population distributions are not similar in shape and spread.  
+
+---
+
+### Part 6b
+
+We're going to make 4 simulataneous confidence intervals for price data (compact - small, sporty-small, midsize-sporty, midsize-compact).  If we want familywise confidence level 90%, what confidence level should you use for each individual comparison according to the Bonferroni correction?
+
+### -|-|-|-|-|-|-|-|-|-|-|- Answer 6b -|-|-|-|-|-|-|-|-|-|-|-
+
+Four comparisions with family-wise error rate $\alpha = 0.1$, gives individual comparisons with $\alpha_I = \alpha/4 = 0.1/4 = 0.025$.  This corresponds to individual confidence level of $97.5\%$.  
+
+---
+
+### Part 6c
+
+Use the boot package (as in the class presentation) to bootstrap the 4 confidence intervals for the specified differences of population median prices. You'll have to write the helper function and make sure you are referring to the correct columns of the Cars93 data. 
+
+### -|-|-|-|-|-|-|-|-|-|-|- Answer 6c -|-|-|-|-|-|-|-|-|-|-|-
+
+```{r echo=TRUE}
+require(boot)  # install 'boot' if needed
+# replace with your code
+bootMedianDiff <- function(d,i){
+  meds <- tapply(d[i,5],d[,3],median)
+  c( meds[1]-meds[4], meds[5]-meds[4], meds[3]-meds[5], meds[3]-meds[1] )
+  }
+# build the bootstrap distribution
+boot.object <- boot(Cars93, bootMedianDiff, R = 10000, strata = Cars93$Type)
+# M_compact - M_small
+boot.ci(boot.object,conf = 1 - .10/4, type='bca', index=1)$bca[4:5]
+# M_sport - M_small
+boot.ci(boot.object,conf = 1 - .10/4, type='bca', index=2)$bca[4:5]
+# M_midsize-M_sport
+boot.ci(boot.object,conf = 1 - .10/4, type='bca', index=3)$bca[4:5]
+# M_midsize-M_compact
+boot.ci(boot.object,conf = 1 - .10/4, type='bca', index=4)$bca[4:5]
+```
+
+
+### Part 6d
+
+Explain the results of your intervals.
+
+### -|-|-|-|-|-|-|-|-|-|-|- Answer 6d -|-|-|-|-|-|-|-|-|-|-|-
+
+We are 95% confident in the following:
+
+* the population median price of Compact cars is $2,400 to $10,900 greater than that of Small cars.
+* the population median price of Sporty cars is $3,450 to $13,600 greater than that of Small cars.
+* the population median price of Midsize cars is $150 to $19,500 greater than that of Sporty cars.
+* the population median price of Midsize cars is $1,000 to $20,111 greater than that of Compact cars.
+
+---
+
+## Exercise 7
+
+The airquality data set that is built into R looks at air quaility measures in New York City, including ozone levels, for 5 months in 1973. We are going to estimate differences in population median ozone levels for the 5 months using the Dunn procedure which is a traditional follow up to the Kruskal-Wallis test.  Here is a boxplot and the Kruskal-Wallis test:
+
+```{r}
+detach(Cars93)  # we don't need the Cars93 data now 
+data(airquality)
+boxplot(Ozone~Month,data=airquality)
+kruskal.test(Ozone ~ Month, data = airquality) 
+```
+
+The boxplot shows that the distributions of ozone levels are similar, if not identical, for the 5 months.  The Kruskal-Wallis test, assuming that the population distributions have the same shapes, shows that there is significant evidence that the population median ozone levels are not the same for all 5 months.  Use the Dunn procedure (as shown in the presentations) with Bonferroni-Holm adjusted p-values to see which months have different population median ozone levels.  Use $\alpha = 0.05.$  Summarize your findings.
+
+### -|-|-|-|-|-|-|-|-|-|-|- Answer 7 -|-|-|-|-|-|-|-|-|-|-|-
+
+```{r}
+# replace with your r  code
+require(dunn.test) # install package 'dunn.test' if needed
+dunn.test(airquality$Ozone,airquality$Month,method='holm',alpha=.05)
+```
+
+It may be a bit of stretch to say these samples come from distributions with the same shape.  
+Months 5, 7, 8, and 9 seem slightly skewed right with spans of 125 to 150 units.  Month 6 appears to have much less span, but since Month 6 has such a small sample I'm allowing a lot of latitude for that one (if you make lots boxplots for samples of size 9 you'll see that there is tremendous variation).  According to the Dunn test, there are significant differences in population median ozone levels between month's 5 and 7, months 5 and 8, months 7 and 9, and months 8 and 9.
+---
+

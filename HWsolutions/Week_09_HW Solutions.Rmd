@@ -1,0 +1,313 @@
+
+---
+title: 'Lab Assignment: Simple Linear Regression & Correlation'
+author: "Your name here"
+date: "Nov. ??, 2015"
+output: word_document
+fontsize: 12pt
+---
+
+Knit a Word file from this R Markdown file for the following exercises.  Submit the R markdown file and resulting Word file via D2L Dropbox.   
+
+## Exercise 1
+
+The data for this problem comes from a dataset presented in Mackowiak, P. A., Wasserman, S. S., and Levine, M. M.  (1992), "A Critical Appraisal of 98.6 Degrees F, the Upper Limit of the Normal Body Temperature, and Other Legacies of Carl Reinhold August Wunderlich," Journal of the American Medical Association, 268, 1578-1580.  Body temperature (in degrees Fahrenheit) and heart rate (in beats per minute) were two variables that were measured for a random sample of 130 adults.  A simple linear regression was used to see if body temperature had an effect on heart rate.
+
+The data are in the file normtemp.rda, this data is included in the DS705data package so you can access it by loading the package and typing data(normtemp).
+
+### Part 1a
+
+Create a scatterplot with heart rate in the vertical axis and plot the estimated linear regression line in the scatterplot. Include descriptive labels for the x and y-axes (not just the variable names as they are in the data file). 
+
+Note:  this data set needs a little cleaning first.  The heart rates are missing for two of the rows.  Find these rows and delete them from the data frame before proceeding. To delete rows 10 and 42 you could do something like this: df <- df[c(-10,-42),].
+
+Does it appear that a linear model is at least possibly a plausible model for the relationship between heart rate and body temperature?  Explain your answer.
+
+### -|-|-|-|-|-|-|-|-|-|-|- Answer 1a -|-|-|-|-|-|-|-|-|-|-|-
+
+```{r}
+require(DS705data)
+data(normtemp)
+normtemp <- normtemp[1:128,]
+temp <- normtemp$temp
+hr <- normtemp$hr
+plot(temp,hr,xlab="Temperature",ylab="Heart Rate",main="")
+```
+
+There seems to be a weak, positive, linear relationship between heart rate and body temperature.  A model might be plausible, but may have limited predictive value.
+
+---
+
+### Part 1b
+
+Write the statistical model for estimating heart rate from body temperature, define each term in the model in the context of this application, and write the model assumptions. (Hint: find the slide titled Simple Linear Regression Model in the presentation).
+
+### -|-|-|-|-|-|-|-|-|-|-|- Answer 1b -|-|-|-|-|-|-|-|-|-|-|-
+
+$$\mbox{Heart Rate } = \beta_0 + \beta_1 \mbox{ Temperature } + \epsilon$$
+
+* $\beta_0$ is the population mean heart rate when the Temperature is 0 degrees Fahrenheit.  This number can't be expected to be physically meaningful in this context since body temperatures are far from 0.
+
+* $\beta_1$ is the rate of change of the population mean heart rate for each additional degree of body temperature.
+
+* $\epsilon$ is the normally distributed model error that represents the natural variation in heart rates.
+
+---
+
+### Part 1c  
+
+Obtain the estimated slope and y-intercept for the estimated regression equation and write the equation in the form hr$=\hat{\beta_0} + \hat{\beta_1}temp$ (only with $\hat{\beta_0}$ and $\hat{\beta_1}$ replaced with the numerical estimates from your R output).
+
+### -|-|-|-|-|-|-|-|-|-|-|- Answer 1c -|-|-|-|-|-|-|-|-|-|-|-
+
+```{r}
+linear.model <- lm(hr~temp,data=normtemp)
+b0 <- linear.model$coef[1]
+b1 <- linear.model$coef[2]
+b0
+b1
+```
+
+hr = `r b0` + `r b1` temp  
+
+---
+
+### Part 1d
+
+Test whether or not a positive linear relationship exists between heart rate and body temperature using a 5% level of significance.  State the null and alternative hypotheses, test statistic, the p-value, and conclusion.
+
+### -|-|-|-|-|-|-|-|-|-|-|- Answer 1d -|-|-|-|-|-|-|-|-|-|-|-
+
+```{r}
+out <- summary(linear.model)
+p2 <- out$coefficients[2,4] # two sided p-value
+p1 <- p2/2
+p1
+
+p1cor <- cor.test(temp,hr,alternative="greater")$p.value
+p1cor
+# notice that p1 and p1cor are the same ...
+```
+
+By default, the summary() method displays an ANOVA analysis of the linear regression model.  The $P$-value given here is for a two-sided test of "is there a linear relationship?"  For univariate regression it is possible to test one-sided hypotheses. For one-variable the test of correlation, cor.test(), is equivalent to the ANOVA test of a linear relationship, but cor.test() can also be one-sided.  An alternative simple linear regression is to divide the P-value, from ANOVA,by 2 to get a one-sided P-value.  We'll use the latter approach here.
+
+$H_0:$ There is no linear relationship between heart rate and body temperature ($\beta_1=0$)
+
+$H_1:$ There is a positive linear relationship between heart rate and body temperature ($\beta_1>0$)
+
+Reject $H_0$ at $\alpha=0.05$ ($P =$ `r round(p1,2)`).   There is significant evidence of a positive linear relationship between heart rate and body temperature.
+
+
+---
+
+### Part 1e
+
+Provide a 95% confidence interval to estimate the slope of the regression equation and interpret the interval in the context of the application (do not us the word “slope” in your interpretation).
+
+### -|-|-|-|-|-|-|-|-|-|-|- Answer 1e -|-|-|-|-|-|-|-|-|-|-|-
+
+```{r}
+ci <- confint(linear.model)
+ci
+```
+
+We are 95% confident the population heart rate increases `r round(ci[2,1],1)` to `r round(ci[2,2],1)` beats per minute for each additional degree Fahrenheit of body temperature.
+
+---
+
+### Part 1f
+
+Provide a 95% confidence interval to estimate the mean heart rate for all adults with body temperature $98.6^o$ F.  Interpret the interval in the context of the problem.
+
+### -|-|-|-|-|-|-|-|-|-|-|- Answer 1f -|-|-|-|-|-|-|-|-|-|-|-
+
+```{r}
+x <- data.frame( temp = 98.6 )
+ci <- predict( linear.model, x, interval="confidence")
+ci
+```
+
+We are 95% confident the population mean heart rate for adults with body temperature $98.6^o$ is between `r round(ci[2],1)` and `r round(ci[3],1)` beats per minute.
+
+---
+
+### Part 1g
+    
+Provide a 95% prediction interval to estimate the expected heart rate for a randomly selected adult with body temperature $98.6^o$ F.  Interpret the interval in the context of the problem.
+ 
+### -|-|-|-|-|-|-|-|-|-|-|- Answer 1g -|-|-|-|-|-|-|-|-|-|-|-
+
+```{r}
+preTemp <- predict( linear.model, x, interval="prediction")
+```
+
+We are 95% confident that the heart rate of an adult whose body temperature is $98.6^0$ F will be between `r round(preTemp[2],1)` and `r round(preTemp[3],1)` beats per minute.
+
+---
+
+### Part 1h
+
+Obtain the residuals and plot them against the predicted values and also against the independent variable.  Also construct a histogram, normal probability plot, and boxplot of the residuals and perform a Shapiro-Wilk test for normality.  Based on your observation of the plot of residuals against the predicted values, does the regression line appear to be a good fit?  Do the model assumptions appear to be satisfied?  Comment. 
+
+### -|-|-|-|-|-|-|-|-|-|-|- Answer 1h -|-|-|-|-|-|-|-|-|-|-|-
+
+```{r}
+resids <- linear.model$resid
+hr.fit <- linear.model$fitted.values
+plot(hr.fit,resids)
+plot(temp,resids)
+hist(resids)
+qqnorm(resids)
+qqline(resids)
+shapiro.test(resids)
+```
+
+Based on the residual plots the regression line seems to be a good fit in that there don't appear to be outliers and residuals seem "balanced" around 0 without any clear evidence of a pattern.  Moreover, the model assumptions appear to met. The residuals appear to be heteroscedastic (have the same variance for each value of the indpendent variable, temperature in this case).  The residuals also appear to be approximately normally distributed.
+
+---
+
+### Part 1i
+
+Examine the original scatterplot and the residual plot. Do any observations appear to be influential or be high leverage points?  If so, describe them and what effect they appear to be having on the estimated regression equation.
+
+### -|-|-|-|-|-|-|-|-|-|-|- Answer 1i -|-|-|-|-|-|-|-|-|-|-|-
+
+An observation with an unusual $x$ value has high leverage, but there are no points outside the overall pattern in the horizontal direction.  Neither do there appear to be any outliers that might be influential.  Influential points often, but not always, have large residuals and nothing sticks out here.  This can be confirmed by plotting the regression line with and without the suspected influential point(s).
+
+For example,
+
+---
+
+### Part 1j
+
+Perform the F test to determine whether there is lack of fit in the linear regression function for predicting heart rate from body temperature.  Use $\alpha = 0.05$.  State the null and alternative hypotheses, test statistic, the p-value, and the conclusion.
+
+### -|-|-|-|-|-|-|-|-|-|-|- Answer 1j -|-|-|-|-|-|-|-|-|-|-|-
+
+```{r}
+linear.model <- lm( hr ~ temp)
+full.model <- lm( hr ~ factor(temp))
+out <- anova(linear.model, full.model)
+out
+p <- out$Pr
+```
+
+$H_0:$ Linear model
+
+$H_1:$ Full model
+
+Do not reject $H_0$ at $\alpha=0.05$ ($P =$ `r round(p,2)`).   There is not significant evidence that the full model is a better fit than the linear model, therefore the linear model is a good fit for this data.
+
+---
+
+### Part 1k
+
+Conduct the Breusch-Pagan test for the constancy of error variance.  Use α = 0.05.  State the null and alternative hypotheses, test statistic, the decision rule, the P-value, and the conclusion.
+
+### -|-|-|-|-|-|-|-|-|-|-|- Answer 1k -|-|-|-|-|-|-|-|-|-|-|-
+
+```{r}
+require(lmtest)
+out <- bptest(linear.model)
+p <- out$p.value
+```
+
+$H_0:$ the population variance is the same for all $x$ (homoscedastic)
+
+$H_a:$ the population variance is not the same for all $x$ (heteroscedastic)
+
+According to the Breusch-Pagan test:  Do not reject $H_0$ at $\alpha=0.05$ ($P = `r round(p,2)`).  There is not conclusive evidence to suggest the population variances differs at different values of $x$.  It is plausible that the population variance is the same for all $x$.
+
+---
+
+### Part 1l
+
+Calculate and interpret the Pearson correlation coefficient $r$.
+
+### -|-|-|-|-|-|-|-|-|-|-|- Answer 1l -|-|-|-|-|-|-|-|-|-|-|-
+
+```{r}
+out <- cor.test(temp,hr)
+rPearson <- out$estimate
+rPearson
+```
+
+The Pearson correlation coefficient is $r = `r round(rPearson,2)`$.  This suggests that there is a weak positive linear relationship between body temperature and heart rate.
+
+---
+
+### Part 1m
+
+Construct a 95% confidence interval for the Pearson correlation coefficient $r$.
+
+### -|-|-|-|-|-|-|-|-|-|-|- Answer 1m -|-|-|-|-|-|-|-|-|-|-|-
+
+```{r}
+ci <- out$conf.int
+```
+
+We are 95% confident the population correlation between body temperateure and heart rate lies in the range `r round(ci[1],3)` to `r round(ci[2],2)`.
+
+---
+
+### Part 1n
+
+Calculate and interpret the coefficient of determination $r^2_{yx}$ (same as $R^2$).
+
+### -|-|-|-|-|-|-|-|-|-|-|- Answer 1n -|-|-|-|-|-|-|-|-|-|-|-
+
+```{r}
+out <- summary(linear.model)
+r.sq <- out$r.squared
+r.sq.adj <- out$adj.r.squared
+```
+
+$R^2 =$ `r round(r.sq,3)`, $R^2_{\text{adj}} =$ `r round(r.sq.adj,3)`.
+
+The coefficient of determination, `r round(r.sq,3)` suggests that `r 100*round(r.sq,3)`% of the total variation in heart rates is explained by the linear relationship between body temperature and heart rate.  We can also say that `r 100*(1-round(r.sq,3))`% of the total variation in heart rates is not explained by the linear relationship.
+
+---
+
+### Part 1o
+
+Should the regression equation obtained for heart rate and temperature be used for making predictions?  Explain your answer.
+
+### -|-|-|-|-|-|-|-|-|-|-|- Answer 1o -|-|-|-|-|-|-|-|-|-|-|-
+
+While there is a statistically significant linear relationship, it only explains about `r 100*round(r.sq,3)`% of the total variation in heart rates.  Thus the linear model is not very useful in predicitng heart rate as a function of body temperature.
+
+---
+
+### Part 1p
+
+Calculate the Spearman correlation coefficient $r_s$ (just for practice).
+
+### -|-|-|-|-|-|-|-|-|-|-|- Answer 1p -|-|-|-|-|-|-|-|-|-|-|-
+
+```{r}
+out <- cor.test(temp,hr,method = "spearman")
+rSpearman <- out$estimate
+rSpearman
+
+```
+
+---
+
+### Part 1q
+
+Create 95% prediction and confidence limits for the predicted mean heartrate for each temperature given in the sample data and plot them along with a scatterplot of the data. (Look for the slides titled "Confidence Bands" in the presentation.)
+
+```{r}
+plot(temp,hr,xlab="Temperature",ylab="Heart Rate",main="")
+abline(linear.model)
+dfTemp <- data.frame(temp=seq(96.25,100,length.out=100))
+fittedC <- predict(linear.model,dfTemp,interval="confidence")
+fittedP <- predict(linear.model,dfTemp,interval="prediction")
+#plot with conf. and pred. bands (fittedC and P)
+lines(dfTemp$temp, fittedC[, "lwr"], lty="dashed", col="darkgreen")
+lines(dfTemp$temp, fittedC[, "upr"], lty="dashed", col="darkgreen")
+lines(dfTemp$temp, fittedP[, "lwr"], lty="dotted", col="blue")
+lines(dfTemp$temp, fittedP[, "upr"], lty="dotted", col="blue")
+```
+
+---
