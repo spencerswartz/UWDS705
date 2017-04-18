@@ -1,0 +1,774 @@
+---
+title: 'Factor Analysis'
+output:
+  beamer_presentation:
+    colortheme: default
+    fonttheme: default
+    keep_tex: yes
+    template: ../beamer169experimental.tex
+fontsize: '12pt'
+---
+
+```{r global_options, include=FALSE, echo=FALSE}
+# use for beamer
+knitr::opts_chunk$set(fig.width=3, fig.height=1.5, fig.align='center',warning=FALSE, message=FALSE)
+library(knitr)
+library(psych)
+load("~/Google Drive/DS 705 CEOEL Folder/class_material/Weekly Content/week 13/police.rda")
+# use for word
+# knitr::opts_chunk$set(fig.width=4, fig.height=3,warning=FALSE, message=FALSE)
+```
+
+## Why Factor Analysis?
+
+\begin{table}
+\centering
+\begin{tabular}{lcl}
+Knowledgeable employees &   &   \\
+Friendly employees & \hspace{3em}  & Customer Service  \\
+Good return policy  & & \\
+ & & \\
+Good neighborhood &  &  \\
+Within 10 miles of home & \hspace{3em} & Location \\
+Near other shops I go to &   &   \\
+ & & \\
+Regular prices & & \\
+Frequency of promotions & \hspace{3em} & Economic \\
+Sale prices & & \\
+\end{tabular}
+\end{table}
+
+<div class="notes">
+
+Exploratory factor analysis is a multivariate statistical procedure used to determine the underlying structure, in the form of latent - or unobserved - variables - among a larger set of observed variables.  This can be thought of as a data reduction technique.
+
+In this lesson, we will not be covering confirmatory factor analysis, which is similar, but would different in that the researcher would have some preconceived idea of what the underlying structure is and then try to confirm it.
+
+In an exploratory factor analysis, we may have observable, measurable variables from customer surveys, like the things in the left-hand column here - Knowledgeable employees, Friendly employees, Good return policy, etc.  These observed variables may be representing an underlying structure of more comprehensive unobserved latent variables like Customer Service, Location, and Economic measures.
+
+We may be able to represent the same shared variablilty and reduce the data set from 9 variables down to 3.
+
+</div>
+
+----
+
+## The Factor Analysis Model
+
+\begin{table}
+\centering
+\begin{tabular}{rcl}
+$x_1$ & $=$  & $\lambda_{11}f_1+\lambda_{12}f_2+ \cdots + \lambda_{1k}f_k+u_1,$  \\
+ & & \\
+$x_2$ & $=$  & $\lambda_{21}f_1+\lambda_{22}f_2+ \cdots + \lambda_{2k}f_k+u_2,$  \\
+ & & \\
+\vdots &  &  \\
+ & & \\
+$x_q$ & $=$  & $\lambda_{q1}f_1+\lambda_{q2}f_2+ \cdots + \lambda_{qk}f_k+u_q.$  \\
+\end{tabular}
+\end{table}
+
+<div class="notes">
+
+Meet the Factor Analysis model. This model is used when we believe that the observed variables, the x's, can be accurately represented by a smaller number of unobserved variables - represented here by the f's.  
+
+The f's are also called latent variables or "common factors" and there must be fewer f's than x's.  The point is to reduce the number of variables and measure things that are thought to be not directly observable.  Common examples of these factors are broad concepts like intelligence, social class, or burnout.
+
+These factors are assumed to be independent and identically distributed and standardized with mean 0 and variance 1.  Note that there is no requirement to be normally distributed, only identically distributed.
+
+</div>
+
+----
+
+## More about the Factor Analysis Model
+
+\begin{table}
+\centering
+\begin{tabular}{rcl}
+$x_1$ & $=$  & $\lambda_{11}f_1+\lambda_{12}f_2+ \cdots + \lambda_{1k}f_k+u_1,$  \\
+ & & \\
+$x_2$ & $=$  & $\lambda_{21}f_1+\lambda_{22}f_2+ \cdots + \lambda_{2k}f_k+u_2,$  \\
+ & & \\
+\vdots &  &  \\
+ & & \\
+$x_q$ & $=$  & $\lambda_{q1}f_1+\lambda_{q2}f_2+ \cdots + \lambda_{qk}f_k+u_q.$  \\
+\end{tabular}
+\end{table}
+
+
+<div class="notes">
+
+Let's continue talking about the specifics of this model. The lambda's are constants that are weights relating each observed variable x to the unobserved factors.  The lambdas are called "factor loadings."  The factor loadings represent the correlation between each variable and the factor.
+
+The u's in the model are like residual terms, and are uncorrelated with each other and also uncorrelated with the factors f. Notice that there is a unique u corresponding to each observed variable x.  Technically, they are called "specific variates".
+
+Since the u's are variables, they each have their own variance - which is called the "specific" or "unique" variance and represents the variability in each x that is NOT shared with other variables.
+
+</div>
+
+----
+
+## Variances and Communalities
+
+$$ \text{Var}(x_i)=\sigma^2_i=\sum\limits_{j=1}^k \lambda_{ij}^2 + \psi_i$$
+
+\begin{center}
+where $\psi_i$ is the variance of the specific factor $u_i$
+\end{center}
+
+$$h_i^2=\sum\limits_{j=1}^k \lambda_{ij}^2$$
+
+<div class="notes">
+
+Since the factors are assumed to be standardized, each having a variance of 1, and they're independent, and since the lambda's are constants and the error terms are independent of the factors, the rules for variances would tell us that the variance for a particular x-sub-i is defined as shown here.
+
+The variance of the specific factor u-sub-i, goes by the Greek letter psi and is called the "specific variance" or sometimes "unique variance." This is the variance that cannot be explained by the correlations to the other variables, but is still uniquely associated with a particular observed variable. 
+
+The sum of the squared factor loadings for a given variable x-sub-i represent the part of the overall variance known as the "communality" of x-sub-i.  It is also called the "common variance."  This is the part of the variance that is shared with the other x variables through the common factors.
+
+</div>
+
+----
+
+## Covariance of Observed Variables
+
+\begin{table}
+\centering
+\begin{tabular}{rcl}
+$x_1$ & $=$  & $\lambda_{11}f_1+\lambda_{12}f_2+ \cdots + \lambda_{1k}f_k+u_1,$  \\
+ \vdots &  &  \\
+$x_i$ & $=$  & $\lambda_{i1}f_1+\lambda_{i2}f_2+ \cdots + \lambda_{ik}f_k+u_i,$  \\
+\vdots &  &  \\
+$x_j$ & $=$  & $\lambda_{j1}f_1+\lambda_{j2}f_2+ \cdots + \lambda_{jk}f_k+u_j,$  \\
+\vdots &  &  \\
+$x_q$ & $=$  & $\lambda_{q1}f_1+\lambda_{q2}f_2+ \cdots + \lambda_{qk}f_k+u_q.$  \\
+\end{tabular}
+\end{table}
+
+The covariance of $x_i$ and $x_j$ is
+$$\sigma_{ij}=\sum\limits_{l=1}^k \lambda_{il} \lambda_{jl}$$
+
+
+<div class="notes">
+
+If all of the observed variables x-sub-i were independent, there would be no need to do a factor analysis.  Its when there are groups of correlated x variables that we might start thinking that each group could be represented by an underlying, unobserved common factor.
+
+A correlation matrix can show us which x variables are correlated.  Correlation is a scaled version of covariance, which is a measure of how two variables change together.  The covariances for the x-sub-i's are given by the factor analysis model as the sum of the product of the factor loadings for each variable as shown here.  
+
+That is, the covariance of x-sub-i and x-sub-j is given by lambda-sub-i1 times lambda-sub-j1 plus lambda-sub-i 2 times lambda-sub-j 2, and so on through lambda-sub-i k times lambda-sub-j k.
+
+Because of this relationship, the lambda-sub-ij's and the psi-sub-i's are estimated by the elements of the variance-covariance matrix and are computed from sample data.
+
+</div>
+
+----
+
+## Let's dive into an example!
+
+The data set police.rda contains 15 anthropometric and physical fitness measurements for 50 white male applicants to the police department of a major metropolitan city.
+
+We'll use factor analysis to attempt to summarize the 15 variables using a smaller number of underlying factors.  
+
+
+<div class="notes">
+
+bottom panel note:
+This data set is from Regression Analysis and its Application: A Data-Oriented Approach by Gunst and Mason (1980).
+
+</div>
+
+----
+
+## The Observed Variables 
+
+* REACT = Reaction time in seconds to a visual stimulus  
+* HEIGHT = Height in centimeters 
+* WEIGHT = Weight in kilograms 
+* SHLDR = Shoulder width in centimeters 
+* PELVIC = Pelvic width in centimeters 
+* CHEST = Minimum chest circumference in centimeters 
+* THIGH = Thigh skinfold thickness in millimeters 
+* PULSE = Resting pulse rate 
+
+
+<div class="notes">
+
+
+
+</div>
+
+----
+
+## The Observed Variables (cont'd)
+
+* DIAST = Diastolic blood pressure 
+* CHNUP = Number of chin-ups the applicant was able to complete 
+* BREATH = Maximum breathing capacity in liters 
+* RECVR = Pulse rate after 5 minutes of recovery from treadmill running 
+* ENDUR = Treadmill endurance time in minutes 
+* SPEED = Maximum treadmill speed 
+* FAT = Total body fat measurement 
+
+
+<div class="notes">
+
+
+
+</div>
+
+----
+
+## Initial Examination of Correlation Matrix
+
+```{r eval=FALSE}
+as.dist(round(cor(police[,2:16]),2))
+
+```
+ 
+
+
+<div class="notes">
+
+Our goal here is to determine if there is some underlying structure that can summarize the information found in these 15 variables using a smaller number of factors.  Initially, we would like to see some degree of collinearity among these variables, unlike in multiple regression - where we don't want our predictor variables to be highly correlated with each other.
+
+If there are clusters of variables that are correlated, then they have a shared variation that might be represented by a single factor.
+
+An R code for getting this is shown here where some functions are layered to produce output that is a little easier to navigate, since 225 correlations will be produced in a 15 by 15 matrix.
+
+The function "as.dist" directs R to print only the lower left triangle of the matrix, the "round" function is used to round each correlation to 2 decimal places, and of course the "cor" function computes the correlations.  Since column 1 contained only the subject ID in this data set, column 1 was excluded by specifying only columns 2 through 16 here.
+
+The resulting correlation matrix would not fit on one of these slides, so it is omitted here, but I would encourage you to go take a look at it the next time you are in R.
+
+The upshot is that there were 18 correlations out of the 105 correlations in the lower triangle at .5 or above.
+
+
+</div>
+
+----
+
+## Bartlett's Test for Sphericity
+
+\begin{table}
+\centering
+\begin{tabular}{ll}
+$H_0$: &  The correlation matrix is the identity matrix \\
+$H_a$: &  The correlation matrix is not the identity matrix \\
+\end{tabular}
+\end{table}
+
+```{r}
+mat <- cor(police[,2:16])
+cortest.bartlett(mat,n=50)
+```
+
+<div class="notes">
+
+Bartlett's test for sphericity is one formal way to determine if factor analysis may be appropriate for our data set by testing that the observed correlation matrix is not an identity matrix. An identity matrix is a matrix with 1's on the diagonal and zeros everywhere else.
+
+In other words, it tests that the population correlations among pairs of variables are not all zero.  In this case, we see that the very small P-value gives ample evidence to reject the null hypothesis and conclude that our correlation matrix is not an identity matrix and that factor analysis may be useful here.
+
+bottom panel note:
+The package "psych" must be installed and loaded to use the cortest.bartlett function.
+
+</div>
+
+----
+
+## Kaiser-Meyer-Olkin (KMO) Measure of Sampling Adequacy (MSA)
+
+\small
+```{r}
+mat <- cor(police[,2:16])
+KMO(mat)
+``` 
+
+
+<div class="notes">
+
+While Bartlett's test indicates only the presence of nonzero correlations, the KMO measure of sampling adequacy accounts for the patterns between variables in addition to the correlations.
+
+The KMO measure of sampling adequacy takes on values between 0 and 1. Values closer to 1 indicate that factor analysis should yield distinct and reliable factors. Kaiser (the K in KMO) in 1979 recommends values above .5 as acceptable to proceed with factor analysis.
+
+Hutcheson and Sofroniou, in a 1999 publication conclude that MSA values between 0.5 and 0.7 are considered mediocre, values between 0.7 and 0.8 are considered good, values between 0.8 and 0.9 are deemed great and values above 0.9 are superb. 
+
+While the overall MSA value is .64, which is mediocre but acceptable, there are variables with individual MSA values under .5.  Namely reaction time to a visual stumulus, diastolic blood pressure, pulse rate after 5 minutes recovery after treadmill, and maximum treadmill speed.
+
+Next we will omit reaction time, since it is the factor with the lowest MSA, and recalculate.
+
+bottom panel note:
+The package "psych" must be installed and loaded to use the KMO function.
+
+</div>
+
+----
+
+## MSA with REACT Removed
+
+\small
+```{r}
+mat2 <- cor(police[,3:16]) # begin with column 3 to exclude REACT
+KMO(mat2)
+``` 
+
+
+<div class="notes">
+
+Notice now that the overall MSA is up to .68, still in the mediocre range but higher now and also only SPEED is below the .5 threshold.  Therefore, SPEED will be removed and a new MSA will be computed.
+
+
+bottom panel note:
+The package "psych" must be installed and loaded to use the KMO function.
+
+</div>
+
+----
+
+## MSA with SPEED Removed
+
+\small
+```{r}
+police2 <- police[-14] # remove the 14th column (SPEED)
+mat3 <- cor(police2[,3:15]) # note: only 15 columns now
+KMO(mat3)
+``` 
+
+<div class="notes">
+
+We see now an overall MSA of .73, which is deemed as a good measure, and now only diastolic blood pressure has individual MSA value under .5, so we'll remove that one and see what we get.
+
+bottom panel note:
+The package "psych" must be installed and loaded to use the KMO function.
+
+</div>
+
+----
+
+## MSA with DIAST Removed
+
+\small
+```{r}
+police3 <- police2[-10] # remove the 10th column (DIAST)
+mat4 <- cor(police3[,3:14]) # note: only 14 columns now
+KMO(mat4)
+``` 
+
+<div class="notes">
+
+We see now an overall MSA of .75, a good measure, and now no individual MSA values are under .5, though pulse after 5 minutes recovery from treadmill run is right on it.  For completeness, we could conduct Bartlett's test again on the reduced data set.  I'll skip displaying it for you here, but rest assured that the p-value was exceedingly small and we will proceed with the factor analysis.
+
+bottom panel note:
+The package "psych" must be installed and loaded to use the KMO function.
+
+</div>
+
+----
+
+## How Many Factors to Extract?
+
+We'll use principle components to get eigenvalues and make the scree plot.  The R code looks like this.  The plot will be on the next slide.
+
+``` {r eval=FALSE}
+output <- princomp(police3[,3:14], cor=TRUE)
+plot(output,type="lines") # scree plot 
+abline(h=1,lty=2)  # add horizonal dotted line at 1
+```
+
+<div class="notes">
+
+Sometimes it is known or presumed how many latent factors underly the structure of the data and so we can specify directly how many factors to extract.  Other times, we must rely on various techniques for guiding us to the best number of factors to extract.  
+
+One common approach is to extract factors for which the latent root is greater than 1 - this is called Kaiser's Rule.  The latent root is also called the eigenvalue, which is the sum of squared loadings on that factor.
+
+Another common approach is the scree test criterion.  The scree plot contains the latent roots in the vertical axis and the number of factors in ther order of extraction on the horizontal axis.  These latent roots are also called eigenvalues and R labels them as SS loadings (for sum of squared loadings).  They measure the variance explained by each particular factor extracted.
+
+Sometimes the number of factors extracted is determined by a minimum percent of variation we would like to explain, typically 60% or higher is a cutoff that is used.  Another subjective approach is to extract a few different numbers of factors and see which number lends itself to the clearest factor interpretations.
+
+bottom panel note:
+Use the R code output$sdev^2 to see the numerical values of the variances (eigenvalues).
+</div>
+
+----
+
+## Scree Plot
+
+``` {r eval=FALSE, echo=FALSE}
+output <- princomp(police3[,3:14], cor=TRUE)
+plot(output,type="lines") # scree plot 
+abline(h=1,lty=2)  # add horizonal dotted line at 1
+```
+
+\begin{center}
+\includegraphics[width=4in]{./figures/Scree.pdf}
+\end{center}
+
+<div class="notes">
+
+The recommended number of factors to extract is determined by a visual examination of where the plot begins to straighten out.  Right here in this plot. This is called the "knee" in the plot.  According to the scree test criterion, we should extract 3 factors, since the plot somewhat straightens out at 3 factors.  This is a subjective judgement.
+
+The scree plot is shown here with a dotted horizontal line at 1 and we can see that there are 4 factors with latent roots (eigenvalues) above 1.  This criterion is thought to be useable whan there are fewer than 30 variables.  The latent roots/eigenvalues here are labed automatically by the princomp function output as "variances."
+
+</div>
+
+----
+
+## Methods of Extraction
+
+**Principal Component Analysis**
+
+**Common Factor Analysis**
+
+* Maximum likelihood
+* Unweighted least squares
+* Generalized least squares
+* Principal axis factoring
+
+
+<div class="notes">
+
+We've finally come to the point of extracting the factors, but there are more decisions to make.  Which extraction method shall we use?  Should we use a factor rotation or not?  If so, which one?
+
+Principal components, or PCA, extraction forms uncorrelated linear combinations of the observed variables. The first component accounts for the most variance and successive components explain progressively smaller portions of the variance. 
+
+With principal components extraction, the minimum number of factors is sought out to account for the maximum amount of the total variation in the observed variables.  It is recommended when the goal is data reduction and is probably the way to go in data science applications.
+
+The Common Factor Analysis methods of extraction is designed only to find factors that represent only the common variance among the observed variables.  These methods is viewed as being more widely used in social science applications.
+
+</div>
+
+----
+
+## Methods of Rotation
+
+**Orthogonal Methods**
+
+* Varimax 
+* Quartimax
+* Equamax  
+
+**Oblique Methods**
+
+* Direct Oblimin
+* Quartimin
+* Promax
+
+
+<div class="notes">
+
+The term rotation is referring to turning the axes of the factors about the origin to some other position.  Rotating factors is done primarily to attempt to simplfy the interpretation of the factors.  
+
+Orthogonal methods produce factors that are uncorrelated - that is , an angle of 90 degrees is maintained between the reference axes, while Oblique methods do not insist on this restriction. 
+
+The Varimax rotation tends to be commonly used.
+
+</div>
+
+----
+
+## Let's extract some factors!
+
+``` {r eval=FALSE}
+fa.out <- principal(police3[,3:14],nfactors=4,rotate="varimax")
+print.psych(fa.out,cut=.5,sort=TRUE)
+```
+
+<div class="notes">
+
+I've requested the Varimax rotation here, but even if no rotation is specified, Varimax is the dafault for the rotation in R, so if you don't want a rotation, you have to specify that by entering rotation="none".  
+
+Specifying cut at .5 suppresses the output for all of the factor loadings under .5 and sort=TRUE will sort the displayed loadings.  This makes the output much easier to read.
+
+The relevant output is on the next slide.
+
+</div>
+
+----
+
+## Output for Factor Extraction
+
+\small 
+
+``` {r echo=FALSE}
+fa.out <- principal(police3[,3:14],nfactors=4,rotation="varimax")
+# trim the output to fit on one slide
+require(utils)
+tmp <- noquote( 
+  capture.output( 
+    print(fa.out,cut=.5,sort=TRUE)
+    )
+  )
+write.table(tmp[4:16],quote=F,row.names=F,col.names=F)
+```
+
+
+<div class="notes">
+
+The communalities are in the h2 column and uniquenesses are in the the column labeled as u2. Remember that the communality is the proportion of common or shared variance within a variable.  For a successful factor analysis, we would like to see a good number of higher values in the h2 column.  
+
+We see here that 11 of the 12 variables have communalities above 0.6 when 4 factors are extracted, which is very good.
+ 
+Some suggest that variables with communalities less than .5 may be dropped from the factor analysis.
+ 
+Note that the unique or specific variance, given in the u2 column, is simply 1 minus the communality for each variable, since the variables are all scaled to have a variance of 1 and total variance is shared variance plus unique variance.
+
+However, treadmill endurance time is loading onto only 1 factor, so it can stand alone as a separate variable.  We should consider extracting only 3 factors.  Since our goal is data reduction, fewer factors would be better.  So let's check it out.
+
+</div>
+
+----
+
+## Are 3 factors enough?
+
+\small 
+
+``` {r echo=FALSE}
+fa.out <- principal(police3[,3:14],nfactors=3,rotation="varimax")
+# trim the output to fit on one slide
+require(utils)
+tmp <- noquote( 
+  capture.output( 
+    print(fa.out,cut=.5,sort=TRUE)
+    )
+  )
+write.table(tmp[4:16],quote=F,row.names=F,col.names=F)
+```
+
+
+<div class="notes">
+
+Again we're seeing 11 out of 12 variables with communalities aver .5, which is a good sign for extracting 3 factors and the one below .5 is the treadmill endurance, which we saw previously could stand on its own.  We'll look at more of the output for this extraction on the next slide - examining the cumulative proportion of variance explained by the 3 factors.
+
+</div>
+
+----
+
+## Proportion of Variation Explained by the First 3 Factors
+
+``` {r eval=FALSE}
+fa.out <- principal(police3[,3:14],nfactors=3,rotation="varimax")
+print(fa.out,cutoff=.4,sort=TRUE)
+```
+
+``` {r echo=FALSE}
+# trim the output to fit on one slide
+require(utils)
+tmp <- noquote( 
+  capture.output( 
+    principal(police3[,3:14],nfactors=3,rotation="varimax")
+    )
+  )
+write.table(tmp[18:23],quote=F,row.names=F,col.names=F)
+```
+
+<div class="notes">
+
+I'm displaying the portion of output that shows the sums of square for the loadings (also called the eigenvalues or the latent roots) as well as the proportion of total variance each factor explains and the cumulative proportion of variance the factors explain in the observed variables.
+
+Notice that the first 3 factors explain a total of 70% of the total variation among the 12 remaining observed variables.   
+
+Recall that I said previously that one criterion for deciding how many factors to extract was the total proportion of variance explained by them and that often 60% was a minimum cutoff; here we are getting 70%.
+
+</div>
+
+----
+
+## Interpreting the Loadings
+
+\small 
+
+``` {r echo=FALSE}
+fa.out <- principal(police3[,3:14],nfactors=3,rotation="varimax")
+# trim the output to fit on one slide
+require(utils)
+tmp <- noquote( 
+  capture.output( 
+    print(fa.out,cut=.5,sort=TRUE)
+    )
+  )
+write.table(tmp[4:16],quote=F,row.names=F,col.names=F)
+```
+
+<div class="notes">
+
+Remember that factor loadings represent correlations between the original variables and the common factors.
+
+The thing to look for here is which variables load high, like more than .5 or .6 in absolute value on each factor.  I have suppressed loadings under .5 in absolute value in the output and sorted the loadings to make it easier to see the higher loadings and which factors they load onto.  
+
+Starting with factor 1 (labeled here as PC1), we see that FAT, THIGH, CHNUP, WEIGHT, and CHEST load highly, and all of them load positively except for CHNUP, which is negatively correlated with factor 1.  
+
+For factor 3 (labeled here as PC3), we have HEIGHT, SHLDR, BREATH, and PELVIC with high positive loadings, and for factor 2 RECVR and PULSE have loadings over .5.  
+
+WEIGHT is loading pretty high at .66 for factor 1 and also high at .65 for factor 3.  Similarly for CHEST.  Variables like this are said to be cross-loaded.  This is not a good thing for a factor analysis.
+
+Cross-loading is a problem, because the factors are supposed to represent different concepts and be uncorrelated, yet they share a relationship with the same variable.  Some suggestions for handling this would be to try different rotations and sometimes one of the rotations will reduce the loading for one of the factors to an acceptably low level while the loading on the other factor will remain high.  
+
+If that doesn't work, the variable may be eliminated from the factor analysis or you may consider leaving it in and associating it with the factor with the higher loading.  I tried the other rotations with no success and since we have relatively few observed variables in this example, I'm going to leave it in and associate them with the factor they load highest on - which is factor 1. 
+
+</div>
+
+----
+
+## Interpreting the Factors
+
+\begin{table}
+\centering
+\begin{tabular}{lll}
+Factor 1 \hspace{2em} &  Factor 3 \hspace{2em} &  Factor 2 \\
+\hline
+FAT & HEIGHT  &  RECVR \\
+THIGH  & SHLDR & PULSE \\
+CHNUP & PELVIC & \\
+WEIGHT & BREATH &  \\
+CHEST &  &  \\
+\end{tabular}
+\end{table}
+
+<div class="notes">
+
+Another reason I wanted to go with 3 factors instead of 4 or 5 is that I was thinking ahead to this time, when I need to try to describe the underlying factors that the observed variables are representing.  These physical characteristics are all very similar in many respects.
+
+Interpreting factors is generally much better facilitated by a subject area expert, but I'll give it a shot.  Factor 1 may be physical characteristics related to being overweight - particularly with very high positive loadings on total body fat, thigh skinfold, a high negative loading on the number of chin-ups the applicant completed, a pretty high positive loading on weight, and higher positive load on chest .  Maybe we could use the label of "obesity" for factor 1.
+
+Factor 3 may be some measure of skeletal structure with variables like height, shoulder width, and pelvic width loading onto it. Maximum breath capacity may fit here with skeletal structure - maybe a persom with a larger chest cavity has a bigger breath capacity.  
+
+Factor 2 could be represent something like cardiovascular health, since both variables are related to pulse rate - one resting and one after 5 minutes recovery after a treadmill run.  
+
+The variables we excluded early on and the ones that don't load highly ony any factor would have to be interpreted and used on their own.  
+
+Does it sound like I'm just making this up or does it sound fairly reasonable?
+There are times in factor analysis where it may be difficult to tell the difference!
+
+</div>
+
+----
+
+## Using the Factors
+
+* Factor Scores
+
+* Summated Scales 
+
+<div class="notes">
+
+Factor analysis is about more than just identifying the latent factors.  We would like to make use of these factors, typically in some other statistical model or application.  Maybe a multiple regression or ANOVA, for example.
+
+Since we haven't observed or measured these factors directly, we need some way to quantify what they represent.  One option is through factor scores estimated from the factor anaolysis and the other is simply to combine the values of the variables that load highly onto each factor - typically by using the mean of them for each individual.
+
+A factor score is a composite measure based on all of the factor loadings for each factor, of course giving more weight to variables with higher loadings.
+
+Summated scores are simply the means or sums of the variables that are highly related to each factor as determined by the researcher. However, it would probably be necessary to standardize the values before doing so and it is absolutely essential to reverse the coding on any scores that do not measure in the same direction as the others - what I mean is, since chinups had a negative loading, you would use something like the negative of the z-score for each person.
+
+</div>
+
+----
+
+## Factor Scores
+
+\small
+
+``` {r eval=FALSE}
+fa.out <- principal(police3[,3:14],nfactors=3,rotation="varimax")
+fa.out$scores
+```
+
+``` {r echo=FALSE}
+# trim the output to fit on one slide
+fa.out <- principal(police3[,3:14],nfactors=3,rotation="varimax")
+require(utils)
+tmp <- noquote( 
+  capture.output( 
+    fa.out$scores
+    )
+  )
+write.table(tmp[1:7],quote=F,row.names=F,col.names=F)
+```
+
+<div class="notes">
+
+Factor scores are computed by the principal function and stored in an output object, if one is assigned. In the code shown here the output object is called fa.out.  The summated scores are automatically assigned the name scores.
+
+I'm only showing the first 6 scores for each factor, but there is a factor score for each of the 50 individuals in the sample corresponding to each of the 3 factors.  
+
+</div>
+
+----
+
+## Maximum Likelihood Extraction
+
+``` {r eval=FALSE}
+fa.out2 <- factanal(police3[,3:14],factors=3,rotation="varimax")
+print(fa.out2,cut=.5,sort=TRUE)
+```
+
+``` {r echo=FALSE}
+# trim the output to fit on one slide
+require(utils)
+tmp <- noquote( 
+  capture.output( 
+    factanal(police3[,3:14],factors=3,rotation="varimax")
+    )
+  )
+write.table(tmp[31:33],quote=F,row.names=F,col.names=F)
+```
+
+<div class="notes">
+
+With maximum likelihood extraction, we're under the restriction that we must assume a multivariate normal structure to the variables, but one of the benefits it comes with is a hypothesis test for the number of factors to extract.
+
+Notice the difference in the R code.  The function factanal uses maximum likelihood as the extraction method, the data frame is given in the same way as with the principal function, the number of factors to extract goes by the word factors rather than nfactors, and the various rotation methods can be specified in the same way although with the principal function you can say either rotate or rotation, but factanal only accepts rotation. 
+
+I'm only displaying a portion of the output in this slide - just the hypothesis test of the null hypothesis that 3 factors is enough versus the alternative that 3 is not enough.  With a p-value of .0972, that null hypothesis would not be rejected at a 5% level of significance and we can use that as a decision criterion for extracting 3 factors.  Extracting only 2 factors gave a p-value of .00199, which I'm not showing here but is much smaller and so indicating that extracting only 2 would not be sufficient.
+
+bottom panel note:  
+See p. 70 in Everitt's book for more details of this test.
+
+</div>
+
+----
+
+## Maximum Likelihood Extraction
+
+\footnotesize
+
+``` {r echo=FALSE}
+# trim the output to fit on one slide
+fa.out2 <- factanal(police3[,3:14],factors=3,rotation="varimax")
+require(utils)
+tmp <- noquote( 
+  capture.output( 
+    print(fa.out2,cut=.5,sort=TRUE)
+    )
+  )
+write.table(tmp[11:24],quote=F,row.names=F,col.names=F)
+```
+
+<div class="notes">
+
+Notice a slightly different solution with maximum likelihood extraction, even using the Varimax rotation as before.  
+
+Factor 1 is the same as with principal components extraction with high positive loadings on total body fat, thigh skinfold, a high negative loading on the number of chin-ups the applicant completed, a pretty high positive loading on weight, and higher positive load on chest, though it is cross-loaded.
+
+The same variablesthat loaded highly onto Factor 3 before is called Factor 2 here, but accounts for the second highest amount of variability. These are height, shoulder width, and pelvic width, and maximum breath capacity.   
+Weight is also cross-loaded and the cross-loaded chest loads higher on the 3rd factor. These are the same two variables that were cross-loaded before.
+
+A notable difference is that pulse and pulse rate 5 mimutes after the treadmill are not loading onto any factor, as they did in the principal components extraction.
+
+</div>
+
+----
+
+## Summary
+
+* Much more to Factor Analysis
+* Subjectivity in the process
+* Describing the factors
+
+
+<div class="notes">
+
+We're really just scratching the surface here in this presentation of Factor Analysis.  There are many nuance issues that we haven't discussed and a large number of subjective decisions that need to be made when doing Factor Analysis.
+
+Sometimes the latent factors will be more identifiable and other times it will be difficult to put a label on them.  But is it kind of fun!
+
+</div>
+
+----
+
