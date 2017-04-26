@@ -1,0 +1,152 @@
+
+---
+title: 'Lab Assignment: Intro to Cluster Analysis'
+author: "Spencer Swartz"
+date: "April 25, 2017"
+output: word_document
+fontsize: 12pt
+---
+
+Create a Word document from this R Markdown file for the following exercises.  Submit the R markdown file and resulting Word document via D2L Dropbox.   
+
+## Exercise 1
+
+The depth, area, and perimeter of 31 randomly selected farm ponds in Southeastern Minnesota are recorded in the data file farmpondsize.rda.  
+
+### Part 1a
+
+Load the data set and standardize the variables in the file (i.e. find the z-scores for each value).  Store the z-scores in a new data frame.
+
+### -|-|-|-|-|-|-|-|-|-|-|- Answer 1a -|-|-|-|-|-|-|-|-|-|-|-
+
+```{r}
+require(DS705data)
+data("farmpondsize")
+farmpondsize.z <- scale(farmpondsize)
+
+```
+
+### Part 1b
+
+For k-means clustering, plot the within sum of squares for the first 15 clusters against the cluster number and use the plot to determine a good number of clusters to partition the cases into.
+
+### -|-|-|-|-|-|-|-|-|-|-|- Answer 1b -|-|-|-|-|-|-|-|-|-|-|-
+
+```{r}
+wss <- (nrow(farmpondsize.z)-1)*sum(apply(farmpondsize.z,2,var))
+for (i in 2:15) wss[i] <- sum(kmeans(farmpondsize.z,
+                                     centers=i)$withinss)
+plot(1:15, wss, type="b", xlab="Number of Clusters",
+     ylab="Within groups sum of squares",
+     main="Using Standardized Values") 
+
+```
+
+It looks like the knee is at 3 so we will use 3 clusters.
+
+### Part 1c  
+
+Perform the k-means clustering on the z-scores for pond depth, area, and perimeter using the number of clusters you determined from the plot.  Find the number of cases in each cluster as well as the cluster means for each variable.
+
+### -|-|-|-|-|-|-|-|-|-|-|- Answer 1c -|-|-|-|-|-|-|-|-|-|-|-
+
+```{r}
+set.seed(0)
+fit <- kmeans(farmpondsize.z,centers = 3,nstart = 25)
+fit
+round(aggregate(farmpondsize,by=list(fit$cluster),FUN=mean),2)
+
+```
+
+### Part 1d
+
+Create three scatterplots, each with separate plotting colors for each cluster: 
+plot 1: area against depth
+plot 2: perimeter against depth
+plot 3: perimeter against area.
+
+Write a brief summary of your observations about how the ponds have been clustered with regard to the pond size variables.
+
+### -|-|-|-|-|-|-|-|-|-|-|- Answer 1d -|-|-|-|-|-|-|-|-|-|-|-
+
+```{r}
+plot(farmpondsize[c("area", "depth")], col = fit$cluster)
+plot(farmpondsize[c("perim", "depth")], col = fit$cluster)
+plot(farmpondsize[c("perim", "area")], col = fit$cluster)
+
+```
+
+It looks as if there is a pretty strong linear relationship between area and perimeter. The black group has small depth, area and perimeter. The green has a small depth and a large perimeter and area. the red group has high large depth, medium area, and medium to low perimeter.
+
+### Part 1e
+
+Plot the dendrogram for hierarchical clustering using complete linkage and add the rectangles for the number of clusters you chose in part 1b above.  
+
+### -|-|-|-|-|-|-|-|-|-|-|- Answer 1e -|-|-|-|-|-|-|-|-|-|-|-
+
+```{r}
+output <- hclust(dist(farmpondsize.z))
+plot(output)
+rect.hclust(output,h=4)
+```
+
+## Exercise 2
+
+The data set police.rda contains 15 anthropometric and physical fitness measurements for 50 white male applicants to the police department of a major metropolitan city. Note that the first column is simple the ID number of each applicant and is not a variable.
+
+We saw in week 13 how factor analysis could be used to reduce the number of variables for this data set.  Now we will see how cluster analysis will group the 50 applicants according to these 15 variables. 
+
+### Part 2a
+
+Load the data set and scale the variables in the file by dividing each value by the standard deviation.  Store the scaled values in a new data frame.
+
+### -|-|-|-|-|-|-|-|-|-|-|- Answer 2a -|-|-|-|-|-|-|-|-|-|-|-
+
+```{r}
+data("police")
+police.s <- scale(police, center = FALSE, 
+                  scale = apply(police, 2, sd, na.rm = TRUE))
+
+```
+
+
+### Part 2b  
+
+Plot the dendrogram for hierarchical clustering on the scaled values using complete linkage and add the rectangles for the number of clusters given by cutting the dendrogram at a height of 8.
+
+How many clusters does this create?  
+
+### -|-|-|-|-|-|-|-|-|-|-|- Answer 2b -|-|-|-|-|-|-|-|-|-|-|-
+
+```{r}
+output2 <- hclust(dist(police.s))
+plot(output2)
+rect.hclust(output2,h=8)
+
+```
+
+4 Clusters are created at this height.
+
+### Part 2c
+
+Append the original data frame (the unscaled one) with the cluster number from cutting the dendrogram at a height of 8.  Find the number of applicants in each cluster.
+
+### -|-|-|-|-|-|-|-|-|-|-|- Answer 2c -|-|-|-|-|-|-|-|-|-|-|-
+
+```{r}
+police$clusternumber <- cutree(output2, h=8)
+summary(as.factor(police$clusternumber))
+
+```
+
+### Part 2d
+
+Display the sample means rounded to 2 decimal places for the 15 variables for each cluster.  Recall that body fat (FAT) was an important variable in the factor analysis.  What can you say about the sample means for the variable FAT for each cluster?
+
+### -|-|-|-|-|-|-|-|-|-|-|- Answer 2d -|-|-|-|-|-|-|-|-|-|-|-
+
+```{r}
+round(aggregate(police,by=list(police$clusternumber),FUN=mean),2)
+
+```
+It looks like for the FAT variable avg for each group is a little bit different. Group 2 is the lowest (8.41), and Group 4 is the highest (25.21). group 1 and 3 round out the middle with average of 11.56 and 22.97 respectively.

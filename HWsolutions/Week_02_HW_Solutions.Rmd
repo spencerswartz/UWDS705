@@ -1,0 +1,338 @@
+---
+title: "Week 2 HW Submission"
+author: "Professor Stats - *change this*"
+date: "Month Day, Year"
+output: word_document
+---
+
+```{r include=FALSE, cache=FALSE}
+# Don't modify this chunk of code, it is just installing and loading the DS705data package
+if (!require(DS705data)){
+  if (!require(devtools)){
+    install.packages('devtools',repos="http://cran.rstudio.com/")
+  }
+  library(devtools)
+  install_github('DataScienceUWL/DS705data')
+}
+require(DS705data)
+# load the HealthExam data set into memory
+data(HealthExam)
+```
+
+## Exercise 1
+
+The following block of code will produce a simulated sampling distribution of the sample mean for 1,000 samples of size 23 drawn from an exponential distribution and then make a histogram of the results.  Some R programmers insist that for loops should be avoided because they are slow, but we're aiming for transparency at the moment, not efficiency.
+
+```{r fig.width=3, fig.height=3}
+# r defaults to a 7 by 7 figure (units?), use fig.width and fig.height to adjust
+reps <- 1000
+n <- 23
+sampleStat <- numeric(reps) # initialize the vector
+for (i in 1:reps){
+  sampleStat[i] <- mean( rexp(n) )
+}
+hist(sampleStat)
+```
+
+You are going to demonstrate the Central Limit Theorem, and gain some practice with loops in R, by showing that distribution of the sample means becomes increasingly normal as the sample size increases.
+
+### Part 1a
+
+First, draw a random sample of 1000 observations from the exponential distribution and make a histogram to illustrate just how skewed the exponential distribution is.  You shouldn't need a for loop or mean() to do this bit.  (You're not taking means of anything ... )
+
+### -|-|-|-|-|-|-|-|-|-|-|- Answer 1a -|-|-|-|-|-|-|-|-|-|-|-
+
+```{r}
+hist(rexp(1000))
+```
+Notice that the exponential distribution is strongly skewed to the right.
+----
+
+### Part 1b
+
+Copy the block of code at the top and use it to simulate the sampling distribution of sample means for 1000 samples of size 10.  After the histogram, use qqnorm() to make a normal probability plot of sampleStat.  Add a fit line to the plot with qqline().  Do the sample means appear to be normally distributed?  Explain. 
+
+
+### -|-|-|-|-|-|-|-|-|-|-|- Answer 1b -|-|-|-|-|-|-|-|-|-|-|-
+
+```{r fig.width = 3, fig.height = 3}
+reps <- 1000
+n <- 10
+sampleStat <- numeric(reps) # initialize the vector
+for (i in 1:reps){
+  sampleStat[i] <- mean( rexp(n) )
+}
+hist(sampleStat)
+qqnorm(sampleStat)
+qqline(sampleStat)
+```
+
+Both the histogram and the normal probability plot show that, for samples of size 10 from the exponential distribution, the sample mean distribution is skewed to the right, but far less skewed than the exponential distribution itself.
+
+----
+
+### Part 1c
+
+Repeat 1b for samples of size 200.  Do the sample means appear to closer to normally distributed than they were for n = 10?  Explain.
+
+### -|-|-|-|-|-|-|-|-|-|-|- Answer 1c -|-|-|-|-|-|-|-|-|-|-|-
+
+```{r fig.width = 3, fig.height = 3}
+reps <- 1000
+n <- 200
+sampleStat <- numeric(reps) # initialize the vector
+for (i in 1:reps){
+  sampleStat[i] <- mean( rexp(n) )
+}
+hist(sampleStat)
+qqnorm(sampleStat)
+qqline(sampleStat)
+```
+
+For samples of size 200, the sample mean distribution appears very close to a normal distribution.
+
+----
+
+## Exercise 2
+
+This problem is modeled loosely after problem 5.70 on page 287 of Ott.  
+
+### Part 2a
+
+Using the data $\bar{x} = 5.0, s = 0.7, n = 50$ we can determine that the 95% $t$-CI for $\mu$ is about (4.8,5.2) with margin of error 0.2.  For large samples $z \approx t$ and $\sigma \approx s$.  Use the formula on page 231 to estimate the sample size required to get margin of error $E \approx 0.05$.  Always round up for sample size.  Read Section 5.3 in Ott if you need to review this material.
+
+###  -|-|-|-|-|-|-|-|-|-|-|- Answer 2a -|-|-|-|-|-|-|-|-|-|-|-
+```{r}
+s <- 0.7
+zcrit <- qnorm(0.975) # the 95% critical value has cumulative probability 0.975 (draw a picture - we want the value that corresponds to 2.5% in each tail)
+E <- 0.05
+n <- ceiling ( ( s * zcrit / E )^2 )
+```
+
+The required sample size is `r n`.
+
+---- 
+
+### Part 2b
+
+Suppose you now have a sample with size as determined in 2a that yields $\bar{x} = 5.03$ and $s = 0.68$  
+Use R to build a fake data set with the same statistics and the use t.test to find the 95% CI for the population mean.
+
+### -|-|-|-|-|-|-|-|-|-|-|- Answer 2b -|-|-|-|-|-|-|-|-|-|-|-
+
+```{r}
+s <- 0.68
+xbar <- 5.03
+x <- rnorm(n)
+x <- ( x - mean(x) ) / sd(x) # use the z-score formula to standardize the sample to have mean 0 and standard devition 1
+x <- s * x + xbar # rescale x and then shift it
+mean(x)
+sd(x)
+t.test(x)$conf.int
+```
+
+----
+
+## Exercise 3
+
+For this exercise and the rest of the exercises in this homework set you are going to use the data from problem 5.29 on page 279 of Ott.  This data is saved in the file 'ex5-29.TXT' that you downloaded along with this submission file.  You can load the data like this (assumes data file is the same directory as this file)
+
+```{r echo}
+# load csv into data frame
+df <- read.csv('ex5-29.TXT')
+# put data for lead concentrations in vector lead
+lead <- df$Lead  
+# delete the data frame since we no longer need it
+rm(df)
+```
+
+### Part 3a
+
+Before using a t distribution based procedure we need to determine if it is plausible that the data is sampled from a normally distributed random variable.  Make a histogram of the data.  Based on the histogram is it reasonable to say that lead concentrations are normally distributed?
+
+### -|-|-|-|-|-|-|-|-|-|-|- Answer 3a -|-|-|-|-|-|-|-|-|-|-|-
+
+```{r}
+hist(lead)
+```
+
+The distribution of lead concentrations is strongly skewed to the right and is clearly not from a normal distribution.
+
+----
+
+### Part 3b
+In spite of the fact that the lead concentration sample is clearly not from a mound-shaped distribution, we'll apply $t$ based procedures to start so we can compare them to a bootstrap approach a little later.
+Use R to construct a 80% CI for the population mean lead concentration.  Write a sentence interpreting the result. (80% is a low confidence level, but for this problem were mostly interested in the lower bound so we're 90% confident that the pop mean is greater than the lower bound)
+
+### -|-|-|-|-|-|-|-|-|-|-|- Answer 3b -|-|-|-|-|-|-|-|-|-|-|-
+
+```{r}
+ci <- unname( t.test( lead, conf.level = 0.8)$conf.int )
+ci
+```
+
+We are 80% confident that the population mean lead concentration is between `r round( ci[1], 1) ` and `r round( ci[2], 1)`.
+
+---- 
+
+### Part 3c
+Does the confidence interval in 3b suggest that the population mean lead concentration is larger than 30 mg/kg at the $\alpha = 0.10$ significance level?  Explain your answer (think of the equivalence of confidence intervals and hypothesis tests discussed in the class notes).
+
+### -|-|-|-|-|-|-|-|-|-|-|- Answer 3c -|-|-|-|-|-|-|-|-|-|-|-
+
+The 80% CI for $\mu$ is (29.3 to 45.2).  Since we are 10% confident that the mean could be larger than 45.2 (and also 10% confident it could be less than 29.3), we can combine the CI with the right end of the range to be 90% confident the population mean concentration is greater than 29.3 mg/kg.  However, we *cannot* conclude that the population mean is greater than 30 mg/kg with 90% confidence since our one-sided IC indicates it may be as low at 29.3 mg/kg.
+
+----
+
+### Part 3d
+
+Use R to conduct a one-sample $t$-test to determine if the population mean lead concentration is larger than 30 mg/kg at the $\alpha = 0.1$ significance level.  Fill in all the steps in hypothesis test.
+
+### -|-|-|-|-|-|-|-|-|-|-|- Answer 3d -|-|-|-|-|-|-|-|-|-|-|-
+
+(Step 1) The hypotheses $H_0: \mu = 30$ and $H_a: \mu > 30$
+
+(Step 2) We've already checked the conditions and learned that a $t$-test is perhaps 
+
+(Step 3) Compute:  
+```{r}
+test <- t.test(lead,mu=30,alternative="greater")
+test
+```
+
+(Step 4) Conclusion:  Do not reject $H_0$ at $\alpha = 0.1$ ($P = `r round(test$p.value,3)`$).  There is not sufficient evidence to conclude the population mean concentration is greater tha 30 mg/kg.
+
+----
+
+### Part 3e
+
+Since the lead concentrations are very skewed and the sample size is relatively small one should suspect the validity of the $t$ based procedures above.  The code below was used to bootstrap a CI for men's cholesterol levels in the notes.  Modify it produce a 80% CI for the population mean lead concentration using the lead data above.  You'll have to modify the data at the beginning, the confidence level, and change the degrees of freedom when plotting a true t distribution for comparison. Comment on differences between the theory and bootstrap intervals.  Is the bootstrap sampling distribution in good agreement with the t distribution from theory?
+
+### -|-|-|-|-|-|-|-|-|-|-|- Answer 3e -|-|-|-|-|-|-|-|-|-|-|-
+
+```{r, fig.width=5,fig.height=3}
+n <- length(lead)
+xbar <- mean(lead)
+s <- sd(lead)
+
+reps <- 10000
+t_sim <- numeric(reps)
+
+# generate bootstrapped sampling distribution
+for (i in 1:reps){
+  x <- sample(lead,n,replace=TRUE)
+  t_sim[i] <- (mean(x)-xbar)/(sd(x)/sqrt(n))
+}
+
+# build boostrapped "Studentized" t-inverval for mu
+alpha <- .2  # made alpha = .2 to be able to compare to the one-sided interval we used before
+prbs <- c( 1-alpha/2, alpha/2 )
+
+tcrit_est <- unname(quantile(t_sim, prob = prbs ))
+t_ci_bootstrap <- xbar - tcrit_est*s/sqrt(n)
+t_ci_bootstrap
+
+# for comparison here is the t-interval from theory
+t_ci_theory <- as.vector(t.test(lead)$conf.int)
+t_ci_theory
+
+# Compare the bootstrapped sampling distribution to the
+# t-distribution from theory.  If the sample were from a normal distribution
+# these would be in good agreement, instead we see some skewness in the smapling distribution ...
+par(mar=(c(4,.5,0,.5)),yaxs="i",bty="l",xaxs="i",yaxt="n")
+brks <- seq(min(t_sim),max(t_sim),length=50)
+hist(t_sim,prob=TRUE,breaks=brks,main='',xlab='t',ylab='')
+x0 <- seq(-4,4,length=400)
+y0 <- dt(x0,df=36)
+points(x0,y0,type='l',lwd=2,col='blue')
+```
+
+The bootstapped CI is quite different than the $t$-based CI from theory.  The 80% CI is 
+$(`r round(t_ci_bootstrap[1],1)`,`r round(t_ci_bootstrap[2],1)`)$.  At the 90% confidence level we can conclude that the population mean lead concentration is greater than `r round(t_ci_bootstrap[1],1)` mg/kg.  This is exactly the sort of situation in which bootstrapping is quite useful because we have a relatively small sample from a strongly skewed distribution so the $t$-based procedures are suspect.  Note that the simulated $t$ scores do not closely follow a $t$ distribution.
+
+----
+
+### Part 3f
+
+Using the bootstrapped sampling distribution approximate the $P$-value of the hypothesis test. Modify the code below that was used to approximate the $P$-value in the class notes.  How does it compare to the $P$-value from theory?  If testing at the 10% significance level, does your conclusion change? If so, give a new conclusion.
+
+### -|-|-|-|-|-|-|-|-|-|-|- Answer 3f -|-|-|-|-|-|-|-|-|-|-|-
+
+```{r,echo=FALSE, fig.width=5,fig.height=3}
+n <- length(lead)
+xbar <- mean(lead)
+s <- sd(lead)
+mu0 <- 30
+t0 <- (xbar-mu0)/(s/sqrt(n))
+p0 = pt(t0,df = n-1, lower.tail=FALSE)
+
+reps <- 10000
+t_sim <- numeric(reps)
+
+for (i in 1:reps){
+  x <- sample(lead,n,replace=TRUE)
+  t_sim[i] <- (mean(x)-xbar)/(sd(x)/sqrt(n))
+}
+
+p1 <- signif(sum(t_sim>t0)/reps,3)
+p1
+
+xpts <- seq(min(t_sim),max(t_sim),length=400)
+ypts <- dt(xpts,df=n-1)
+brks <- seq(min(t_sim),max(t_sim),length=50)
+par(mar=(c(4,.5,0,.5)),yaxs="i",bty="l",xaxs="i",yaxt="n")
+hist( t_sim, prob=TRUE, breaks=brks,main='',xlab='t',ylab='')
+points(xpts,ypts,type = 'l',col='blue',lwd=2)
+points(c(t0,t0),c(0,dt(t0,df=36)),type='l',col='red',lwd=2)
+text(2.2,.2,bquote(P%~~%.(p1)))        
+```
+
+The bootstrapped $P$-value is `r round(p1,3)`.  Since the $P$-value is smaller than the significance level $0.1$ we have a new conclusion:
+
+Reject $H_0$ at $\alpha = 0.1$ ($P = `r round(test$p.value,3)`$).  There is sufficient evidence to conclude the population mean concentration is greater tha 30 mg/kg.
+
+----
+
+### Part 3g
+
+Which do you trust more and why?  The results of the bootstrap procedures or the result of the theory based $t$ distribution procedures?  Explain.
+
+### -|-|-|-|-|-|-|-|-|-|-|- Answer 3g -|-|-|-|-|-|-|-|-|-|-|-
+
+Look at the simulated sampling distribution of $t$ obtained from the bootstrapped distributions above and compare the simulated values (histogram) to the $t$ density curve (blue).  They are in poor agreement.  The $t$ density curve is what happens for samples from a normal distribution and will be approximately correct for large samples even if the population isn't normal.  But if the population is very skewed or has many outliers, then the sample size may have to be very large for this to be true.  In this case, we have $n=37$ and this example clearly shows that the sample isn't large enough.  Trust the bootstrap values and ignore the results of the $t$-based procedures.
+
+----
+
+### Part 3h
+
+Suppose it would be worthwhile to be able to detect an alternative mean lead concentration of $\mu_a = 40 mg/kg$ when testing $H_a: \mu > 30$.  If using a sample of size 37 with an estimated standard deviation of 37.1 and $\alpha = 0.10$, use R to approximate the power of the $t$-test in this situation.
+
+### -|-|-|-|-|-|-|-|-|-|-|- Answer 3h -|-|-|-|-|-|-|-|-|-|-|-
+
+```{r}
+mu0 <- 30
+mua <- 40
+shift <- mua-mu0
+power.t.test(n = 37, delta = shift, sd = 37.1, 
+             sig.level = 0.1, type="one.sample",
+             alternative="one.sided")
+```
+
+----
+
+### Part 3i
+
+Suppose we need the power to be 0.9 to be able to detect an alternative mean lead concentration of $\mu_a = 40 mg/kg$ when testing $H_a: \mu > 30$.  Again, with estimated standard deviation of 37.1 and $\alpha = 0.10, what sample size is required for power = 0.9?
+
+### -|-|-|-|-|-|-|-|-|-|-|- Answer 3i -|-|-|-|-|-|-|-|-|-|-|-
+
+```{r}
+power.t.test(power=.9, delta = shift, sd = 37.1, 
+             sig.level = 0.1, type="one.sample",
+             alternative="one.sided")
+```
+
+----
+
+
+

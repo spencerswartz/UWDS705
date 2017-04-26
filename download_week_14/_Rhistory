@@ -1,0 +1,512 @@
+axis.text.y = element_blank(),
+axis.ticks = element_blank()
+)
+hlo <- 150; hhi <- 210
+wlo <- 55; whi <- 90
+#scatterplot of x and y variables
+scatter <- ggplot(df) + geom_point(aes(x=height, y=weight, colour = location, shape = location), size = 2.5) + xlim(hlo,hhi) + ylim(wlo,whi)+theme(legend.position="none")
+#scatter <- ggplot(xy,aes(xvar, yvar)) +
+#  geom_point(aes(color=zvar)) +
+#  scale_color_manual(values = c("orange", "purple")) +
+#  theme(legend.position=c(1,1),legend.justification=c(1,1))
+#marginal density of x - plot on top
+plot_top <- ggplot(df, aes(height, color=location)) + geom_density(alpha=.3) + theme(legend.position="none") + xlim(hlo,hhi)
+#plot_top <- ggplot(xy, aes(xvar, fill=zvar)) +
+#  geom_density(alpha=.5) +
+#  scale_fill_manual(values = c("orange", "purple")) +
+#  theme(legend.position = "none")
+#marginal density of y - plot on the right
+plot_right <- ggplot(df, aes(weight,color=location))+geom_density(alpha=.3) + coord_flip()+theme(legend.position="none") + xlim(wlo,whi)
+#plot_right <- ggplot(xy, aes(yvar, fill=zvar)) +
+#  geom_density(alpha=.5) +
+#  coord_flip() +
+#  scale_fill_manual(values = c("orange", "purple")) +
+#  theme(legend.position = "none")
+#arrange the plots together, with appropriate height and width for each row and column
+grid.arrange(plot_top, empty, scatter, plot_right, ncol=2, nrow=2, widths=c(4, 1), heights=c(1, 4))
+source('~/Google Drive/Gdrive_snap_May_15/MS Data Science/DS 705 /Class Materials/Weekly Content/week 12/instructor_resources/heightWeight.R')
+ld1.model <- aov(ld1~species,data=df)
+TukeyHSD(ld1.model)
+ld2.model <- aov(ld2~species,data=df)
+TukeyHSD(ld2.model)
+height.model <- aov(height~species,data=df)
+weight.model <- aov(weight~species,data=df)
+TukeyHSD(height.model)
+TukeyHSD(weight.model)
+ld1.model <- aov(ld1~species,data=df)
+TukeyHSD(ld1.model)
+160*1.5^4
+?t.test
+?Cars93
+priceType_diff <- onewayComp(Price~Type, data=Cars93, var.equal=F)
+require(DS705data)
+priceType_diff <- onewayComp(Price~Type, data=Cars93, var.equal=F)
+require(MASS)
+data(Cars93)
+Cars93 <- Cars93[Cars93$Type != 'Van',]
+Cars93$Type <- factor(Cars93$Type) # recasting Type forces the factor levels to reset
+# shorten level labels to make them fit on boxplots
+# Cm = Compact
+# Lg = Large
+# Md = Midsize
+# Sm = Small
+# Sp = Sporty
+Cars93$Type <- factor(Cars93$Type,labels=c('Cm','Lg','Md','Sm','Sp'))
+```
+Cars93$Type <- factor(Cars93$Type,labels=c('Cm','Lg','Md','Sm','Sp'))
+require(DS705data)
+#priceType_diff <- onewayComp(Price~Type,data=Cars93,var.equal=F,adjust='one.step')
+#priceType_diff
+#priceType_diff <- onewayComp(Price~Type, data=Cars93, var.equal=F)$comp[,c(1,2,3,6)]
+#priceType_diff
+# DO THIS INSTEAD
+priceType_diff <- onewayComp(Price~Type, data=Cars93, var.equal=F)
+priceType_diff$comp[,c(1,2,3,6)]
+q3_diff <- onewayComp(Price~Type,data=Cars93,alpha=.01/6,nboot=0,
+q3_diff <- onewayComp(Price~Type,data=Cars93,alpha=.01/6,nboot=0,var.equal=F, adjust='none')
+q3_diff$comp[,c(2,3)]
+car_extract <- function(formula,data){q3_diff$comp[,'p adj']}
+multcompBoxplot(Price~Type,data=Cars93,horizontal=TRUE,compFn="car_extract")
+q3_diff
+160*4.5^4
+160*4.5^4/1000
+*.6
+65.61*.6
+?prop.test
+heads <- rbinom(1, size = 100, prob = .5)
+prop.test(heads, 100)          # continuity correction TRUE by default
+prop.test(heads, 100, correct = FALSE)
+c(.3514281,.5524574)-.45
+c(.3561454,.5475540)-.45
+c(.356,.548)-.45
+c(.351,.552)-.45
+1.96*sqrt(.45*.55/100)
+heads
+heads <- rbinom(1, size = 100, prob = .5)
+prop.test(heads, 100)$conf.int          # continuity correction TRUE by default
+prop.test(heads, 100, correct = FALSE)$conf.int
+n = 100
+x = sum(heads)
+z <- qnorm(.975)
+p <- x/n
+q <- 1-p
+# standard interval, no corrections
+p + c(-1,1)*sqrt(p*q/n)
+prop.test(heads, 100)$conf.int          # continuity correction TRUE by default
+prop.test(heads, 100, correct = FALSE)$conf.int
+p
+heads <- rbinom(1, size = 100, prob = .5)
+prop.test(heads, 100)$conf.int          # continuity correction TRUE by default
+prop.test(heads, 100, correct = FALSE)$conf.int
+n = 100
+x = sum(heads)
+z <- qnorm(.975)
+p <- x/n
+q <- 1-p
+# standard interval, no corrections
+p + c(-1,1)*sqrt(p*q/n)
+p
+x
+heads
+heads
+heads <- 45
+prop.test(heads, 100)$conf.int          # continuity correction TRUE by default
+prop.test(heads, 100, correct = FALSE)$conf.int
+n = 100
+x <- heads
+z <- qnorm(.975)
+p <- x/n
+q <- 1-p
+# standard interval, no corrections
+p + c(-1,1)*sqrt(p*q/n)
+# wac interval
+xw <- x + .5*z^2
+nw <- n + z^2
+pw <- xw/nw
+qw <- 1-pw
+pw + c(-1,1)*sqrt(pw*qw/nw)
+prop.test(heads, 100)$conf.int          # continuity correction TRUE by default
+prop.test(heads, 100, correct = FALSE)$conf.int
+n = 100
+x <- heads
+z <- qnorm(.975)
+p <- x/n
+q <- 1-p
+# standard interval, no corrections
+p + c(-1,1)*z*sqrt(p*q/n)
+# wac interval
+xw <- x + .5*z^2
+nw <- n + z^2
+pw <- xw/nw
+qw <- 1-pw
+pw + c(-1,1)*z*sqrt(pw*qw/nw)
+xw <- x + 2
+nw <- n + 4
+pw <- xw/nw
+qw <- 1-pw
+pw + c(-1,1)*z*sqrt(pw*qw/nw)
+(1/(1+1/n*z^2))*( p + z^2/(2*n) + c(-1,1) * z * sqrt(p*q/n + z^2/(4*n^2)))
+r < z*sqrt( z^2 - 1/n + 4*n*p*q+ 4*p-2)+1
+low <- max(0,(2*n*p + z^2- r)/(2*(n+z^2)))
+r < z*sqrt( z^2 - 1/n + 4*n*p*q+ 4*p-2)+1
+low <- max(0,(2*n*p + z^2- r)/(2*(n+z^2)))
+r <- z*sqrt( z^2 - 1/n + 4*n*p*q+ 4*p-2)+1
+low <- max(0,(2*n*p + z^2- r)/(2*(n+z^2)))
+high <- min(1,(2*n*p + z^2+ r)/(2*(n+z^2)))
+c(low,high)
+prop.test(heads, 100)$conf.int          # continuity correction TRUE by default
+rlow <- z*sqrt( z^2 - 1/n + 4*n*p*q+ 4*p-2)+1
+rhigh <- z*sqrt( z^2 - 1/n + 4*n*p*q- 4*p+2)+1
+low <- max(0,(2*n*p + z^2- rlow)/(2*(n+z^2)))
+high <- min(1,(2*n*p + z^2+ rhigh)/(2*(n+z^2)))
+c(low,high)
+prop.test(heads, 100)$conf.int          # continuity correction TRUE by default
+source('~/Google Drive/Gdrive_snap_May_15/MS Data Science/DS 705 /Class Materials/Weekly Content/week 08/instructor_resources/props.R')
+x <- 45
+n <- 100
+z <- qnorm(.975)
+p <- x/n
+q <- 1-p
+# standard interval, no corrections
+p + c(-1,1)*z*sqrt(p*q/n)
+#wilson
+# https://en.wikipedia.org/wiki/Binomial_proportion_confidence_interval
+(1/(1+1/n*z^2))*( p + z^2/(2*n) + c(-1,1) * z * sqrt(p*q/n + z^2/(4*n^2)))
+# the wilson interval is the one implemented in R
+prop.test(x, n, correct = FALSE)$conf.int
+# it is very close to the WAC interval mentioned in Ott
+xw <- x + .5*z^2
+nw <- n + z^2
+pw <- xw/nw
+qw <- 1-pw
+pw + c(-1,1)*z*sqrt(pw*qw/nw)
+# Wilson with continuity correction
+# https://en.wikipedia.org/wiki/Binomial_proportion_confidence_interval
+rlow <- z*sqrt( z^2 - 1/n + 4*n*p*q+ 4*p-2)+1
+rhigh <- z*sqrt( z^2 - 1/n + 4*n*p*q- 4*p+2)+1
+low <- max(0,(2*n*p + z^2- rlow)/(2*(n+z^2)))
+high <- min(1,(2*n*p + z^2+ rhigh)/(2*(n+z^2)))
+c(low,high)
+# compare to continuity corrected interval in R
+prop.test(x,n)$conf.int          # continuity correction TRUE by default
+x <- 45
+n <- 100
+z <- qnorm(.975)
+p <- x/n
+q <- 1-p
+# standard interval, no corrections
+p + c(-1,1)*z*sqrt(p*q/n)
+#wilson
+# https://en.wikipedia.org/wiki/Binomial_proportion_confidence_interval
+(1/(1+1/n*z^2))*( p + z^2/(2*n) + c(-1,1) * z * sqrt(p*q/n + z^2/(4*n^2)))
+# the wilson interval is the one implemented in R
+prop.test(x, n, correct = FALSE)$conf.int
+# it is very close to the WAC interval mentioned in Ott
+xw <- x + .5*z^2
+nw <- n + z^2
+pw <- xw/nw
+qw <- 1-pw
+pw + c(-1,1)*z*sqrt(pw*qw/nw)
+# Wilson with continuity correction
+# https://en.wikipedia.org/wiki/Binomial_proportion_confidence_interval
+rlow <- z*sqrt( z^2 - 1/n + 4*n*p*q+ 4*p-2)+1
+rhigh <- z*sqrt( z^2 - 1/n + 4*n*p*q- 4*p+2)+1
+low <- max(0,(2*n*p + z^2- rlow)/(2*(n+z^2)))
+high <- min(1,(2*n*p + z^2+ rhigh)/(2*(n+z^2)))
+c(low,high)
+# compare to continuity corrected interval in R
+prop.test(x,n)$conf.int          # continuity correction TRUE by default
+x <- 45
+n <- 100
+z <- qnorm(.975)
+p <- x/n
+q <- 1-p
+# standard interval, no corrections
+p + c(-1,1)*z*sqrt(p*q/n)
+#wilson
+# https://en.wikipedia.org/wiki/Binomial_proportion_confidence_interval
+(1/(1+1/n*z^2))*( p + z^2/(2*n) + c(-1,1) * z * sqrt(p*q/n + z^2/(4*n^2)))
+# the wilson interval is the one implemented in R
+prop.test(x, n, correct = FALSE)$conf.int
+# it is very close to the WAC interval mentioned in Ott
+xw <- x + .5*z^2
+nw <- n + z^2
+pw <- xw/nw
+qw <- 1-pw
+pw + c(-1,1)*z*sqrt(pw*qw/nw)
+# Wilson with continuity correction
+# https://en.wikipedia.org/wiki/Binomial_proportion_confidence_interval
+rlow <- z*sqrt( z^2 - 1/n + 4*n*p*q+ 4*p-2)+1
+rhigh <- z*sqrt( z^2 - 1/n + 4*n*p*q- 4*p+2)+1
+low <- max(0,(2*n*p + z^2- rlow)/(2*(n+z^2)))
+high <- min(1,(2*n*p + z^2+ rhigh)/(2*(n+z^2)))
+c(low,high)
+# compare to continuity corrected interval in R
+prop.test(x,n)$conf.int          # continuity correction TRUE by default
+n <- 100
+z <- qnorm(.975)
+p <- x/n
+q <- 1-p
+# standard interval, no corrections
+p + c(-1,1)*z*sqrt(p*q/n)
+#wilson
+# https://en.wikipedia.org/wiki/Binomial_proportion_confidence_interval
+(1/(1+1/n*z^2))*( p + z^2/(2*n) + c(-1,1) * z * sqrt(p*q/n + z^2/(4*n^2)))
+# the wilson interval is the one implemented in R
+prop.test(x, n, correct = FALSE)$conf.int
+x <- 45
+n <- 100
+z <- qnorm(.975)
+p <- x/n
+q <- 1-p
+# standard interval, no corrections
+p + c(-1,1)*z*sqrt(p*q/n)
+#wilson
+# https://en.wikipedia.org/wiki/Binomial_proportion_confidence_interval
+(1/(1+1/n*z^2))*( p + z^2/(2*n) + c(-1,1) * z * sqrt(p*q/n + z^2/(4*n^2)))
+# the wilson interval is the one implemented in R
+prop.test(x, n, correct = FALSE)$conf.int
+# it is very close to the WAC interval mentioned in Ott
+xw <- x + .5*z^2
+nw <- n + z^2
+pw <- xw/nw
+qw <- 1-pw
+pw + c(-1,1)*z*sqrt(pw*qw/nw)
+# Wilson with continuity correction
+# https://en.wikipedia.org/wiki/Binomial_proportion_confidence_interval
+rlow <- z*sqrt( z^2 - 1/n + 4*n*p*q+ 4*p-2)+1
+rhigh <- z*sqrt( z^2 - 1/n + 4*n*p*q- 4*p+2)+1
+low <- max(0,(2*n*p + z^2- rlow)/(2*(n+z^2)))
+high <- min(1,(2*n*p + z^2+ rhigh)/(2*(n+z^2)))
+c(low,high)
+# compare to continuity corrected interval in R
+prop.test(x,n)$conf.int          # continuity correction TRUE by default
+require(mosaic)
+clarkmatrix=matrix(c(9,27,14,56),nrow=2)
+colnames(clarkmatrix)<-c("Pos","Neg")
+rownames(clarkmatrix)<-c("Have CP","Don't Have CP")
+oddsRatio(clarkmatrix, verbose = TRUE)
+clarkmatrix=matrix(c(9,27,14,56),nrow=2)
+colnames(clarkmatrix)<-c("Pos","Neg")
+rownames(clarkmatrix)<-c("Have CP","Don't Have CP")
+oddsRatio(t(clarkmatrix), verbose = TRUE)
+1/1.949
+## a script to study regression ideas
+download.file("http://www.openintro.org/stat/data/mlb11.RData", destfile = "mlb11.RData")
+load("mlb11.RData")
+rownames(mlb11) <- mlb11$team
+mlb11$team <- NULL
+1000
+y <- mlb11$runs
+x <- mlb11$bat_avg
+##### (1) make a scatterplot
+plot(x,y)
+##### (2) get the model
+mod <- lm(y~x)
+summary(mod)
+# extract coefficients if needed
+(beta0hat <- mod$coeff[1]) # estimated intercept
+(beta1hat <- mod$coeff[2]) # estimated slope
+# confidence intervals for model parameters
+confint(mod)
+##### (3) add line to plot
+abline(mod)
+##### (4) find predicted value for a given x
+newx <- data.frame(x=.27) # new data frame win one new x value
+(newy <- predict.lm(mod,newx))
+predic(mod,newx)
+predict(mod,newx)
+require(DS705data)
+data(normtemp)
+normtemp <- normtemp[1:128,]
+temp <- normtemp$temp
+hr <- normtemp$hr
+plot(temp,hr,xlab="Temperature",ylab="Heart Rate",main="")
+linear.model <- lm(hr~temp,data=normtemp)
+b0 <- linear.model$coef[1]
+b1 <- linear.model$coef[2]
+b0
+b1
+summary(linear.model)
+confint(linear.model)
+x <- data.frame( temp = 98.6 )
+predict( linear.model, x, interval="confidence")
+ehr<- data.frame(temp = 98.6)
+predict(linear.model,ehr,interval='confidence')
+ehr
+x
+linear.model
+?onewayComp
+?p.adjust
+posClarks = c(9,27)
+negClarks = c(14,56)
+totalClarks = posClarks+negClarks
+counts <- as.table(rbind(posClarks, negClarks))
+coutns
+counts
+str(counts)
+chisq.test(coutns)
+chisq.test(counts)
+str(as.matrix(counts))
+posTest <- c(9,27)
+negTest <- c(14,56)
+cpTable <- rbind(posTest,negTest)
+dimnames(cpTable) <- list(Test=c("pos","neg""),CP=c("yes"," no"))
+dimnames(cpTable) <- list(Test=c("pos","neg""),CP=c("yes","no"))
+dimnames(cpTable) <- list(Test=c("pos","neg""),CP=c("yes","no"))
+?dimnames
+?cdimnames
+dimnames(counts) <- list(Clarks = c("Pos", "Neg"),CP = c("Yes","No"))
+str(cpTable)
+posTest <- c(9,27)
+negTest <- c(14,56)
+cpTable <- rbind(posTest,negTest)
+dimnames(cpTable) <- list( Test = c("pos","neg"),CP =c ("yes","no") )
+dimnames(counts) <- list(Clarks = c("Pos", "Neg"),CP = c("Yes","No"))
+out <- chisq.test(cpTable)
+out
+out
+str(out)
+out$expected
+min(out$expected)
+out <- prop.test(9,23,correct=FALSE)
+out
+out$conf.int[1]
+posClarks = c(9,27)
+negClarks = c(14,56)
+totalClarks = posClarks+negClarks
+prop.test(posClarks,totalClarks,correct=FALSE)
+prop.test(counts,correct=FALSE)
+prop.test(t(counts),correct=FALSE)
+?prop.test
+counts
+out <- prop.test(t(cpTable),correct=FALSE)
+out
+posTest <- c(9,27)
+negTest <- c(14,56)
+cpTable <- rbind(posTest,negTest)
+dimnames(cpTable) <- list( Test = c("pos","neg"),CP =c ("yes","no") )
+out <- chisq.test(cpTable)
+out
+# it doesn't hurt to look at the expected cell counts to make sure they are all at least 5
+min(out$expected)
+out <- prop.test(t(cpTable),correct=FALSE)
+out
+out$conf.int
+max(out$conf.int)
+str(cpTable)
+out <- prop.test(x=t(cpTable),correct=FALSE)
+out <- prop.test(cpTable.transpose,correct=FALSE)
+cpTable.transpose <- t(cpTable)
+cpTable.transpose
+out <- prop.test(cpTable.transpose,correct=FALSE)
+out <- prop.test(nonames(cpTable.transpose),correct=FALSE)
+out <- prop.test(noname(cpTable.transpose),correct=FALSE)
+out <- prop.test(unname(cpTable.transpose),correct=FALSE)
+out
+?abd
+require(abd)
+?prop.test
+?oddsRatio
+posTest <- c(9,27)
+negTest <- c(14,56)
+cpTable <- rbind(posTest,negTest)
+dimnames(cpTable) <- list( Test = c("pos","neg"),CP =c ("yes","no") )
+out <- chisq.test(cpTable)
+out
+# it doesn't hurt to look at the expected cell counts to make sure they are all at least 5
+min(out$expected)
+out <- prop.test(9,23,correct=FALSE)
+out <- stats::prop.test(t(cpTable),correct=FALSE)
+out
+rr <- (9/36)/(14/70)
+rr
+library(abd)
+cpSwitch <- rbind( cpTable[2,1:2],cpTable[1,1:2]); # switch the rows
+cpSwitch
+mosaic::oddsRatio(cpSwitch,conf.level=0.95)
+out <- mosaic::oddsRatio(cpSwitch,conf.level=0.95)
+out
+out <- mosaic::oddsRatio(cpSwitch,conf.level=0.95,verbose==TRUE)
+detach(abd)
+detach("package:abd", unload=TRUE)
+out <- mosaic::oddsRatio(cpSwitch,conf.level=0.95,verbose==TRUE)
+oddsRatio(cpSwitch,conf.level=0.95)
+oddsRatio(as.table(cpSwitch),conf.level=0.95)
+require(abd)
+oddsRatio(as.table(cpSwitch),conf.level=0.95)
+?oddsRatio
+detach("package:abd", unload=TRUE)
+mosaic::oddsRatio(as.table(cpSwitch),conf.level=0.95)
+?oddsRatio
+mosaic::oddsRatio(as.table(cpSwitch),conf.level=0.9,quiet=FALSE)
+out <- oddsRatio(cpSwitch,conf.level=0.95,quiet=FALSE)
+out
+str(out)
+attr(out,"lower.OR")
+dProps = c(0.15, 0.09, 0.29, 0.21, 0.12, 0.14)
+dCounts = c(14, 15, 22, 30, 19, 25)
+out <- chisq.test(x=dCounts,p=dProps)
+out$p.value
+expected = sum(dCounts)*dProps
+expected
+min(expected)
+fisher.test
+?fisher.test
+teenBelts = c(17,3)
+seniorBelts = c(12,8)
+observed <- cbind(teenBelts, seniorBelts)
+dimnames(observed) <- list(UsedBelts = c("Yes", "No"),Group = c("Teen","Senior"))
+observed
+out <- fisher.test(observed)
+out
+chisquare.test(observed)
+chi.square(observed)
+chisq.test(observed)
+(161/(441-161))/(98/(326-98))
+(98/264)/(161/280)
+1/.6455
+10.30/41
+r <- 10.3/41
+r
+17/r
+68*r
+71*r
+20/r
+80*r
+79*r
+round(rexp(10))
+round(100*rexp(10))
+sort(round(100*rexp(10)))
+sort(round(100*rexp(10)))
+sort(round(100*rexp(10)))
+setwd("~/Google Drive/Gdrive_snap_May_15/MS Data Science/DS 705 /Class Materials /Weekly Content/week 14/download")
+load('judges.rda')
+str(judges)
+judges.z <- scale(judges)
+j1 <- judges[,1]
+scale(j1)
+j1.z <- scale(j1)
+head(j1.z)
+str(judges.z)
+head(judges.z)
+head(j1.z)
+j1.rs <- scale(j1,center=F)
+j1.rs
+str(j1.rs)
+head(j1.rs)
+judges.rs <- scales(judges,center=F)
+judges.rs <- scale(judges,center=F)
+head(judges.rs)
+j1.rsm <- j1/sd(j1)
+head(j1.rsm)
+?scale
+rms1 <- sum(j1*j1)/length(j1)
+rms1
+j1.rsm2 <- j1/sqrt(rms1)
+head(j1.rms2)
+head(j1.rsm2)
+j1/j1.rs
+rms2 <- 8.545141
+sqrt( j1*j1/(length(j1)-1))
+sqrt( sum(j1*j1)/(length(j1)-1))

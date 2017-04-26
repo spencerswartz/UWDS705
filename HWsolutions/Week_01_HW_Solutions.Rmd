@@ -1,0 +1,281 @@
+---
+title: "Week 1 HW Submission"
+author: "Dr. Baggett"
+date: "September 2, 2015"
+output: word_document
+---
+
+```{r include=FALSE, cache=FALSE}
+# you should set the working directory to the folder containing this file 
+# and the data files before knitting this code
+#
+# one way to do this is with 
+# Session -> Set Working Directory -> To Source File Location
+#
+# or you can open a project in this directory
+# use File -> New Project -> Existing Directory and set the directory to the
+# one containing this file and the data files
+# now for each session just start by opening this project
+
+# Don't modify this chunk of code, it is just installing and loading the DS705data package
+if (!require(DS705data)){
+  if (!require(devtools)){
+    install.packages('devtools',repos="http://cran.rstudio.com")
+  }
+  library(devtools)
+  install_github('DataScienceUWL/DS705data')
+}
+require(DS705data)
+# load the HealthExam data set into memory
+data(HealthExam)
+```
+
+## Exercise 1
+
+For this exercise, you'll explore and summarize data on cholesterol levels for 40 randomly selected American women.  
+
+### Part 1a
+
+From the HealthExam data set, extract the cholesterol level of the 40 women and assign it to the variable fs.  As a safety check, the mean cholesterol level should be 240.875 mg/dl if you've done it correctly.
+
+### -|-|-|-|-|-|-|-|-|-|-|- Answer 1a -|-|-|-|-|-|-|-|-|-|-|-
+
+```{r}
+fs <- HealthExam$Cholesterol[HealthExam$Sex=="F"]
+```
+
+---
+
+### Part 1b
+
+Apply summary() and sd() to the vector fs to find summary statistics for female cholesterol level.  Based on the summary statistics, does the data appeared to be skewed?  If so, which direction?
+
+### -|-|-|-|-|-|-|-|-|-|-|- Answer 1b -|-|-|-|-|-|-|-|-|-|-|-
+
+```{r}
+summary(fs)
+mean(fs)
+```
+
+The sample mean is about 241 mg/dl which is significantly larger than the sample median of 194 mg/dl which suggests that the data is skewed to the right or has outliers to the right.  (Outliers or skewness pull the mean in the same direction.)
+
+---
+
+### Part 1c
+
+Make a histogram for female cholesterol level.  Label the $x$-axis with "mg/dl" and title the plot "Female cholesterol level".   Does the shape of the distribution agree with your answer to Exercise 3?  Based on the histogram, does the variable female cholesterol level appear to be approximately normally distributed?  Explain.
+
+### -|-|-|-|-|-|-|-|-|-|-|- Answer 1a -|-|-|-|-|-|-|-|-|-|-|-
+
+```{r}
+hist(fs,xlab="mg/dl",main="Female cholesterol level")
+```
+
+Female cholesterol levels are quite skewed to the right whereas for a normal distribution they should be symmetric and mound shaped.  The normal distribution is not a good fit.
+
+---
+
+### Part 1d  
+
+Make a boxplot for the same data as in Exercise 4.  Label the $y$-axis with "mg/dl" and title it as before.  
+
+### -|-|-|-|-|-|-|-|-|-|-|- Answer 1d -|-|-|-|-|-|-|-|-|-|-|-
+
+```{r}
+boxplot(fs, ylab="mg/dl", main="Female Cholesterol Level")
+```
+
+---
+
+### Part 1e
+
+According to the 1.5 IQR rule, what is the largest value of female cholesterol level that would not be considered an outlier?  
+
+### -|-|-|-|-|-|-|-|-|-|-|- Answer 1e -|-|-|-|-|-|-|-|-|-|-|-
+
+```{r}
+upper.fence <- quantile(fs,.75) + 1.5*IQR(fs)
+```
+The cutoff value for outliers is `r upper.fence`.  Anything higher is an outlier.
+
+---
+
+### Part 1f
+
+The maximum female cholesterol level is an outlier, find its $z$-score.  You'll need to combine the commands max(), mean(), and sd(). If the data did come from a normal distribution, would the maximum female cholesterol level seem unusually large?  Explain.
+
+### -|-|-|-|-|-|-|-|-|-|-|- Answer 1f -|-|-|-|-|-|-|-|-|-|-|-
+
+```{r}
+z <- (max(fs)-mean(fs))/sd(fs)
+p <- pnorm(z,lower.tail=FALSE)
+```
+
+The $z$-score is `r round(z,2)` which indicates the largest cholesterol level is more than 3 standard deviations from the mean.  To say if that is unusual or not one could find that the probability of a $z$-score of `r round(z,2)` or larger is only `r format(p,digits=3)` which means that obersvations like this are quite rare.
+
+---
+
+### Part 1g
+
+Make a normal probability plot for fs, add a fit line to it, and label $y$-axis appropriately.  Based on the information in the plot, does this sample data seem to come from a normal distribution?  Explain.
+
+### -|-|-|-|-|-|-|-|-|-|-|- Answer 1g -|-|-|-|-|-|-|-|-|-|-|-
+
+```{r}
+qqnorm(fs,ylab="mg/dl")
+qqline(fs)
+```
+
+The cholesterol levels at the high end are much higher than would be expected if they were normally distributed as evidenced by the points above the line.  Since the large observations are larger than they should be this is an indication of right skewness.  The normal distribution is not a good fit for this data.
+
+---
+
+## Exercise 2
+This is essentially problem 3.11 from Chapter 3 in our textbook by Ott.  We want to compare home ownership percentages for three different years: 1985, 1996, 2002.  
+
+###  Part 2a
+The code below loads a data set with randomly sampled test scores from three different instructors.  Modify the code to load and analyze the home ownership percentages in the "homes.csv" file and use the plots to answer the questions below.  Ott says to make relative frequency histograms (divide the frequencies by the sample size to get proportions), but we'll use density histograms instead (rescale the vertical so that the total geometric area in the bars is exactly 1) ... this makes it possible to compare histograms using different sample sizes and possibly different bins or classes.
+
+### -|-|-|-|-|-|-|-|-|-|-|- Answer 2a -|-|-|-|-|-|-|-|-|-|-|-
+
+``` {r}
+# start by copying and pasting this block of code so you can refer to it as you tweak your own code
+# when you no longer want to execute this block you can delete it, or change the {r}
+# to {r, include=FALSE, eval=FALSE}.  You can also minimize the whole block by clicking the little down arrow next to the line number at the beginning of the block.
+
+# load the data and look at it
+homes <- read.csv("homes.csv")
+head(homes)
+testScores <- read.csv("testScores.csv")
+#head(testScores)
+
+# summarize the percent owned for each year
+summary(homes$PercentOwned[homes$Year=="year1985"])
+summary(homes$PercentOwned[homes$Year=="year1996"])
+summary(homes$PercentOwned[homes$Year=="year2002"])
+
+# a more advanced version of this summary by Year would be to use tapply() to loop over the factors.
+# uncomment the next line to try it
+tapply(homes$PercentOwned, homes$Year, summary)
+
+#  looks like the PerenctOwned across all three Years range from 37 to 77, to make it easier to compare the distributions lets use the same bins for all three histograms
+bins <- seq(35,80,by=5)
+
+```
+
+```{r, fig.width=8, fig.height=3}
+# set up R to expect an array of plots with 1 row and 3 columns
+# the mar parameter adjust white space around the plot, notice that it has covered the axis labels which is OK here
+par(mfrow=c(1,3),mar=c(3,3,2,1))
+hist(homes$PercentOwned[homes$Year=="year1985"],main="Home Ownership Percents in 1985",breaks=bins,xlab="Percent Owned",prob=TRUE)
+hist(homes$PercentOwned[homes$Year=="year1996"],main="Home Ownership Percents in 1996",breaks=bins,xlab="Percent Owned",prob=TRUE)
+hist(homes$PercentOwned[homes$Year=="year2002"],main="Home Ownership Percents in 2002",breaks=bins,xlab="Percent Owned",prob=TRUE)
+# reset to one plot
+par(mfrow=c(1,1))
+```
+
+```{r, fig.width=7, fig.height=7}
+# make side-by-side boxplots to make comparisons easier
+boxplot(homes$PercentOwned~homes$Year,names=c("1985","1996","2002"),ylab="Percent Owned",main="Homes")
+
+```
+
+---
+
+### Part 2b
+Comment on similarities and differences among the distributions of home ownership percentages for the years 1985, 1996, and 2002.  Is there a general trend?
+
+### -|-|-|-|-|-|-|-|-|-|-|- Answer 2b -|-|-|-|-|-|-|-|-|-|-|-
+
+In each year the distribution of percent owned has a similar shape that is slightly skewed left with a couple of mild low outliers.  However, as the year increases the center of the distribution is shifted upward indicating home owned percentages are increasing over this time period.
+
+---
+
+## Exercise 3
+
+Assume that the length of a natural human pregnancy is approximately normally distributed with mean 268 days and standard deviation 16 days.  Use R to answer some questions about this distribution:
+
+### Part 3a
+
+Find the probability that a random natural pregnancy lasts less than 250 days.
+
+### -|-|-|-|-|-|-|-|-|-|-|- Answer 3a -|-|-|-|-|-|-|-|-|-|-|-
+
+```{r}
+pnorm( 250, mean = 268, sd = 16)
+```
+
+---
+
+### Part 3b
+
+Compute the probability that a natural human pregnancy lasts between 260 and 280 days.
+
+### -|-|-|-|-|-|-|-|-|-|-|- Answer 3b -|-|-|-|-|-|-|-|-|-|-|-
+
+```{r}
+pnorm( 280, mean = 268, sd = 16) - pnorm( 260, mean = 268, sd = 16)
+```
+
+---
+
+### Part 3c
+
+How long are the longest 10% of natural human pregnancies?
+
+### -|-|-|-|-|-|-|-|-|-|-|- Answer 3c -|-|-|-|-|-|-|-|-|-|-|-
+
+```{r}
+qnorm( 0.90, mean = 268, sd = 16)
+```
+
+---
+
+## Exercise 4
+
+This problem is to demonstrate how to use the normal probability plot to help judge the fit of a normal distribution.
+
+### Part 4a
+
+The file bodyFat.csv is included with the weekly download.
+Use read.csv(...) to read the file into a dataframe.  This is an artificial data set meant to be bodyfat percentages of 250 random men.  Show how to load the data and assign the bodyfat percentages to a vector called bfat.
+
+### -|-|-|-|-|-|-|-|-|-|-|- Answer 4a -|-|-|-|-|-|-|-|-|-|-|-
+
+```{r}
+bfat.dataframe <- read.csv('bodyFat.csv')
+bfat <- bfat.dataframe$bodyFat
+```
+
+---
+
+### Part 4b
+
+Make a histogram of the bodyfat percentages.  Does it appear that the data comes from a normally distributed random variable?  Explain.
+
+### -|-|-|-|-|-|-|-|-|-|-|- Answer 4b -|-|-|-|-|-|-|-|-|-|-|-
+
+```{r}
+hist(bfat)
+```
+
+The bodyfat percentages appear to be symmetric and mound-shpaed so a normal distribution might be a good fit for this data.
+
+---
+
+### Part 4c
+
+Now make a normal probability plot with a fitted line by using qqnorm() and qqline().  Note the "S" shape of the points.  What is this telling you about the distribution of the bodyfat data?
+
+### -|-|-|-|-|-|-|-|-|-|-|- Answer 4c -|-|-|-|-|-|-|-|-|-|-|-
+
+```{r}
+qqnorm(bfat)
+qqline(bfat)
+```
+
+The low values of bodyfat percentage are above where they should be in a normal distribution, so the tail is too short on the low end of the data.  Similarly, the high values of bodyfat percentage are below where the should be in a normal distribution, so the tail is too short on the high end of the data.  When the tails are too short or thin, we call this a light-tailed distribution.  So a normal distribution is not a perfect fit here.
+
+---
+
+

@@ -1,0 +1,327 @@
+---
+title: 'Lab Assignment: Two-Sample t-Procedures'
+author: "Solutions"
+date: "Fall, 2015"
+output: word_document
+fontsize: 12pt
+---
+
+```{r include=FALSE, cache=FALSE}
+# Don't modify this chunk of code, it is just installing and loading the DS705data package
+if (!require(DS705data)){
+  if (!require(devtools)){
+    install.packages('devtools',repos="http://cran.rstudio.com")
+  }
+  library(devtools)
+  install_github('DataScienceUWL/DS705data')
+}
+require(DS705data)
+```
+   
+## Exercise 1  
+
+An experiment was conducted to evaluate the effectiveness of a drug treatment for tapeworm in the stomachs of sheep. A random sample of 24 worm-infected lambs of approximately the same age was divided into two groups. Twelve of the lambs were injected with the drug and the remaining twelve were left untreated. After a 6-month period the lambs were slaughtered and the worm counts recorded.
+
+### Part 1a
+
+Load the dataset WormSheep from the DS705data package. Note that the package is loaded above at line 18.  You just need the data() command.  To see all the datasets in the package, type data(package='DS705data').
+
+### -|-|-|-|-|-|-|-|-|-|-|- Answer 1a -|-|-|-|-|-|-|-|-|-|-|-
+
+```{r}
+data(WormSheep)
+```
+
+---
+
+### Part 1b	
+
+Create boxplots and histograms for each group (treated vs. untreated).  Be sure that each plot is labeled appropriately.
+
+### -|-|-|-|-|-|-|-|-|-|-|- Answer 1b -|-|-|-|-|-|-|-|-|-|-|-
+
+```{r, fig.width=3, fig.height=3}
+boxplot(worms~treated,data=WormSheep)
+wormsT <- WormSheep$worms[WormSheep$treated=="treated"]
+wormsUT <- WormSheep$worms[WormSheep$treated=="untreated"]
+hist(wormsT,main="Treated Sheep",xlab="Worms")
+hist(wormsUT,main="Treated Sheep",xlab="Worms")
+```
+
+---
+
+### Part 1c  
+
+Do the boxplots show any outliers? 
+
+### -|-|-|-|-|-|-|-|-|-|-|- Answer 1c -|-|-|-|-|-|-|-|-|-|-|-
+
+There are no outliers indicated on the boxplot.
+
+---
+
+### Part 1d  
+
+Describe the shapes of the histograms for the sample data for each sample.
+
+### -|-|-|-|-|-|-|-|-|-|-|- Answer 1d -|-|-|-|-|-|-|-|-|-|-|-
+
+They are roughly mound-shaped and the worm counts for the untreated sheep may be a little skewed to the right.  However, with such small samples we don't really have enough data to establish a strong pattern.
+
+---
+
+### Part 1e 
+
+Conduct an appropriate test to determine if the worm counts in each population can be considered as normally distributed.  Provide the p-value and the conclusion of the test.
+
+### -|-|-|-|-|-|-|-|-|-|-|- Answer 1e -|-|-|-|-|-|-|-|-|-|-|-
+
+```{r}
+shapiro.test(wormsT)
+shapiro.test(wormsUT)
+pT <- shapiro.test(wormsT)$p.value
+pUT <- shapiro.test(wormsUT)$p.value
+```
+
+For untreated sheep the Shapiro-Wilk test of the worm count data gives a P-value of `r round(pT,3)`.  Since $P$ is large, do not reject the null hypothesis that the worm counts are normally distributed.  For treated sheep, the P-value is `r round(pUT,3)` and the conclusion is the same as for the untreated sheep.
+
+---
+
+### Part 1f  	
+
+Conduct an appropriate test to determine if the worm counts in each population can be considered to have equal variances.  Provide the p-value and the conclusion of the test.
+
+### -|-|-|-|-|-|-|-|-|-|-|- Answer 1f -|-|-|-|-|-|-|-|-|-|-|-
+
+```{r}
+library(car)
+leveneTest(worms~treated,data=WormSheep)
+plT <- unlist(leveneTest(worms~treated,data=WormSheep))[5]
+```
+
+Since $P = `r round(plT,3)`$ is large, do not reject the null hypothesis that the population variances of worm counts are the same for treated and untreated sheep.
+
+---
+
+### Part 1g	
+    
+Conduct the test of your choice to compare the population mean worm count for all sheep treated with the drug to the mean worm count for the population of untreated sheep.  Let $\alpha = 0.05$.
+
+
+#### Step 1
+
+Define the parameters in words in the context of the problem.
+
+#### -|-|-|-|-|-|-|-|-|-|-|- Answer 1g.step1 -|-|-|-|-|-|-|-|-|-|-|-
+
+$\mu_{\mbox{treated}}$ = population mean worm count for treated sheep.
+
+$\mu_{\mbox{untreated}}$ = population mean worm count for untreated sheep.
+
+#### Step 2
+
+State the null and alternative hypotheses for the test.
+ 
+#### -|-|-|-|-|-|-|-|-|-|-|- Answer 1g.step2 -|-|-|-|-|-|-|-|-|-|-|-
+
+Replace this text with your answer here.
+You can typeset hypotheses like this (using LaTeX):
+$$H_0: \mu_\mbox{treated} = \mu_\mbox{untreated}$$
+$$H_a: \mu_\mbox{treated} \neq \mu_\mbox{untreated}$$
+
+
+#### Step 3
+
+Use R to generate the output for the test you selected.
+
+#### -|-|-|-|-|-|-|-|-|-|-|- Answer 1g.step3 -|-|-|-|-|-|-|-|-|-|-|-
+
+```{r}
+test <- t.test(worms~treated,data=WormSheep,var.equal=TRUE)
+test
+```
+
+#### Step 4
+
+State both a statistical conclusion at $\alpha=0.05$ and interpret it in the context of the problem.
+
+#### -|-|-|-|-|-|-|-|-|-|-|- Answer 1g.step4 -|-|-|-|-|-|-|-|-|-|-|-
+
+Reject $H_0$ at $\alpha = 0.05$ ($P = `r round(test$p.value,3)`). There is sufficient evidence to suggest that the population mean worm counts are different for the treated and untreated sheep.
+
+---
+
+### Part 1h  
+
+Write an interpretation in the context of the problem for the 95% CI.
+
+### -|-|-|-|-|-|-|-|-|-|-|- Answer 1h -|-|-|-|-|-|-|-|-|-|-|-
+
+We are 95% confident that the population mean worm count for treated sheep is `r abs(round(test$conf.int[2],2))` to `r abs(round(test$conf.int[1],2))` less than the population mean worm count for untreated sheep.
+
+---
+
+### Part 1i  
+
+Did you use the separate-variance t-procedures or the pooled t-procedures?  Justify your choice, including some discussion of how well the conditions for the hypothesis test and confidence interval procedures were met.
+
+### -|-|-|-|-|-|-|-|-|-|-|- Answer 1i -|-|-|-|-|-|-|-|-|-|-|-
+
+The histograms are roughly mound shaped and the Shapiro-Wilk test indicates both samples could be from normally distributed populations.  Levene's test suggests the populations could have equal variances and the sample standard deviations are nearly identical.  Taken together, these reasons suggest the pooled t-procedures are appropriate.  
+
+---
+
+## Exercise 2
+
+Data was collected for a sample of college students at a university in the Midwest.  One variable measured was the number of words per minute that they could type and also whether or not they had previously taken a typing course (Method 1) or if they were self-taught (Method 2).  
+
+### Part 2a  
+
+Load the dataset Typing from the DS705data package.
+
+### -|-|-|-|-|-|-|-|-|-|-|- Answer 2a -|-|-|-|-|-|-|-|-|-|-|-
+
+```{r}
+data(Typing)
+```
+
+---
+
+### Part 2b
+
+Create boxplots and histograms for each group (previous typing class vs. self-taught).  Be sure that each plot is labeled appropriately.
+
+### -|-|-|-|-|-|-|-|-|-|-|- Answer 2b -|-|-|-|-|-|-|-|-|-|-|-
+
+
+```{r, fig.width=4, fig.height=4}
+boxplot(Words~Method,data=Typing)
+typingP <- Typing$Words[Typing$Method=="prior course"]
+typingS <- Typing$Words[Typing$Method=="self-taught"]
+hist(typingP,main="Prior Course",xlab="Words per minute")
+hist(typingS,main="Self-Taught",xlab="Words per minute")
+```
+
+---
+
+### Part 2c
+
+Do the boxplots show any outliers? 
+
+### -|-|-|-|-|-|-|-|-|-|-|- Answer 2c -|-|-|-|-|-|-|-|-|-|-|-
+
+Yes, the typing speed for both groups have outliers, but they appear to be mild outliers.
+
+---
+
+### Part 2d	
+
+Describe the shapes of the histograms for the sample data for each sample.
+
+### -|-|-|-|-|-|-|-|-|-|-|- Answer 2d -|-|-|-|-|-|-|-|-|-|-|-
+
+For each sample, the data appears to be symmetric and mound shaped.
+
+---
+
+### Part 2e
+
+Conduct an appropriate test to determine if typing speed in each population can be considered as normally distributed.  Provide the p-value and the conclusion of the test.
+
+### -|-|-|-|-|-|-|-|-|-|-|- Answer 2e -|-|-|-|-|-|-|-|-|-|-|-
+
+```{r}
+shapiro.test(typingP)
+shapiro.test(typingS)
+pP <- shapiro.test(typingP)$p.value
+pS <- shapiro.test(typingS)$p.value
+```
+
+For people with a prior course the Shapiro-Wilk test of the typing speed data gives a P-value of `r round(pP,3)`.  Since $P$ is large, do not reject the null hypothesis that typing speeds are normally distributed.  For self-taught people, the P-value is `r round(pS,3)` and the conclusion is the same.
+
+---
+
+### Part 2f
+
+Conduct an appropriate test to determine if typing speed in each population can be considered to have equal variances.  Provide the p-value and the conclusion of the test.
+
+### -|-|-|-|-|-|-|-|-|-|-|- Answer 2f -|-|-|-|-|-|-|-|-|-|-|-
+
+```{r}
+leveneTest(Words~Method,data=Typing)
+plT2 <- unlist(leveneTest(Words~Method,data=Typing))[5]
+```
+
+Since $P = `r round(plT2,3)`$ is tiny, the evidence suggests that the population variances of typing speeds are different for the two groups.
+
+---
+
+### Part 2g
+
+Conduct the test of your choice to test that the population mean typing speed for all college students with a previous course in typing is higher than for those who were self-taught.  Let $\alpha = 0.10$.
+
+#### Step 1
+
+Define the parameters in words in the context of the problem.
+
+#### -|-|-|-|-|-|-|-|-|-|-|- Answer 2g.step1 -|-|-|-|-|-|-|-|-|-|-|-
+
+$\mu_{\mbox{course}} = $ population mean typing speed for students who had a prior typing class.
+
+$\mu_{\mbox{self}} = $ population mean typing speed for students who are self-taught.
+
+#### Step 2
+
+State the null and alternative hypotheses for the test.
+ 
+#### -|-|-|-|-|-|-|-|-|-|-|- Answer 2g.step2 -|-|-|-|-|-|-|-|-|-|-|-
+
+$H_0: \mu_{\mbox{course}} = \mu_{\mbox{self}} , H_1: \mu_{\mbox{course}} > \mu_{\mbox{self}}$
+
+#### Step 3
+
+Use R to generate the output for the test you selected.
+
+#### -|-|-|-|-|-|-|-|-|-|-|- Answer 2g.step3 -|-|-|-|-|-|-|-|-|-|-|-
+
+```{r}
+test2 <- t.test(Words~Method,data=Typing,var.equal=FALSE,conf.level=0.9,alternative='greater')
+test2
+```
+
+#### Step 4 
+State both a statistical conclusion at $\alpha=0.10$ and interpret it in the context of the problem.
+
+#### -|-|-|-|-|-|-|-|-|-|-|- Answer 2g.step4 -|-|-|-|-|-|-|-|-|-|-|-
+
+Reject $H_0$ at $\alpha = 0.05$ ($P = `r round(test2$p.value,3)`$). There is sufficient evidence to suggest that the population mean typing speeds are different for students who are self-taught and those who had a prior course.
+
+---
+
+### Part 2h
+
+Write an interpretation in the context of the problem for a 90% confidence interval.
+
+### -|-|-|-|-|-|-|-|-|-|-|- Answer 2h -|-|-|-|-|-|-|-|-|-|-|-
+
+The interval produced by the one-sided test is a one-sided confidence bound:
+We are 90% confident that the population mean typing speed is greater than `r round(test2$conf.int[1],1)` words per minute.
+
+A two-sided interval would be OK here too, but you'd have to redo the computation.
+```{r}
+test2 <- t.test(Words~Method,data=Typing,var.equal=FALSE,conf.level=0.9,alternative='two.sided')
+```
+
+We are 90% confident that the population mean typing speed is `r round(test2$conf.int[1],1)` to `r round(test2$conf.int[2],1)` words per minute larger for students with a prior course than for students who are self-taught.
+
+---
+
+### Part 2i
+
+Did you use the separate-variance t-procedures or the pooled t-procedures?  Justify your choice, including some discussion of how well the conditions for the hypothesis test and confidence interval procedures were met.
+
+### -|-|-|-|-|-|-|-|-|-|-|- Answer 2i -|-|-|-|-|-|-|-|-|-|-|-
+
+The sample standard deviations differ by more than a factor of 2 (`r round(sd(typingP))` and `r round(sd(typingS))` and Levene's test indicates the population variances are different, so we use Welch's separate variance t-procedures.
+
+---

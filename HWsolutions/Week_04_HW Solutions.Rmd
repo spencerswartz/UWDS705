@@ -1,0 +1,241 @@
+---
+title: 'Solutions: Inference for Paired Data'
+author: "Professor X"
+date: ""
+output: word_document
+fontsize: 12pt
+---
+
+## Exercise 1  
+
+To reduce ankle injuries, restrictive appliances such as taping and spatting (applying tape over the shoe and sock) have been employed. As part of a study at UW-L, subjects also completed a 5-point Likert-type scale survey regarding their perceptions of the movement of each ankle appliance during exercise.
+
+Researchers would like to compare the central values for perceptions of the movement of taped ankles compared to spatted ankles using $\alpha = 0.10$ and to estimate the difference with 90% confidence.
+
+### Part 1a
+
+Load the data set AnkleMovement.rda
+
+### -|-|-|-|-|-|-|-|-|-|-|- Answer 1a -|-|-|-|-|-|-|-|-|-|-|-
+
+```{r}
+require(DS705data)
+data(AnkleMovement)
+```
+
+---
+
+### Part 1b	
+
+Create a new variable of the differences, with the perceptions of the spatted ankle (spat) subtracted from the perceptions of the taped ankle (tape).
+
+### -|-|-|-|-|-|-|-|-|-|-|- Answer 1b -|-|-|-|-|-|-|-|-|-|-|-
+
+```{r}
+# I like to add the new data to the data frame to keep everything together
+AnkleMovement$diff <- AnkleMovement$tape-AnkleMovement$spat
+```
+
+---
+
+### Part 1c  
+
+Create boxplots and histograms for the sample of differences. 
+
+### -|-|-|-|-|-|-|-|-|-|-|- Answer 1c -|-|-|-|-|-|-|-|-|-|-|-
+
+```{r}
+boxplot(AnkleMovement$diff)
+hist(AnkleMovement$diff)
+```
+
+---
+
+### Part 1d  
+
+Comment on the suitability of this data for the paired t-test, the Wilcoxon signed rank test, and the sign test.
+
+### -|-|-|-|-|-|-|-|-|-|-|- Answer 1d -|-|-|-|-|-|-|-|-|-|-|-
+
+The choice here is somewhat subjective, but ultimately you should choose the most powerful test for which the conditions are met.  The boxplot is asymmetrical, in particular, the box shows that the median and first quartile are the same.  However, the histogram appears very roughly symmetric and mound-shaped.  To get another point of information, the Shapiro-Wilk test of normality (not shown) gives a $P = `r round(shapiro.test(AnkleMovement$diff)$p.value)` which, while somewhat small, does not give strong evidence agaoinst normality.  Since the t-test is fairly robust to mild departures from normality, the t-test seems like a good choice.  Particularly given that the t-test is the most powerful of the three procedures.  (Actually, this a good place to try all three procedures, in this case, they all agree.)
+
+---
+
+### Part 1e 
+    
+Conduct an appropriate test to compare the central values for subject's perceptions of the movement of taped ankles compared to spatted ankles using $\alpha = 0.10$.
+
+#### Step 1
+
+Define the parameters in words in the context of the problem.
+
+#### -|-|-|-|-|-|-|-|-|-|-|- Answer 1e.step1 -|-|-|-|-|-|-|-|-|-|-|-
+
+Let $d = $ perceived movement for taped ankle - perceived movement for spatted ankle.  We want to know if the mean difference, $\mu_d$, is nonzero.
+
+
+#### Step 2
+
+State the null and alternative hypotheses for the test.
+ 
+#### -|-|-|-|-|-|-|-|-|-|-|- Answer 1e.step2 -|-|-|-|-|-|-|-|-|-|-|-
+
+$H_0: \mu_d = 0, H_a: \mu_d \neq 0$
+
+#### Step 3
+
+Use R to generate the output for the test you selected.
+
+#### -|-|-|-|-|-|-|-|-|-|-|- Answer 1e.step3 -|-|-|-|-|-|-|-|-|-|-|-
+
+```{r}
+test <-t.test(AnkleMovement$diff,mu=0,alternative="two.sided",conf.level=0.9)
+test
+```
+
+#### Step 4
+
+State both a statistical conclusion at $\alpha=0.10$ and interpret it in the context of the problem.
+
+#### -|-|-|-|-|-|-|-|-|-|-|- Answer 1e.step4 -|-|-|-|-|-|-|-|-|-|-|-
+
+Do not reject $H_0$ at $\alpha = 0.10$ ($P = `r round(test$p.value,3)`$).  There is not sufficient evidence to suggest that the population mean difference of patients perception of movement for taped versus spatted ankles is different than zero.  In other words, patients typically perceive no difference in movment between taped and spatted ankles.
+
+---
+
+### Part 1f  
+
+Write an interpretation in the context of the problem for the 90% CI.
+
+### -|-|-|-|-|-|-|-|-|-|-|- Answer 1f -|-|-|-|-|-|-|-|-|-|-|-
+
+We are 90% confident that the population mean perception of movement for taped ankles is anywhere from `r -round(test$conf.int[1],2)` points lower to `r round(test$conf.int[2],2)` points higher than the perception of movement for spatted ankles.  Since this range includes zero, we cannot conlude there is a significant difference at the $\alpha=0.1$ level of significance.  
+
+---
+
+### Part 1g
+
+Which test and interval did you use?  Justify your choice, including some discussion of how well the conditions for the inference procedures were met.
+
+### -|-|-|-|-|-|-|-|-|-|-|- Answer 1g -|-|-|-|-|-|-|-|-|-|-|-
+
+As mentioned above, the t-test was chosen even though the normality assumption was not strongly met because the t-test is robust to departures from normality.  The sign test and Wilcoxon signed rank test also lead to the same conclusion.
+
+---
+
+## Exercise 2
+
+One hundred and twenty apparently healthy subjects volunteered to participate in this investigation.  All subjects completed pre- and post-tests measuring lumbar strength, and the treatment group trained on the BackUp™ Lumbar Extension Dynamometer (1 set of 20 reps twice per week) for 10 weeks.  
+
+Researchers would like to compare the central values for the pre- and post-training measurements for lumbar strength at $\alpha = 0.05$ and estimate the increase in lumbar strength with 95% confidence.
+
+### Part 2a  
+
+Load the data BackUp.rda
+
+### -|-|-|-|-|-|-|-|-|-|-|- Answer 2a -|-|-|-|-|-|-|-|-|-|-|-
+
+```{r}
+data(BackUp)
+BackUp <- data.frame(BackUp) # BackUp is imported as a matrix, so this converts it to a data frame
+```
+
+---
+
+### Part 2b  
+
+Create a new variable of the differences, with the post-training values (post) subtracted from the pre-training values (pre). 
+
+### -|-|-|-|-|-|-|-|-|-|-|- Answer 2b -|-|-|-|-|-|-|-|-|-|-|-
+
+```{r}
+BackUp$diff <- BackUp$pre-BackUp$post
+```
+
+---
+
+### Part 2c  
+
+Create boxplots and histograms for the sample of differences. 
+
+### -|-|-|-|-|-|-|-|-|-|-|- Answer 2c -|-|-|-|-|-|-|-|-|-|-|-
+
+```{r}
+hist(BackUp$diff)
+boxplot(BackUp$diff)
+```
+
+---
+
+### Part 2d  
+
+Comment on the suitability of this data for the paired t-test, the Wilcoxon signed rank test, and the sign test.
+
+### -|-|-|-|-|-|-|-|-|-|-|- Answer 2d -|-|-|-|-|-|-|-|-|-|-|-
+
+The differences seem to be symmetrically distributed, but there are many outliers indicating a heavy tailed distribution.  The Shapiro-Wilk test, when applied to the differences, yields $P = `r shapiro.test(BackUp$diff)$p.value$ which indicates a strong departure from normlity.  Thus we choose to employ the Wilocoxon signed-rank test.
+
+---
+
+### Part 2e 
+    
+Conduct an appropriate test to compare the central values for the pre- and post-training measurements for lumbar strength using $\alpha = 0.10$.
+
+#### Step 1
+
+Define the parameters in words in the context of the problem.
+
+#### -|-|-|-|-|-|-|-|-|-|-|- Answer 2e.step1 -|-|-|-|-|-|-|-|-|-|-|-
+
+$\M_d$ is the population median difference of strength scores where $d$ is the difference in stength scores (pre-post).  Since the population distribution is assumed to be symmetric, the population mean difference and 
+the population median difference are the same.  We could, instead, write the test in terms of the population mean difference.
+
+#### Step 2
+
+State the null and alternative hypotheses for the test.
+ 
+#### -|-|-|-|-|-|-|-|-|-|-|- Answer 2e.step2 -|-|-|-|-|-|-|-|-|-|-|-
+
+$H_0: M_d = 0, H_1: M_d \neq 0$
+
+#### Step 3
+
+Use R to generate the output for the test you selected.
+
+#### -|-|-|-|-|-|-|-|-|-|-|- Answer 2e.step3 -|-|-|-|-|-|-|-|-|-|-|-
+
+```{r}
+test <- wilcox.test(BackUp$diff,mu=0,conf.int=TRUE,conf.level=0.95) # the confidence level does not change the P value
+test
+```
+
+#### Step 4
+
+State both a statistical conclusion at $\alpha=0.10$ and interpret it in the context of the problem.
+
+#### -|-|-|-|-|-|-|-|-|-|-|- Answer 2e.step4 -|-|-|-|-|-|-|-|-|-|-|-
+
+Reject $H_0$ at $\alpha = 0.10$ ($P = `r round(test$p.value,3)`).  There is evidence to show there is a population median difference in strength scores 
+
+---
+
+### Part 2f  
+
+Write an interpretation in the context of the problem for a 95% CI.
+
+### -|-|-|-|-|-|-|-|-|-|-|- Answer 2f -|-|-|-|-|-|-|-|-|-|-|-
+
+We are 95% confident that the strenth points typically increase `r round(abs(test$conf.int[2]),1)` 
+to `r round(abs(test$conf.int[1]),1)` after using BackUp.
+
+---
+
+### Part 2g
+
+Which test and interval did you use?  Justify your choice, including some discussion of how well the conditions for the inference procedures were met.
+
+### -|-|-|-|-|-|-|-|-|-|-|- Answer 2g -|-|-|-|-|-|-|-|-|-|-|-
+
+As shown above, the data is symmetric, but heavy-tailed indicating it is reasonable to assume the population of differences has a symmetric, but non-normal distribution.  For such a distrubution, the Wilcoxon signed rank test is most appropriate.
+
+---

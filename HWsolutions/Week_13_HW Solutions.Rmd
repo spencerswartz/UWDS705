@@ -1,0 +1,291 @@
+
+---
+title: 'Lab Assignment: Intro to Factor Analysis'
+author: "Solutons"
+date: "Nov. ??, 2015"
+output: word_document
+fontsize: 12pt
+---
+
+```{r echo=FALSE}
+load("ifanmot.rda")
+```
+
+
+
+Create a Word document from this R Markdown file for the following exercises.  Submit the R markdown file and resulting Word document via D2L Dropbox.   
+
+## Exercise 1
+
+A researcher was interested in learning what motivates international fans when they watch U.S. sports.  A questionnaire was created in which respondents reported their score for 42 "importance factors" about fan motivation by circling the number that indicates why they watch, read, and/or discuss U.S. sports (5=Very High, 4=High, 3=Average, 2=Low, 1=Very Low).   
+
+The fans were categorized on issues such as gender, interest in U.S. sports, and the media source from which their information comes.  Four hundred surveys were completed for the study.
+
+The data is in the file ifanmot.rda and the survey is in the file IFM_Survey.docx.
+
+### Part 1a
+
+Conduct Bartlett's test for sphericity at a 5% level of significance on the responses for the 42 survey questions found in columns 1 through 42 of the file ifanmot.rda.  State the null and alternative hypothesis and report on the results.
+
+Is factor analysis warranted based on this measure?
+
+### -|-|-|-|-|-|-|-|-|-|-|- Answer 1a -|-|-|-|-|-|-|-|-|-|-|-
+
+```{r}
+require(psych)
+mat <- cor(ifanmot[,1:42])
+cortest.bartlett(mat,n=400)
+```
+
+Null Hypothesis: The correlation matrix is the identity matrix.
+Alternative Hypothesis: The correlation matrix is not the identity matrix.
+
+Reject the null hypothesis (p=0) at a 5% level of significance.  The correlation matrix is not the identity matrix
+
+### Part 1b
+
+Compute the Kaiser-Meyer-Olkin (KMO) Measure of Sampling Adequacy (MSA) for the responses for the 42 survey questions found in columns 1 through 42 of the file ifanmot.rda.  
+
+Is the overall MSA value acceptable for factor analysis?
+
+Should any questionnaire items be dropped from the factor analysis because of low MSA values?  If so which ones?
+
+### -|-|-|-|-|-|-|-|-|-|-|- Answer 1b -|-|-|-|-|-|-|-|-|-|-|-
+
+```{r}
+KMO(mat)
+```
+
+At an overall MSA of 0.93, which exceeds 0.5, this sample is acceptable for factor analysis.  No questionairre items have KMO value below 0.5, so no terms should be dropped before conducting the factor analysis.
+
+### Part 1c  
+
+Use R to create a scree plot for the questionnaire items that you deemed to be appropriate for the factor analysis from the previous question.  Use the scree plot to answer the questions below.
+
+### -|-|-|-|-|-|-|-|-|-|-|- Answer 1c -|-|-|-|-|-|-|-|-|-|-|-
+
+```{r}
+output <- princomp(ifanmot[,1:42], cor=TRUE)
+plot(output,type="lines") # scree plot 
+abline(h=1,lty=2)
+```
+
+Where would you say the "knee" is in the scree plot?  3rd component
+
+How many factors does the knee in the scree plot suggest extracting?  3 factors
+ 
+How many components have eigenvalues (aka variances, latent roots) greater than 1? 9
+
+How many factors does this suggest extracting?  9
+
+
+### Part 1d
+
+Use a principal components extraction with the varimax rotation to extract 3 factors.  Print the output with factor loadings under 0.5 suppressed and sort the loadings.
+
+Answer the questions below.
+
+### -|-|-|-|-|-|-|-|-|-|-|- Answer 1d -|-|-|-|-|-|-|-|-|-|-|-
+
+```{r}
+fan <- principal(ifanmot[,1:42],nfactors=3,rotation="varimax")
+print(fan,cut=.5,sort=TRUE)
+```
+
+What is the cumulative variance explained (as a percent)? 48%
+
+Is this considered an acceptable percent of total variation? No
+
+### Part 1e
+
+Use a principal components extraction with the varimax rotation to extract 9 factors.  Print the output with factor loadings under 0.5 suppressed and sort the loadings.
+
+Answer the questions below.
+
+### -|-|-|-|-|-|-|-|-|-|-|- Answer 1e -|-|-|-|-|-|-|-|-|-|-|-
+
+```{r}
+fan <- principal(ifanmot[,1:42],nfactors=9,rotation="varimax")
+print(fan,cut=.5,sort=TRUE)
+```
+
+What is the cumulative variance explained (as a percent)? 67%
+
+Is this considered an acceptable percent of total variation? Yes
+
+### Part 1f
+
+Read the questions in the survey (IFM Survey.docx) for the groups of items that load onto each factor and put a comprehensive label on each of the 9 factors from the most recent factor analysis (extracting 9 factors with principal components and a varimax rotation).
+
+For consistency assign the following 9 labels to the most appropriate factors:
+
+**Artistic, Boredom, Entertainment, Fun, Gambling, Identification, Loyalty, Patriotism, Social**
+
+Factors 1 through 9 move from left to right in the sorted output (even though the columns labels PC1-PC9 in the output are not in order). 
+
+I have labeled the second factor (labeled PC9 in the R output) for you as "Social". Look at the survey items that correspond to the second factor (Q11, Q14, Q18, Q19, Q20, and Q35) and see if that label makes sense.
+
+### -|-|-|-|-|-|-|-|-|-|-|- Answer 1f -|-|-|-|-|-|-|-|-|-|-|-
+
+Answers may vary - these are my suggestions
+Factor 1 (PC1) - Entertainment
+Factor 2 (PC9) - Social
+Factor 3 (PC5) - Identification
+Factor 4 (PC3) - Patriotism
+Factor 5 (PC4) - Artistic
+Factor 6 (PC7) - Loyalty
+Factor 7 (PC2) - Gambling
+Factor 8 (PC6) - Boredom
+Factor 9 (PC8) - Fun
+
+### Part 1g
+    
+Combine the factor scores produced by the 9-factor solution with the original data frame.  Also, rename the factor scores using the labels you assigned previousy.  Some R code to begin this has been provided.  Add to it to complete this request.
+    
+### -|-|-|-|-|-|-|-|-|-|-|- Answer 1g -|-|-|-|-|-|-|-|-|-|-|-
+
+```{r}
+fan <- principal(ifanmot[,1:42],nfactors=9,rotation="varimax")
+fulldata <- cbind(ifanmot,fan$scores)
+require(plyr)
+fulldata <- rename(fulldata,c("PC1"="Entertainment","PC9"="Social","PC5"="Identification","PC3"="Patriotism","PC4"="Artistic","PC7"="Loyalty","PC2"="Gambling","PC6"="Boredom","PC8"="Fun"))
+```
+
+----
+
+### Part 1h
+    
+Conduct a MANOVA at a 5% level of significance with the 9 factors as the response variables and the variable Interest as the explanatory variable.  
+The variable Interest classifies respondents' interest in international sports by how frequently they watch,read, or discuss U.S. sports (daily, weekly, monthly, or annually).
+    
+### -|-|-|-|-|-|-|-|-|-|-|- Answer 1h -|-|-|-|-|-|-|-|-|-|-|-
+
+```{r}
+man.out <- manova(cbind(Entertainment,Social,Identification,Patriotism,Artistic,Loyalty,Gambling,Boredom,Fun)~Interest,data=fulldata)
+summary(man.out)
+summary.aov(man.out)
+```
+
+## Exercise 2
+
+People who are concerned about their health may prefer hot dogs that are low in sodium and calories. The data file contains sample data on the sodium and calories contained in each of 54 major hot dog brands. The hot dogs are classified by type: beef, poultry, and meat.
+
+The data file called hotdogs.rda contains the sodium and calorie content for random samples of each type of hot dog. This data set is included in the DS705data package.
+
+### Part 2a
+
+Use the three multivariate normality tests presented this week to test for multivariate normality among the two response variables: sodium and calories.  Include a chi-square quantile plot in your analysis and use a 5% level of significance for each individual hypothesis test.
+
+According to these test, is there sufficient evidence to conclude that sodium and calories are not multivariate normal?  
+
+### -|-|-|-|-|-|-|-|-|-|-|- Answer 2a -|-|-|-|-|-|-|-|-|-|-|-
+
+```{r}
+require(MVN)
+require(DS705data)
+data(hotdogs)
+mardiaTest(hotdogs[hotdogs$type=='A',1:2]) 
+roystonTest(hotdogs[hotdogs$type=='A',1:2]) 
+hzTest(hotdogs[hotdogs$type=='A',1:2],qqplot=TRUE) 
+mardiaTest(hotdogs[hotdogs$type=='B',1:2]) 
+roystonTest(hotdogs[hotdogs$type=='B',1:2]) 
+hzTest(hotdogs[hotdogs$type=='B',1:2],qqplot=TRUE) 
+mardiaTest(hotdogs[hotdogs$type=='C',1:2]) 
+roystonTest(hotdogs[hotdogs$type=='C',1:2]) 
+hzTest(hotdogs[hotdogs$type=='C',1:2],qqplot=TRUE) 
+```
+
+All of the hypothesis tests indicate that the data could be sampled from multivariate normal distributions.  The qqplots seem somewhat linear, but the last one (for type C) seems to depart a little from linearity.  Given the robustness of MANOVA it is probably safe to assume multivariate normality.
+
+### Part 2b  
+
+Conduct Box's M Test to test for equality of covariances. Use a 5% level of significance.
+
+(i) Is there sufficient evidence to conclude that the covariance matrices are not equal?
+
+(ii) Based on the criteria of multivariate normality and equal covariance matrices, is it appropriate to proceed with MANOVA?
+
+### -|-|-|-|-|-|-|-|-|-|-|- Answer 2b -|-|-|-|-|-|-|-|-|-|-|-
+
+```{r}
+source('BoxMTest.R')
+out<-BoxMTest(as.matrix(hotdogs[,1:2]),hotdogs$type)
+```
+
+(i) There is insufficient evidence at a 5% level of significance to claim that the covariance matrices are not equal (p=0.4760).
+
+(ii) Yes
+
+### Part 2c
+
+Regardless of the outcomes of the previous hypothesis tests, conduct a MANOVA to determine if there are differences between beef, poultry, and meat hot dogs for the population mean vectors when sodium and calorie content are considered together.  Use the Wilk's Lambda statistic and let $\alpha=0.05$.
+
+Provide the R code, output, and state the following:
+
+(i) Null and alternative hypotheses 
+
+(ii) P-value, 
+
+(iii) State the conclusion for the test
+
+### -|-|-|-|-|-|-|-|-|-|-|- Answer 2c -|-|-|-|-|-|-|-|-|-|-|-
+
+```{r}
+mv.out <- manova(cbind(hotdogs$sodium,hotdogs$calories)~hotdogs$type)
+summary(mv.out,test="Wilks")
+```
+
+(i) $H_0$: The population mean vectors for sodium and calories are equal for the three hot dog types. 
+
+$H_a$: At least one mean vector differs from another.
+
+(ii) 1.857e-13
+
+(iii) Reject $H_0$ at $\alpha=0.05$ (p=1.857e-13).  There is sufficient evidence in the sample to conclude that at least one mean vector differs from another.
+
+### Part 2d
+
+Follow up with univariate ANOVAs and Tukey multiple comparisons on the response variables to see which the population means differ.  Use a 5% level of significance for each univariate ANOVA and each Tukey procedure.
+
+Write a few sentences summarizing the differences that you find (in the context of the problem).
+    
+### -|-|-|-|-|-|-|-|-|-|-|- Answer 2d -|-|-|-|-|-|-|-|-|-|-|-
+
+```{r}
+summary.aov(mv.out)
+sod.out <- aov(sodium~type,data=hotdogs)
+TukeyHSD(sod.out,"type")
+cal.out <- aov(calories~type,data=hotdogs)
+TukeyHSD(cal.out,"type")
+```
+
+There is not enough evidence to conclude that differences in population mean sodium exist among the three hot dog types, but with 95% confidence, the mean calorie content for all meat hotdogs is 19.4 to 56.8 calories less than the mean for all beef hot dogs and is 13.5 to 52.4 calories less than the mean for all poultry hot dogs while no significant difference was found in mean calorie content between beef and poultry hot dogs.
+
+### Part 2e
+
+Using linear discriminant analysis, obtain the linear combination of sodium and calories given by LD1. 
+    
+### -|-|-|-|-|-|-|-|-|-|-|- Answer 2e -|-|-|-|-|-|-|-|-|-|-|-
+
+```{r}
+library(MASS)
+fit <- lda( type~sodium+calories,data=hotdogs) # fit model
+fit
+plda <- predict(object=fit, newdata=hotdogs) # compute combinations
+ld1 <- plda$x[,1] # extract most separating combination
+```
+
+### Part 2f
+
+Using the linear combination of sodium and calories given by LD1, conduct the Tukey HSD multiple comparisons procedure to determine which hot dog types differ with respect to this most discriminating linear combination.  Use a 95% level of confidence.
+
+Report on the results.
+    
+### -|-|-|-|-|-|-|-|-|-|-|- Answer 2f -|-|-|-|-|-|-|-|-|-|-|-
+
+```{r}
+ld1.out <- aov(ld1~type,data=hotdogs)
+TukeyHSD(ld1.out,"type")
+```
+
+With 95% confidence, the population mean for this linear combination for beef hot dogs is significantly higher than for both poultry and meat hot dogs and the mean for all poultry hot dogs exceeds that of all meat hot dogs.

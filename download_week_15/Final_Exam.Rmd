@@ -1,0 +1,474 @@
+
+---
+title: "Final Exam"
+author: "Spencer Swartz"
+date: "May 4, 2017"
+output: word_document
+fontsize: 12pt
+---
+
+## Problem 1
+### Part 1a
+### -|-|-|-|-|-|-|-|-|-|-|- Answer 1a -|-|-|-|-|-|-|-|-|-|-|-
+
+(i)
+```{r}
+require(DS705data)
+load("careerbarrier.rda")
+require(psych)
+mat <- cor(careerbarrier)
+cortest.bartlett(mat,n=76)
+```
+
+(ii)
+Null Hypothesis: The correlation matrix is the identity matrix.
+Alternative Hypothesis: The correlation matrix is not the identity matrix.
+
+(iii)
+Reject the null hypothesis (p=0) at a 5% level of significance. The correlation matrix is not the identity matrix.
+
+(iv)
+p=0
+
+### Part 1b1
+### -|-|-|-|-|-|-|-|-|-|-|- Answer 1b1 -|-|-|-|-|-|-|-|-|-|-|-
+
+(i)
+```{r}
+KMO(mat)
+```
+
+(ii)
+MSA = 0.68
+
+(iii)
+Yes
+
+(iv)
+Yes
+
+(v)
+money
+
+### Part 1b2
+### -|-|-|-|-|-|-|-|-|-|-|- Answer 1b2 -|-|-|-|-|-|-|-|-|-|-|-
+
+(i)
+```{r}
+mat <- cor(careerbarrier[,2:15])
+KMO(mat)
+```
+
+(ii)
+MSA = 0.7
+
+(iii)
+Yes
+
+(iv)
+No
+
+(v)
+none
+
+### Part 1c
+### -|-|-|-|-|-|-|-|-|-|-|- Answer 1c -|-|-|-|-|-|-|-|-|-|-|-
+
+(i)
+```{r}
+output <- princomp(careerbarrier[,2:15], cor=TRUE)
+plot(output,type="lines") # scree plot 
+abline(h=1,lty=2)
+output
+```
+
+(ii)
+3
+
+(iii)
+5
+
+### Part 1d
+### -|-|-|-|-|-|-|-|-|-|-|- Answer 1d -|-|-|-|-|-|-|-|-|-|-|-
+
+(i)
+```{r}
+fan <- principal(careerbarrier[,2:15],nfactors=5,rotate="varimax")
+print(fan,cut=.5,sort=TRUE)
+```
+
+(ii)
+65%
+
+(iii)
+yes >60%
+
+## Problem 2
+### Part 2a
+### -|-|-|-|-|-|-|-|-|-|-|- Answer 2a -|-|-|-|-|-|-|-|-|-|-|-
+
+(i)
+```{r}
+load("farmpondquality.rda")
+farmpondquality.z <- scale(farmpondquality)
+```
+
+
+### Part 2b  
+### -|-|-|-|-|-|-|-|-|-|-|- Answer 2b -|-|-|-|-|-|-|-|-|-|-|-
+
+(i)
+```{r}
+output <- hclust(dist(farmpondquality.z))
+plot(output)
+rect.hclust(output,h=5)
+```
+
+(ii)
+4
+
+### Part 2c
+### -|-|-|-|-|-|-|-|-|-|-|- Answer 2c -|-|-|-|-|-|-|-|-|-|-|-
+
+(i)
+```{r}
+farmpondquality$clusternumber <- cutree(output, h=5)
+summary(as.factor(farmpondquality$clusternumber))
+round(aggregate(farmpondquality,by=list(farmpondquality$clusternumber),FUN=mean),2)
+```
+
+(ii)
+```{r}
+wss <- (nrow(farmpondquality.z)-1)*sum(apply(farmpondquality.z,2,var))
+for (i in 2:15) wss[i] <- sum(kmeans(farmpondquality.z,
+                                     centers=i)$withinss)
+plot(1:15, wss, type="b", xlab="Number of Clusters",
+     ylab="Within groups sum of squares",
+     main="Using Standardized Values") 
+```
+
+(iii)
+It looks to me like the knee is at 4 so we will use 4 clusters.
+
+(iv)
+```{r}
+set.seed(0)
+fit <- kmeans(farmpondquality.z,centers = 4,nstart = 25)
+fit
+round(aggregate(farmpondquality,by=list(fit$cluster),FUN=mean),2)
+```
+
+## Problem 3
+### Part 3a
+### -|-|-|-|-|-|-|-|-|-|-|- Answer 3a -|-|-|-|-|-|-|-|-|-|-|-
+
+(i)
+```{r}
+Naus <- c(98,110,161)
+NoNaus <- c(264,321,280)
+NausTable <- rbind(Naus,NoNaus)
+dimnames(NausTable) <- list( pheno = c("Nausea","No Nausea"),type =c ("Front","Middle","Rear") )
+out <- chisq.test(NausTable,correct=FALSE)
+out
+min(out$expected)
+```
+
+(ii)
+$H_O$: Nausea and Seat Position are independent.
+
+$H_a$: Nausea and Seat Position are associated.
+
+(iii)
+x-sqr = 14.509
+
+(iv)
+df = 2
+
+(v)
+p = 0.0007
+
+(vi)
+Reject $H_0$ at a 5% level of significance.  There is sufficient evidence to conclude that Nausea and Seat Position are associated.
+
+### Part 3b
+### -|-|-|-|-|-|-|-|-|-|-|- Answer 3b -|-|-|-|-|-|-|-|-|-|-|-
+
+(i)
+```{r}
+prop.test(98,362,conf.level=.9,correct=FALSE)
+```
+
+(ii)
+0.234
+
+(iii)
+0.311
+
+(iv)
+With 95% confidence, the population proportion of people that sit in the front and report nausea is between 0.234 and 0.311. 
+
+That is, between 23.4% and 31.1% of people that sit in the front report nausea, with 95% confidence.
+
+### Part 3c
+### -|-|-|-|-|-|-|-|-|-|-|- Answer 3c -|-|-|-|-|-|-|-|-|-|-|-
+
+(i)
+```{r}
+(161/98)/(280/264)
+```
+
+(ii)
+1.549
+
+(iii)
+The odds of having nausea for someone who is sitting in the rear are 1.549 times as high as for someone who is sitting in the front. 
+
+## Problem 4
+### Part 4a
+### -|-|-|-|-|-|-|-|-|-|-|- Answer 4a -|-|-|-|-|-|-|-|-|-|-|-
+
+(i)
+```{r}
+load("rent.rda")
+boxplot(monthlyrent$rent~monthlyrent$type)
+```
+
+(ii)
+The two groups look to have fairly normally shapes and distributions. There are no outliers in either group. That being said it looks like the range of rent between the two groups vary, the 3 bedroom apartments range from ~\$500 to ~\$750, where as the 2 bedrooms range from ~\$450 to ~\$575. 
+
+### Part 4b
+### -|-|-|-|-|-|-|-|-|-|-|- Answer 4b -|-|-|-|-|-|-|-|-|-|-|-
+
+(i)
+```{r}
+b2 <- monthlyrent$rent[monthlyrent$type=="2 Bedrooms"]
+b3 <- monthlyrent$rent[monthlyrent$type=="3 Bedrooms"]
+shapiro.test(b2)
+shapiro.test(b3)
+```
+
+(ii)
+For both populations we do not reject the null hypothesis (b2-pval = 0.8423, b3-pval = 0.2596), The distributions of the two different appartment styles seem to be normal.
+
+### Part 4c
+### -|-|-|-|-|-|-|-|-|-|-|- Answer 4c -|-|-|-|-|-|-|-|-|-|-|-
+
+(i)
+```{r}
+require(car)
+test <- leveneTest(monthlyrent$rent~monthlyrent$type)
+test
+```
+
+(ii)
+Let $\sigma_1^2$ = population variance in the rent for two bedroom apartments.
+Let $\sigma_2^2$ = population variance in the rent for three bedroom apartments.
+
+$H_0: \sigma_1^2 = \sigma_2^2, H_1: \sigma_1^2 \neq \sigma_2^2.$
+
+(iii)
+p = 0.0134
+
+(iv)
+Reject $H_0$ at $\alpha = .05$ (P = 0.0134) indicating that there is evidence to show that the population variances, of rent, are different for two and three bedroom apartments.  
+
+### Part 4d
+### -|-|-|-|-|-|-|-|-|-|-|- Answer 4d -|-|-|-|-|-|-|-|-|-|-|-
+
+(i)
+```{r}
+t.test(monthlyrent$rent~monthlyrent$type, var.equal=F, conf.level=0.9)
+```
+
+(ii)
+$H_0: \mu_{\mbox{two_bed}} = \mu_{\mbox{three_bed}}, H_a: \mu_{\mbox{two_bed}} \neq \mu_{\mbox{three_bed}}$
+
+(iii)
+t = 3.0105
+
+(iv)
+df = 12.32
+
+(v)
+p-value = 0.01057
+
+(vi)
+Reject $H_0$ at $\alpha = 0.05$ (P = 0.0106).  There is significant evidence to suggest that population mean rent is different for two and three bedroom apartments.
+
+(vii)
+We are 90% confident that the population mean rent for two bedroom apartments is between \$37.65 and \$146.35 different than the population mean rent of three bedroom apartments.
+
+## Problem 5
+### Part 5a
+### -|-|-|-|-|-|-|-|-|-|-|- Answer 5a -|-|-|-|-|-|-|-|-|-|-|-
+
+(i)
+```{r}
+load("gpa7th.rda")
+fit <- lm(y~x1+x2+x3+x1:x3+x2:x3,data=gpa7th)
+summary(fit)
+```
+
+(ii)
+Yes
+
+(iii)
+x3 and x2x3
+
+### Part 5b
+### -|-|-|-|-|-|-|-|-|-|-|- Answer 5b -|-|-|-|-|-|-|-|-|-|-|-
+
+(i)
+```{r}
+fit <- lm(y~x1+x2+x3+x1:x3,data=gpa7th)
+summary(fit)
+plot(fit)
+hist(fit$residuals)
+require(lmtest)
+bptest(fit)
+```
+
+(ii)
+No striking patterns seem to be present in the residual plots to indicate that the model assumptions of independence, homogeneity of variance, and normality are not met.
+
+(iii)
+At Alpha= 0.05, There is insufficient evidence to claim the residuals do not have equal variance (p=0.05924)
+
+### Part 5c
+### -|-|-|-|-|-|-|-|-|-|-|- Answer 5c -|-|-|-|-|-|-|-|-|-|-|-
+
+(i)
+```{r}
+fit <- lm(y~x1+x2+x3+x1:x3,data=gpa7th)
+newdata <- data.frame(x1=50,x2=105,x3="Auditory")
+predict.lm(fit,newdata,interval="confidence")
+```
+
+(ii)
+2.696
+
+(iii)
+3.299
+
+(iv)
+With 95% confidence, the confidence interval for GPA of a randomly selected student with x1=50,x2=105, and x3=Auditory is between 2.696 and 3.299.
+
+### Part 5d
+### -|-|-|-|-|-|-|-|-|-|-|- Answer 5d -|-|-|-|-|-|-|-|-|-|-|-
+
+(i)
+```{r}
+confint(fit)
+```
+
+With 95% confidence, the students gpa increases by 0.018 to 0.049 points for each 1 unit increase in x2.
+
+### Part 5e
+### -|-|-|-|-|-|-|-|-|-|-|- Answer 5e -|-|-|-|-|-|-|-|-|-|-|-
+
+(i)
+```{r}
+out <- glm(x3~y+x1+x2,data=gpa7th,family="binomial")
+summary(out)
+newdata <- data.frame(y=3.5,x1=50,x2=105)
+predict(out, newdata, type="response")
+```
+
+(ii)
+
+
+## Problem 6
+### Part 6a
+
+### -|-|-|-|-|-|-|-|-|-|-|- Answer 6a -|-|-|-|-|-|-|-|-|-|-|-
+
+(i)
+```{r}
+require(MVN)
+load("beef.rda")
+store10 <- as.matrix(beef[beef$STORAGE==10,2:4])
+store40 <- as.matrix(beef[beef$STORAGE==40,2:4])
+store80 <- as.matrix(beef[beef$STORAGE==80,2:4])
+store120 <- as.matrix(beef[beef$STORAGE==120,2:4])
+hzTest(store10,qqplot=TRUE)
+hzTest(store40,qqplot=TRUE)
+hzTest(store80,qqplot=TRUE)
+hzTest(store120,qqplot=TRUE)
+```
+
+(ii)
+All of the hypothesis tests indicate that the data could be sampled from multivariate normal distributions. The qqplots seem somewhat linear,  Given the robustness of MANOVA it is probably safe to assume multivariate normality.
+
+### Part 6b
+### -|-|-|-|-|-|-|-|-|-|-|- Answer 6b -|-|-|-|-|-|-|-|-|-|-|-
+
+(i)
+No
+
+(ii)
+```{r}
+source('BoxMTest.R')
+out<-BoxMTest(as.matrix(beef[,2:4]),beef$STORAGE)
+```
+
+(iii)
+Yes
+
+### Part 6c
+### -|-|-|-|-|-|-|-|-|-|-|- Answer 6c -|-|-|-|-|-|-|-|-|-|-|-
+
+(i)
+```{r}
+mv.out <- manova(cbind(beef$BEEFY,beef$BLOODY,beef$GRASSY)~beef$STORAGE)
+summary(mv.out,test="Wilks")
+```
+
+(ii)
+$H_0$: The population mean vectors for beefy, bloody and grassy aromas are equal for the 4 storage times. 
+
+$H_a$: At least one mean vector differs from another.
+
+(iii)
+Reject $H_0$ at $\alpha=0.05$ (p=3.816e-8).  There is sufficient evidence in the sample to conclude that at least one mean vector differs from another.
+
+(iv)
+0
+
+### Part 6d
+
+### -|-|-|-|-|-|-|-|-|-|-|- Answer 6d -|-|-|-|-|-|-|-|-|-|-|-
+
+(i)
+```{r}
+summary.aov(mv.out)
+beefy.out <- aov(BEEFY~STORAGE,data = beef)
+TukeyHSD(beefy.out,"STORAGE")
+bloody.out <- aov(BLOODY~STORAGE,data=beef)
+TukeyHSD(bloody.out,"STORAGE")
+grassy.out <- aov(GRASSY~STORAGE,data=beef)
+TukeyHSD(grassy.out,"STORAGE")
+```
+
+(ii)
+There is not enough evidence to conclude that differences in population mean beefy aroma as well as bloody aroma exist among storage times 40~10 and 120~80. In addtion there is not enough evidence to conclude that differences in population mean grassy aroma exist among the storage times 40~10. But with 95% confidence, we can see that the shorter the storage time the higher the score in relation to aroma between the remaining storage pairs.
+
+
+(iii)
+
+
+(iv)
+
+
+(v)
+
+
+(vi)
+
+
+(vii)
+
+
+(viii)
+
+
+(ix)

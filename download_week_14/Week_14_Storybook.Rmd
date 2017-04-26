@@ -1,0 +1,482 @@
+---
+title: 'Cluster Analysis'
+output:
+  beamer_presentation:
+    colortheme: default
+    fonttheme: default
+    keep_tex: yes
+    template: ../beamer169experimental.tex
+fontsize: '12pt'
+---
+
+```{r global_options, include=FALSE, echo=FALSE}
+# use for beamer
+knitr::opts_chunk$set(fig.width=3, fig.height=1.5, fig.align='center',warning=FALSE, message=FALSE)
+library(knitr)
+library(psych)
+#load("~/Google Drive/DS 705 CEOEL Folder/class_material/Weekly Content/week 14/judges.rda")
+load('judges.rda')
+# use for word
+# knitr::opts_chunk$set(fig.width=4, fig.height=3,warning=FALSE, message=FALSE)
+```
+
+## The Purpose of Clustering
+
+The purpose of cluster analysis is to classify individuals into homogeneous subgroups that have not been established in advance.
+
+<div class="notes">
+
+Cluster analysis is the term given to a broad class of unsupervised classification techniques.  They are called unsupervised because there is no categorical response variable indicating a group membership in advance.  Even the number of clusters is unknown.  The underlying structure of the data determines the group membership.
+
+The idea is to use distances among a set of quantitative variables on a sample or a population to discover clusters that are said to be homogeneous because of the mathematical proximity to each other in a p-dimensional space.
+
+To find homogeneous subgroups, there must be some measure of similarity or dissimilarity between individual observations as well as clusters of observations.
+
+Cluster analysis is used extensively in data mining and machine learning. 
+
+</div>
+
+----
+
+## Cluster Analysis vs. Factor Analysis
+
+
+
+
+<div class="notes">
+
+Cluster analysis and factor analysis may seem at first like they are going about the same task.  However, some of the differences are as follows.  Cluster analysis seeks to group like individuals while factor analysis groups variables with shared variation.
+
+That is, clusters are based on homogeneity of the individuals, while factors are based on correlations among variables.  Cluster analysis is about partitioning or classification and factor analysis is typically about data reduction or measuring latent variables that can't otherwise be measured.
+
+</div>
+
+----
+
+## Euclidean Distance
+
+\LARGE
+
+$$d_{ij} = \left[ \sum_{k=1}^{q}(x_{ik}-x_{jk})^2 \right] ^{\frac{1}{2}}$$
+
+<div class="notes">
+
+Euclidean distance reduces to the standard distance formula in two dimensions - or even just simple subtraction in one dimension.  While there are a variety of choices for how to measure distances, Euclidean distance is a very common and practical measure to use for measuring similarity or dissimilarity in cluster analysis.
+
+This formula gives the Euclidean distance between individual i and individual j across q variables.
+
+
+bottom panel note:  
+See section 1.3.5 on p. 7 of Everitt's book.
+The R function dist() gives Euclidean distance as the default.
+
+</div>
+
+----
+
+## Clustering Strategies
+
+* Hierarchical Clustering
+    - Agglomerative hierarchical clustering (**hclust**)
+ 
+\vspace{1em}
+ 
+* Non-hierarchical Clustering
+    - K-Means Clustering (**kmeans**)
+
+<div class="notes">
+
+Hierarchical clustering occurs when the method forms groups in a nested sequence of clusterings.  In general, these procedures begin with each individual assigned to its own cluster and proceeds in steps to merge clusters together on the basis of some distance measure until all of the clusters are merged into a single cluster.  
+
+The appropriate number clusters would be somewhere between 1 and the sample size.  It is not always easy to determine the best choice for the number of clusters to choose.
+
+We will consider only one hierarchical method in this class - agglomerative hierarchical clustering using the complete linkage method - the default with hclust in R.  Complete linkage measures dissimilarity between clusters as the farthest distance between individuals within each -sometimes called the "furthest neighbor".
+
+Non-hierarchical methods generally begin with some initial set of cluster points and proceeds to partition the sample into a specified number of clusters on the basis of some distance measure.  
+
+K-means is a popular method and is the method we will consider in this class  
+
+</div>
+
+----
+
+## Clustering in R with **hclust** 
+
+* Standardize the variables first 
+    - z-scores
+    - scale by dividing by the standard deviation (or range, mean, or maximum)
+
+* Dendrogram
+    - plot the cluster dendrogram
+    - choose a number of clusters or choose a height at which to cut
+ 
+
+<div class="notes">
+
+Unless the variables are all measured on the same scale, variables with larger variability can dominate the distance measures used to establish clusters.  Standardizing evens the playing field in this respect.
+
+An examination of the dendrogram can be helpful in selecting the number of clusters to end with, but this is a subjective decision.  A search of the literature on cluster analysis will reveal several methods for selecting the number of clusters, but we will be simply making a visual judgment by looking at the dendrogram.
+
+</div>
+
+----
+
+## Clustering in R with **kmeans**
+
+* Standardize the variables first 
+    - z-scores
+    - scale by dividing by the standard deviation (or range, mean, or maximum)
+    
+* Specify the number of clusters
+    - plot the within-groups sum of squares against the number of clusters and look for the "knee" in the plot
+    
+* Outliers?
+
+<div class="notes">
+
+As with hierarchical clustering, standardizing the original variables should be done when they are measured on different scales.  In a manner similar to the way the  scree plot is used in factor analysis, finding the bend or the knee in the plot of within sum of squares against the number of clusters has been used as a guideline for choosing the number of clusters in the analysis. 
+
+Again, a search of the literature on cluster analysis will reveal several methods for selecting the number of clusters for k-means clustering, but we will be simply making a visual judgment by looking at the plot of within sum of squares against the number of clusters.
+
+It may be wise to evaluate a few different clusterings to determine which is most convincing.  The presence of outliers for any of the variables involved in the clustering can lead to difficulties in the procedure producing reliable results, so an examination of boxplots can be helpful.  I'm not advocating just throwing all outliers out of the analysis, but it can be informative to run a cluster analysis with and without the outliers to see what effects the outliers are having on the clustering.  
+
+I felt obligated to mention this, but we will not be overly concerned with this aspect in our homework and tests in this course.
+
+bottom panel note:
+See Figure 6.7 on p. 126 in Everitt's book
+
+</div>
+
+----
+
+## Using the Cluster Assignments
+
+* Append the data set with a new variable that identifies the cluster assignment for each individual
+* Examine the cluster assignments
+    - how many individual are in each cluster?
+    - what are the means for the other variables within each cluster?
+    - do the groupings seem homogeneous in meaningful ways?
+* Use cluster assignments in other analyses as needed (ANOVA & MANOVA, for example)
+
+<div class="notes">
+
+
+
+</div>
+
+----
+
+## Criteria for Good Clustering
+
+* It detects structures present in the data
+* It enables the optimal number of clusters to be determined
+* Clusters are clearly differentiable
+* Clusters remain stable when there are small changes in the data
+* It processes large data efficiently
+* It handles both quantitative and categorical data (more advanced techniques are required with categorical variables)
+
+<div class="notes">
+
+
+bottom panel note:  
+This list was taken from p. 242 of Data Mining and Statistics for Decision Making by Stephane Tuffery.
+
+</div>
+
+----
+
+## Example: Olympic Figure Skating Judges
+
+The International Olympic Committee (IOC), responding to media criticism, wants to test whether scores given by judges trained through the IOC program are "reliable"; that is, while the precise scores given by two judges may differ, good performances receive higher scores than average performances, and average performances receive higher scores than poor performances.
+
+Consider that the IOC has asked eight trained judges to score 300 performances.
+
+We will use this data to see if scores for the skating performances have an underlying structure that groups the performances into homogeneous clusters.
+
+<div class="notes">
+
+
+bottom panel note:
+Source: IBM SPSS Statistics data set
+</div>
+
+----
+
+## Example: Olympic Figure Skating Judges
+
+```{r}
+head(judges)
+```
+
+<div class="notes">
+
+So you can get a feel for the original data, here are the first 6 values out of 300 skater ratings for the 8 judges.
+
+bottom panel note:
+Source: IBM SPSS Statistics data set
+</div>
+
+----
+
+## Standardizing the variables
+
+```{r}
+judges.z <- scale(judges)
+round(head(judges.z),2)
+```
+
+
+<div class="notes">
+
+This may not be essential to the analysis here because the judges ratings should all be on the same scale.  However, since judges use the scale differently, standardizing will prevent judges who spread their scores out more from dominating the distance measures.
+
+The data has previously been loaded into R and the function scale simply replaces the observed value of each variable with its z-score.  To preserve the original data set, the standardized values here are stored in a new data matrix called judges.z.
+
+You note also here that the round function in R is used to display the values to 2 decimals places.  It just makes this easier to look at.
+
+</div>
+
+----
+
+## Scaling the variables without centering
+
+
+```{r}
+judges.s <- scale(judges, center = FALSE, 
+                  scale = apply(judges, 2, sd, na.rm = TRUE))
+round(head(judges.s),2)
+```
+
+<div class="notes">
+
+This time the scale function is used to replace the observed value of each variable with its scaled score as found by dividing the value of each variable by the standard deviation of that particular variable.  To preserve the original data set, the scaled values here are stored in a new data matrix called judges.s.  These values are not centered because the mean was not subtracted before dividing by the standard deviation as it is with z-scores.
+
+bottom panel note:
+Everitt does the same thing using different R code in his book (see p. 123, for example).
+
+</div>
+
+----
+
+## K-means Clustering: Selecting the Number of Groups
+
+```{r eval = FALSE}
+wss <- (nrow(judges.z)-1)*sum(apply(judges.z,2,var))
+for (i in 2:15) wss[i] <- sum(kmeans(judges.z,
+                                     centers=i)$withinss)
+plot(1:15, wss, type="b", xlab="Number of Clusters",
+     ylab="Within groups sum of squares",
+     main="Using Standardized Values") 
+```
+
+<div class="notes">
+
+K-means clustering requires the user to determine the number of clusters.
+
+Plotting the within groups sum of squares against the number of clusters can provide some visual information that can be used to decide how many clusters to use.  This code may seem a bit tedious here with the for loop, but essentially it is computing the within group sum of squares for each k-means solution for the 1-cluster solution, the 2-cluster solution, and so on up through the 15-cluster solution.
+
+The sums of squares are stored in a new vector called wss, from which they can be plotted using the plot function.
+
+I'm using the standardized values here, but the scaled values could be used just as well.
+
+</div>
+
+----
+
+## K-means Clustering: Selecting the Number of Groups
+
+```{r  echo = FALSE, eval= FALSE}
+wss <- (nrow(judges.z)-1)*sum(apply(judges.z,2,var))
+for (i in 2:15) wss[i] <- sum(kmeans(judges.z,
+                                     centers=i)$withinss)
+plot(1:15, wss, type="b", xlab="Number of Clusters",
+     ylab="Within groups sum of squares",main="Using Standardized Values") 
+```
+
+\begin{center}
+\includegraphics[width=3.5in]{./figures/WSSplot.pdf}
+\end{center}
+
+<div class="notes">
+
+This plot is used in the same way as the scree plot in factor analysis.  The location of the knee or bend in the plot - the number of clusters at which the plot begins to straighten out - is thought to be a good choice for the number of clusters.
+
+There is still some subjectivity in where the knee occurs.  What would you say here? 
+
+I'm thinking 3 clusters will do. 
+
+</div>
+
+----
+
+## K-means Clustering
+
+```{r eval=FALSE}
+kmeans(judges.z,centers=3,nstart=25)
+```
+
+\small
+
+```{r echo=FALSE}
+# trim the output to fit on one slide
+set.seed(10) # I only did this so the cluster numbers would match the next output
+require(utils)
+tmp <- noquote( 
+  capture.output( 
+    kmeans(judges.z,3,nstart=25)
+    )
+  )
+write.table(tmp[1:7],quote=F,row.names=F,col.names=F)
+```
+
+<div class="notes">
+
+Note that you need only to tell R the data matrix and the number of clusters to get results. In this case, the data matrix doesn't have any extraneous variables that I need to exclude.  All of the variables will be considered in the analysis.  Be careful to check for things like a subject ID column or for other variables that you don't want to include in the cluster analysis - like categorical variables, for example.  Categorical variables must be handled differently and we won't be covering that in this course.
+
+Since K-means cluster analysis starts with k randomly chosen centroids, a different solution can be obtained each time the function is invoked. You can use the set.seed() function to guarantee that the results are reproducible. The k-means clustering approach can be sensitive to the initial selection of centroids so it has a an nstart option that attempts multiple initial configurations and reports on the best one. For example, adding nstart=25 will generate 25 initial configurations. This approach is often recommended.  I got this tip from a web page called r-statistics.com.
+
+I'm displaying just the first part of the output here, which begins by showing the number of observations that fall within each cluster.  
+
+The cluster means shown here are the means of the z-scores within each cluster, so it may take a little more care when it comes to interpreting them.  The font was big enough on this slide so that the means for judges 7 and 8 are not visible, but you get the idea.
+
+bottom panel note:
+The kmeans function is in the package called "stats" which is most likely already loaded when you open R.
+
+</div>
+
+----
+
+## K-means Clustering: Handling the Output
+
+```{r echo=FALSE}
+set.seed(10)  # I only did this so the cluster numbers would match the previous output
+```
+
+```{r}
+fit <- kmeans(judges.z,3,nstart=25)
+round(aggregate(judges,by=list(fit$cluster),FUN=mean),2)
+```
+
+<div class="notes">
+
+In order to try to interpret the clustering, characteristics of the clusters can be examined.  A good place to start may be to find the sample means for each cluster using the original data values.  The R code shown here accomplishes that along with code to round the means to 2 decimal places - to make it easier on the eyes.
+
+This time I'm assigning the kmeans output to an object that I have decided to call fit and then using them with the original unstandardized data frame called judges in the aggregate function to find the cluster means.  Note also that the word centers doesn't have to be typed into the code, the R program knows the number entered in the location represents the desired number of clusters.
+
+As you look at the means of each judge for the 2 clusters, do you notice any patterns?  Are the clusters homogeneous in some way?  Let's think about this.  Notice that cluster 2 has the highest mean for all of the judges, even though it varies from judge to judge.  Similarly, cluster 1 has the smallest mean for all of the judges and cluster 3's means are in the middle.  There is no significance to the assignment of the cluster number.  Only that they are distinct clusters.  Therefore, we might conclude with these scores that even though there is some variation from judge to judge, there are still 3 tiers of skater quality - kind of a high, medium, and low. 
+
+</div>
+
+----
+
+## Creating plots that show clustering for two variables
+
+```{r eval=FALSE, echo=FALSE}
+plot(judges[c("judge1", "judge2")], col = fit$cluster)
+```
+
+\begin{center}
+\includegraphics[width=3.5in]{./figures/J1vJ2.pdf}
+\end{center}
+
+<div class="notes">
+
+Even though we are only looking at two of the variables used in the clustering, it begins to confirm our intuition that the clusters are formed as low, medium, and high ratings for skaters.  I encourage you to load the judges data, run the cluster analysis, and plot other pairs of judges ratings to see if they also bear out this pattern.
+
+bottom panel note:
+You can see the R code for making this plot by opening this file and everything else done in these slides in the weekly download material.  Just copy, paste, and edit what you want!
+
+</div>
+
+----
+
+## Agglomerative Hierarchical Clustering
+
+```{r eval=FALSE}
+output <- hclust(dist(judges.s))
+plot(output)
+```
+
+<div class="notes">
+
+Here the hclust function is used around the dist function to produce output for for the judges ratings that have been scaled by dividing each value by the standard deviation.The dist function finds Euclidean distances by default and the hclust default settings are to use complete linkage (also called furthest neighbor) clustering. 
+
+I've stored the output in an object called "output."  Using the plot function on this output produces a cluster dendrogram.
+
+</div>
+
+----
+
+## The Dendrogram
+
+```{r echo=FALSE, eval=FALSE}
+output<-hclust(dist(judges.s))
+plot(output)
+```
+
+\begin{center}
+\includegraphics[width=3.5in]{./figures/Dendrogram.pdf}
+\end{center}
+
+<div class="notes">
+
+This one gets a little ugly at the bottom because the labels at the bottom print so close together and there are 300 of them jammed into such a small space.  The detail to look at, however, is how the dendrogram divides from the top down.  What looks like a reasonable height at which to cut the dendrogram?  
+
+It seems reasonable to me to cut at about 5 and thus create 3 clusters, though it depends on the application and the interpretability of the resulting clusters.
+
+
+</div>
+
+----
+
+## The Dendrogram
+
+```{r echo=FALSE, eval=FALSE}
+output<-hclust(dist(judges.s))
+plot(output)
+rect.hclust(output, h=5)
+```
+
+\begin{center}
+\includegraphics[width=3.5in]{./figures/Dendrogram2.pdf}
+\end{center}
+
+<div class="notes">
+
+The clusters look like there are plenty of cases in each.  Next we'll append the data file with a new variable that identifies which cluster each individual falls into and use them to examine the clusters.  We should see some level of homogeneity within each cluster.
+
+bottom panel note:
+rect.hclust(output,h=5) was the R code that produced this plot.
+You can also directly specify that you want 3 clusters by using the code
+rect.hclust(output,3)
+
+</div>
+
+----
+
+## Appending the original data frame with cluster identifier, looking at means and cluster sizes
+
+\small
+
+```{r}
+output<-hclust(dist(judges.s))
+judges$clusternumber <- cutree(output, h=5)
+round(aggregate(judges[,1:8],by=list(judges$clusternumber),FUN=mean),2)
+```
+
+```{r}
+summary(as.factor(judges$clusternumber))
+```
+
+<div class="notes">
+
+Once again, we see with this clustering - using hierarchical clustering with complete linkage on the scaled variables and cutting the dendrogram at a height of 5 to get 3 clusters, that we have clusters that are similar to those formed with the k-means clustering on the standardized data.  Each judge may use the scoring scale slightly differently, but the skater ratings fall into groups that could be classified as low, medium, and high.  
+
+These examples also reveal some of the variations that can occur between clustering techniques.  When you compare the number of skater performances that fall into each cluster, the previous k-means clustering put 106 skaters in the high scoring group, 114 in the middle group, and 80 in the lowest rated group, whereas the hierarchical clustering method placed only 68 in the high scoring group, 144 in the middle group, and 88 in the lowest rated group.  
+
+If you back up a few slides to see the plot of judge1 against judge2, you will see that the plot colors indicating cluster membership blend together and that there are a number of individuals on the border that could reasonable be grouped with a different cluster depending on how the method and what variation is used.  In the grand scheme of things, it may or may not be meaningful which cluster a borderline case is placed into.  
+
+</div>
+
+----
+

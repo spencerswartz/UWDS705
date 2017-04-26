@@ -1,0 +1,501 @@
+
+---
+title: "Exam 1"
+author: "DS 705"
+date: "October ??, 2015"
+output: word_document
+fontsize: 12pt
+---
+
+```{r echo=FALSE}
+# leave alone, this block for grading
+pts <- NULL
+pts.poss <- NULL
+display.grades <- TRUE
+scoreFunction <- function(prb,earned,possible){
+  pts[prb] <<- earned
+  pts.poss[prb] <<- possible
+  if (display.grades){
+      print( paste('Score for',prb,':',earned,'/',possible))
+  }
+}
+```
+
+This is an exam.  Do your own work and do not collaborate with others.  Use any materials that you like, but no discussion please.  You may ask questions of the instructor.
+
+## Problem 1  
+
+Investigators studying the effects of sodium deficiency in chickens observed that birds deprived of sodium showed an increase in spontaneous activity, partly measured by pecking activity.  The number of bird pecks per bird was recorded for 17 eleven-week old chickens that were fed a low-sodium diet for 22 days, and 15 eleven-week old chickens that were fed a standard ration for 22 days.  
+
+The data set is called BirdPecks.rda.  Note, this data is *not* part of the DS705data package.  To use it, set your working directory containing all of the files from the download pack and use load('BirdPecks.rda').  Other data for this exam is similar.
+
+
+### Part 1a 
+
+Load the data set and create boxplots and histograms for the samples. 
+
+### -|-|-|-|-|-|-|-|-|-|-|- Answer 1a -|-|-|-|-|-|-|-|-|-|-|-
+
+```{r fig.width=3, fig.height=3}
+load('BirdPecks.rda')
+str(BirdPecks) # notice that group is a numeric vector, not a factor
+BirdPecks$group <- factor(BirdPecks$group)
+boxplot(BirdPecks$pecks~BirdPecks$group)
+g1 <- BirdPecks$pecks[BirdPecks$group==1]
+g2 <- BirdPecks$pecks[BirdPecks$group==2]
+hist(g1)
+hist(g2)
+```
+
+```{r echo=FALSE}
+# leave alone, this block for grading
+scoreFunction("1a",0,6)
+```
+
+---
+
+### Part 1b 
+
+Briefly describe the distributions with respect to their shape, variability, outliers.
+
+### -|-|-|-|-|-|-|-|-|-|-|- Answer 1b -|-|-|-|-|-|-|-|-|-|-|-
+
+The pecks data for the two groups have similar right skewed shapes.  Each has outliers at the high end of the data and the variability or spread of each data set seems to be similar. Because of the skewness of the distributions, it isn't appropriate to assume that they are normal distributions, but since the distributions have similar shapes, but appear to be shifted, the Wilcoxon Rank Sum test is an ideal choice.  
+
+```{r echo=FALSE}
+# leave alone, this block for grading
+scoreFunction("1b",0,6)
+```
+
+---
+
+### Part 1c
+    
+Test the for equality of population variances.  Let $\alpha = 0.05$. Include all the steps, that is, be sure to state the null and alternative hypotheses, provide the R code and output for the test statistic and p-value, and state the conclusion for the test.
+
+### -|-|-|-|-|-|-|-|-|-|-|- Answer 1c -|-|-|-|-|-|-|-|-|-|-|-
+Let $\sigma_1^2$ = population variance in the number of pecks for chicks on the low sodium ration.
+Let $\sigma_2^2$ = population variance in the number of pecks for chicks on the standard ration.
+
+$H_0: \sigma_1^2 = \sigma_2^2, H_1: \sigma_1^2 \neq \sigma_2^2.$
+
+```{r}
+require(car)
+test <- leveneTest(BirdPecks$pecks,BirdPecks$group)
+test
+# Insert your R code here.
+```
+
+Do not reject $H_0$ at $\alpha = .05$ ($P = `r round(test[[3]],3)`$) indicating that there is not evidence to show that the population variances, of the number of pecks, are different for chicks fed a low sodium ration or a standard ration.  (Levene's Test is not all that appropriate here since the population distributions do not appear to be approximately normally distributed.  Moreover, inspection of the boxplots and histograms is sufficient to conclude that the populations likely have similar variances.)
+
+```{r echo=FALSE}
+# leave alone, this block for grading
+scoreFunction("1c",0,8)
+```
+
+---
+
+### Part 1d
+    
+Conduct tests for the normality of the number of bird pecks for each population.  Let $\alpha = 0.05$ for each test. State the null and alternative hypotheses, provide the R code and output for the test statistics and p-values, and state the conclusions for each test.
+
+### -|-|-|-|-|-|-|-|-|-|-|- Answer 1d -|-|-|-|-|-|-|-|-|-|-|-
+
+The hypotheses are the same for each population:
+$H_0:$ population distribution is normal.
+$H_1:$ population distribution is not normal.
+
+
+```{r}
+shapiro.test(g1)
+shapiro.test(g2)
+```
+
+For both populations we reject the null hypothesis.  The very small $P$-values suggest, in both cases, that we should reject the null hypothesis and confirm what we observed in the histograms.  The distribution of the number of pecks is not normal for either population of chicks.
+
+```{r echo=FALSE}
+# leave alone, this block for grading
+scoreFunction("1d",0,8)
+```
+
+----
+
+### Part 1e 
+    
+Use R to construct an appropriate interval to estimate the difference in the central population values for the number of bird pecks for all chickens on the low sodium diet and the standard diet using a 90% level of confidence.
+
+### Answer 1e
+
+```{r}
+pecks.ci <- wilcox.test(g1,g2,conf.int=TRUE,conf.level=0.9)$conf.int
+pecks.ci
+```
+
+```{r echo=FALSE}
+# leave alone, this block for grading
+scoreFunction("1e",0,6)
+```
+
+---
+
+### Part 1f
+
+Write an interpretation in the context of the problem for the 90% CI.
+
+### -|-|-|-|-|-|-|-|-|-|-|- Answer 1f -|-|-|-|-|-|-|-|-|-|-|-
+
+We are 90% confident that the population median number of pecks for chicks on the low-sodium ration is `r pecks.ci[1]` to `r pecks.ci[2]` greater than the population median number of pecks for chicks on a standard ration.
+
+
+```{r echo=FALSE}
+# leave alone, this block for grading
+scoreFunction("1f",0,4)
+```
+
+---
+
+### Part 1g
+
+Was it necessary to make any assumptions about the data in order for the confidence interval for the difference in bird pecks to be accurate and valid?  If so, what are they?
+
+### -|-|-|-|-|-|-|-|-|-|-|- Answer 1g -|-|-|-|-|-|-|-|-|-|-|-
+
+We are assuming that the population distributions have the same shape, but only differ by a shift.
+
+```{r echo=FALSE}
+# leave alone, this block for grading
+scoreFunction("1g",0,4)
+```
+
+----
+
+## Problem 2
+
+Does strength training increase speed?  To address this question a random sample of 35 college athletes were timed in a 100 meter dash both before and after a rigorous six-week strength training program.    
+
+The times before and after the training are in the data file StrengthSpeed.rda.
+
+### Part 2a
+
+Create a list of inference procedures that might be used to answer the research question. 
+
+### -|-|-|-|-|-|-|-|-|-|-|- Answer 2a -|-|-|-|-|-|-|-|-|-|-|-
+
+Since the data is paired we can use any of the procedures that are appropriate for paired differences including: t-test, Wilcoxon signed rank test, or the sign test.  Which test we use will depend on the distribution of the differences for this data.
+
+```{r echo=FALSE}
+# leave alone, this block for grading
+scoreFunction("2a",0,4)
+```
+
+---
+
+### Part 2b
+
+Load the data and assess the data conditions for the statistical procedures you are considering. 
+
+### -|-|-|-|-|-|-|-|-|-|-|- Answer 2b -|-|-|-|-|-|-|-|-|-|-|-
+
+```{r fig.width=3, fig.height=3}
+load('StrengthSpeed.rda')
+StrengthSpeed$diff <- - StrengthSpeed$after + StrengthSpeed$before
+boxplot(StrengthSpeed$diff)
+hist(StrengthSpeed$diff)
+qqnorm(StrengthSpeed$diff)
+qqline(StrengthSpeed$diff)
+```
+
+The boxplot shows no outliers.  The histogram and normal quantile plots both indicate that the differences in strength are approximately normally distributed.  A t-test and/or t- confidence interval are appropriate for analyzing if there is a population mean increase in speed after completing the training.
+
+
+```{r echo=FALSE}
+# leave alone, this block for grading
+scoreFunction("2b",0,8)
+```
+
+### Part 2c
+    
+Use R to conduct an appropriate hypothesis test to determine if strength training tends to increase speed in the target population.  Use a 5% level of significance.  State the null and alternative hypotheses, provide the R code and output for the test statistic and p-value, and state the conclusion for the test.
+
+### -|-|-|-|-|-|-|-|-|-|-|- Answer 2c -|-|-|-|-|-|-|-|-|-|-|-
+
+Let $\mu_d$ = population mean change in 100 meter dash time after completing the training regimen.  Each difference is computed as time before training - time after training.  A positive difference is an indication of a reduction in 100 meter dash time, that is, increased speed.
+
+$H_0: \mu_d = 0, H_a: \mu_d > 0$
+
+```{r}
+test <- t.test(StrengthSpeed$diff,alternative='greater')
+test
+```
+
+Reject $H_0$ at $\alpha = 0.05$ ($P = `r test$p.value`$).  There is strong evidence of population mean decrease in 100 meter dash time after training, that is, the population mean running speed has increaased.
+
+```{r echo=FALSE}
+# leave alone, this block for grading
+scoreFunction("2c",0,12)
+```
+
+---
+
+### Problem 3
+
+The HLT is a test used to measure the level of hostility in a person.  Researchers are interested in comparing the mean HLT among two populations:  (1) college students after attending a college football game when their team won and (2) college students after attending a college football game when their team lost.  Independent, random samples of 15 students were obtained to represent each population.
+
+The data is as follows:
+
+Group | HLT Score
+:---: | ---
+1 | 79, 76, 74, 70, 81, 85, 73, 78, 69, 72, 83, 89, 72, 79, 75
+2 | 78, 96, 85, 91, 77,103, 72, 93, 98, 86, 70, 110, 70, 91, 99
+
+### Part 3a
+
+Create a data frame for the data set in R.
+
+### -|-|-|-|-|-|-|-|-|-|-|- Answer 3a -|-|-|-|-|-|-|-|-|-|-|-
+
+```{r}
+HLTscore <- c(79, 76, 74, 70, 81, 85, 73, 78, 69, 72, 83, 89, 72, 79, 75,78, 96, 85, 91, 77,103, 72, 93, 98, 86, 70, 110, 70, 91, 99)
+group <- factor(rep(c('won','lost'),each=15))
+HLT <- data.frame(HLTscore=HLTscore,group=group)
+score.won <- HLT$HLTscore[HLT$group=='won']
+score.lost <- HLT$HLTscore[HLT$group=='lost']
+```
+
+```{r echo=FALSE}
+# leave alone, this block for grading
+scoreFunction("3a",0,4)
+```
+
+---
+
+### Part 3b 
+
+Create a list of inference procedures that might be used to answer the research question. 
+
+### -|-|-|-|-|-|-|-|-|-|-|- Answer 3b -|-|-|-|-|-|-|-|-|-|-|-
+
+To compare two population centers using independent samples we might use a t-test (pooled or unpooled) or a Wilcoxon Rank Sum test, or possibly bootstrapping if neither of the other tests applies.
+
+```{r echo=FALSE}
+# leave alone, this block for grading
+scoreFunction("3b",0,4)
+```
+---
+
+### Part 3c
+
+Assess the data conditions for the statistical procedures you are considering. 
+
+### -|-|-|-|-|-|-|-|-|-|-|- Answer 3c -|-|-|-|-|-|-|-|-|-|-|-
+
+```{r fig.width=3, fig.height=3}
+hist(score.won)
+hist(score.lost)
+boxplot(HLTscore~group,data=HLT)
+shapiro.test(score.won)
+shapiro.test(score.lost)
+sd(score.won)
+sd(score.lost)
+require(car)
+leveneTest(HLTscore~group,data=HLT)
+```
+
+The histogram, boxplots, and Shapiro-Wilk tests all indicate that the samples of HLT scores could be from normally distributed populations.  The standard deviations for the two samples differ by more than a factor of 2 indicating that the the two populations have different variances.  A two-sample unpooled t-test is a good choice for analyzing this data.
+
+```{r echo=FALSE}
+# leave alone, this block for grading
+scoreFunction("3c",0,8)
+```
+
+---
+
+### Part 3d
+    
+Use R to conduct an appropriate hypothesis test to compare the central population values for HLT scores for the two populations.  Use a 5% level of significance.  State the null and alternative hypotheses, provide the R code and output for the test statistic and p-value, and state the conclusion for the test.
+
+### -|-|-|-|-|-|-|-|-|-|-|- Answer 3d -|-|-|-|-|-|-|-|-|-|-|-
+
+$H_0: \mu_{\mbox{won}} = \mu_{\mbox{lost}}, H_a: \mu_{\mbox{won}} \neq \mu_{\mbox{lost}}$
+
+```{r}
+test <- t.test(HLTscore~group, data=HLT, var.equal = F, conf.level=.95)
+test
+```
+
+Reject $H_0$ at $\alpha = 0.05$ ($P = `r round(test$p.value,3)`$).  There is significant evidence to suggest that population mean HLT score is different for students whose home team lost than for those whose home team won.
+
+```{r echo=FALSE}
+# leave alone, this block for grading
+scoreFunction("3d",0,12)
+```
+
+---
+
+### Part 3e
+
+What type of error could have possibly been made here?  Explain your answer in the context of the problem.
+
+### -|-|-|-|-|-|-|-|-|-|-|- Answer 3e -|-|-|-|-|-|-|-|-|-|-|-
+Since we rejected the null hypothesis there could have been a type I error. That is we may have falsely concluded that the population mean HLT scores are different for the two groups, when in fact they are not.
+
+
+```{r echo=FALSE}
+# leave alone, this block for grading
+scoreFunction("3e",0,4)
+```
+
+---
+
+### Part 3f
+
+Use a 95% confidence interval to estimate the population mean HLT score for all college students after attending a college football game when their team loses.  Provide an interpretation for the interval.
+
+### -|-|-|-|-|-|-|-|-|-|-|- Answer 3f -|-|-|-|-|-|-|-|-|-|-|-
+
+```{r}
+ci <- t.test(score.lost,conf.level=.95)$conf.int
+ci
+```
+
+We are 95% confident that the population mean HLT score for college students after attending a football game when their team loses is between `r round(ci[1],1)` and `r round(ci[2],1)`.
+
+```{r echo=FALSE}
+# leave alone, this block for grading
+scoreFunction("3f",0,10)
+```
+
+---
+
+### Part 3g
+
+Use bootstrapping to estimate a 95% Studentized confidence interval for the population mean HLT score for all college students after attending a college football game when their team loses. 
+
+### -|-|-|-|-|-|-|-|-|-|-|- Answer 3g -|-|-|-|-|-|-|-|-|-|-|-
+
+```{r fig.width=3, fig.height=3}
+n <- length(score.lost)
+xbar <- mean(score.lost)
+s <- sd(score.lost)
+
+reps <- 10000
+t_sim <- numeric(reps)
+
+# generate bootstrapped sampling distribution
+for (i in 1:reps){
+  x <- sample(score.lost,n,replace=TRUE)
+  t_sim[i] <- (mean(x)-xbar)/(sd(x)/sqrt(n))
+}
+
+# build boostrapped "Studentized" t-inverval for mu
+alpha <- .05 # gives confidence level 1-alpha
+prbs <- c( 1-alpha/2, alpha/2 )
+
+tcrit_est <- unname(quantile(t_sim, prob = prbs ))
+t_ci_bootstrap <- xbar - tcrit_est*s/sqrt(n)
+t_ci_bootstrap
+
+# Compare the bootstrapped sampling distribution to the
+# t-distribution from theory.  If the sample were from a normal distribution
+# these would be in good agreement, instead we see some skewness in the smapling distribution ...
+par(mar=(c(4,.5,0,.5)),yaxs="i",bty="l",xaxs="i",yaxt="n")
+brks <- seq(min(t_sim),max(t_sim),length=50)
+hist(t_sim,prob=TRUE,breaks=brks,main='',xlab='t',ylab='')
+x0 <- seq(-4,4,length=400)
+y0 <- dt(x0,df=n-1)
+points(x0,y0,type='l',lwd=2,col='blue')
+```
+
+We are 95% confident that the population mean HLT score for college students after attending a football game when their team loses is between `r round(t_ci_bootstrap[1],1)` and `r round(t_ci_bootstrap[2],1)`.
+
+Notice that there is excellent agreement between the resampled test statistic distribution and the t-distribution predicted by theory. This is a good indication that the t-procedures are working well and can be trusted.
+
+```{r echo=FALSE}
+# leave alone, this block for grading
+scoreFunction("3g",0,10)
+```
+
+---
+
+### Part 3h
+
+Conduct a hypothesis test to determine if the population mean HLT score for all college students after attending a college football game when their team loses is less than 92.  Let $\alpha = 0.01$  Provide all part of the test.
+
+### -|-|-|-|-|-|-|-|-|-|-|- Answer 3h -|-|-|-|-|-|-|-|-|-|-|-
+
+$H_0: \mu = 92, H_a: \mu < 92$
+
+```{r}
+test <- t.test(score.lost, alternative='less', mu = 92)
+test
+```
+
+Do not reject $H_0$ at $\alpha=0.01$ ($P = `r round(test$p.value,3)`).  There is not sufficient evidence to show that the population mean HLT score is less than 92 for college students after attending a football game when their team loses.
+
+```{r echo=FALSE}
+# leave alone, this block for grading
+scoreFunction("3h",0,12)
+```
+
+---
+
+### Problem 4
+
+In an experiment conducted at the University of Mississippi, eighteen randomly selected study participants are asked to perform a series of computer keystrokes in reaction to a stimulus.  In one experiment, the participant must press a predefined sequence of keys on seeing a blue screen.  Reaction time (in seconds) to press the key sequence is recorded.  The same person is then asked to press a different key sequence on seeing a red screen, again with the reaction time measured.  The order of the blue and red screens was randomized for each individual. 
+
+For the 18 study participants, with the reaction times for the red screen and the blue screen the difference in reaction times, with blue minus red, are in the data file called diffs.rda.   
+
+### Part 4a
+
+Load the data set diffs.rda and assess the data conditions for the statistical procedures you are considering. 
+
+### -|-|-|-|-|-|-|-|-|-|-|- Answer 4a -|-|-|-|-|-|-|-|-|-|-|-
+
+```{r fig.width=3, fig.height=3}
+load('diffs.rda')
+hist(diffs$diff)
+boxplot(diffs$diff)
+```
+
+Clearly the differences are not symmetrically distributed (so definitely not normal).  This means we can't use the t-test or the Wilcoxon signed rank test of differences.  This leaves the sign test.
+
+
+```{r echo=FALSE}
+# leave alone, this block for grading
+scoreFunction("4a",0,8)
+```
+
+---
+
+### Part 4b
+    
+Conduct a hypothesis test at $\alpha=0.05$ to determine if the population location parameter for reaction time for the blue screen is greater than for the red screen.  Report all details of the test.
+
+### -|-|-|-|-|-|-|-|-|-|-|- Answer 4b -|-|-|-|-|-|-|-|-|-|-|-
+
+$M_d = $ the population median difference in reaction time, where $d=$ reaction time for blue screen minus reaction time for red screen.  A positive difference occurs when the reaction time is greater for blue screen reaction time.
+
+$H_0: M_d = 0, H_a: M_d > 0$
+
+```{r}
+require(signmedian.test)
+test<-signmedian.test(diffs$diff,alternative='greater')
+test
+```
+
+Do not reject $H_0$ at $\alpha = 0.05$ ($P = `r round(test$p.value,3)`).  There is not sufficient evidence to show that reaction times are typically greater for blue screens than for red screens
+
+```{r echo=FALSE}
+# leave alone, this block for grading
+scoreFunction("4b",0,12)
+```
+
+---
+
+```{r echo=FALSE}
+# leave along, this block for grading
+if (display.grades){
+  pts.tot <- sum(pts)
+  pts.poss.tot <- sum(pts.poss)
+  print(paste('Total points earned',pts.tot,'out of',pts.poss.tot))
+}
