@@ -1,0 +1,586 @@
+---
+title: 'Review: Hypothesis Testing'
+fontsize: '12pt'
+header-includes: \usepackage{amssymb}
+output:
+  beamer_presentation:
+    colortheme: seahorse
+    fonttheme: default
+    keep_tex: yes
+    template: ../../beamer169.tex
+---
+
+```{r global_options, include=FALSE, echo=FALSE}
+.pardefault <- par()
+# use for beamer
+knitr::opts_chunk$set(fig.width=4, fig.height=3, fig.align='center',warning=FALSE, message=FALSE)
+# use for word
+# knitr::opts_chunk$set(fig.width=4, fig.height=3,warning=FALSE, message=FALSE)
+source('../scripts/shadeMe.R')
+load('HealthExam.rda')
+```
+
+## What is a hypothesis test?
+
+- \Large Assess statistical evidence
+- Rule out random variation
+
+
+<div class="notes">
+- suppose your company thinks a new marketing strategy will be successful
+- the old strategy resulted in 15% of prospective customers buying the product
+- in a study of the new strategy 17% of those in a focus group were willing to buy the product
+- is this a real improvement or just observed a random spike?
+- a hypothesis test is used to choose between a real effect and random noise. 
+- a statistically significant result in a hyp. test means you've likely observed something that isn't explained by random variation alone
+- however, statistically significant is not the same as practically significant ... a 15% to 17% increase may be statistically significant, but ...
+</div>
+
+## Hypotheses
+
+\large
+
+Null Hypothesis 
+$$H_0: \mbox{random variation only}$$
+
+Alternative Hypothesis
+$$H_a: \mbox{there is a real effect}$$
+
+$$H_0: \mbox{no spending increase}, H_1: \mbox{spending increase}$$
+
+<div class="notes">
+- Suppose sample data suggests a small increase in consumer spending.  
+- Null hypothesis is that there is no increase.
+- Alternative hypothesis is that there is an increase.
+- If we reject the null hypothesis then we are saying that the observed increase is statistically significant and is not explained by random variation alone.   
+- If we don't reject the null hypothesis then we are saying the observed increase is insignificant and could be easily explained by random chance ... we just happened to get a sample that shows a small increase
+</div>
+
+## Limitations
+
+\Large
+
+- Can show a statistical model is not plausible
+- Cannot prove a particular statistical model is right
+- Statistical significance $\neq$ practical significance
+
+<div class="notes">
+- while we can't generally PROVE a particular model is exactly right
+- if we take proper precautions we may be able to conclude that a proposed statistical model is plausible
+</div>
+
+## Errors
+
+![](../figures/ErrorTable.pdf)
+
+
+## Steps
+
+\Large
+
+1.  Parameter(s).  Hypotheses.  $\alpha$
+2.  Conditions.
+3.  Test statistic and $P$-value
+4.  Conclusion.
+
+<div class="notes">
+- Different books and sources will enumerate these steps differently, but they all have the same basic elements
+- Step 1: **setup**  identify the population parameter of interest, choose the hypotheses that align with your question, choose a significance level based on the willingness to risk a Type I error
+- Step 2:  are the conditions for the test satisfied?  does the random variable satisfy requirements, is the sample random?  if you may have to accept $H_0$ then does your test 
+- Step 3:  use statistical software for the computations
+- Step 4:  interpret your results
+    - $P \leq \alpha \Rightarrow$ reject $H_0$
+    - $P > \alpha \Rightarrow$ fail to reject $H_0$ (or possibly accept $H_0$ ...)
+</div>
+
+
+## Conclusion if $P$ is small
+
+\Large If $P \leq \alpha$ reject $H_0$.  
+
+![](../figures/ErrorTable1.pdf)
+
+<div class="notes">
+ - If $P$ is low this says the observed data is not plausible if the null hypothesis is true.  
+ - Of course, it's possible that the null hypothesis is true and the data is just unusual in which case we've made a Type I error.  
+ - This is why we choose alpha by assessing the risk associated with a Type I error.
+ - Just remember decreasing alpha reduces the risk of a Type I error but it also makes it harder to reject the null (we are requiring more evidence against the null)
+</div>
+
+## Conclusion if $P$ is not small
+
+\Large If $P > \alpha$ do not reject $H_0$.
+
+![](../figures/ErrorTable2.pdf)
+
+\large Conservative conclusion:  There is insufficient evidence to reject $H_0.$  
+
+<div class="notes">
+- If $P$ is not low (larger than alpha), then we do not reject the null hypothesis
+- it may be that the null hypothesis is true 
+- or it may be that the null is false and we just failed to observe that with our data
+- the safe thing to do is to reserve judgment and "fail to reject the null"
+- before concluding that the null is true you should estimate beta, the prob. of  a type II error
+- if beta is large, then there is a large risk of accepting a null hypothesis that isn't true
+- we'll see how to use R to estimate beta in one of our examples
+</div>
+
+
+
+## Example 1 - Men's Height
+
+\columnsbegin
+
+\column{.5\textwidth}
+
+```{r, echo=FALSE, message=FALSE, fig.width=2, fig.height=2}
+h <- HealthExam$Height[HealthExam$Sex=="M"]
+xbar <- round(mean(h),digits=2)
+s <- round(sd(h),digits=2)
+llim <- xbar-3.5*s
+ulim <- xbar+3.5*s
+par(mar=(c(4,0,0,0)),yaxs="i",bty="l",xaxs="i",yaxt="n")
+hist(h,main=" ",xlab="inches",prob=TRUE,xlim=c(llim,ulim),ylab="")
+abline(h=0,xlim=c(llim,ulim),col="black",lwd=2)
+n = length(h)
+```
+
+\column{.5 \textwidth}
+
+\vspace{-1in}
+\large
+$\overline{x} = `r round(xbar,2)`, s = `r round(s,2)`, n = `r n`$  
+
+\vspace{.5in}
+
+Is the average height of American men less than 70.5 inches?
+
+\columnsend
+
+<div class="notes">
+- We are going to use the one-sample $t$ test to answer the question. 
+</div>
+
+## Example 1 - Step 1 - Setup
+
+\Large
+
+\hfill $\mu =$ population mean height of American men \hspace*{\fill} 
+\vspace{.5in}
+
+\hfill $H_0: \mu = 70.5, \hspace{1in} H_a: \mu < 70.5$ \hspace*{\fill}
+\vspace{.5in}
+
+\hfill Test with significance level $\alpha = 0.05.$ \hspace*{\fill}
+
+<div class="notes">
+- we'll test with a significance level alpha = .05, there is nothing magical about .05 but it is a commonly accepted default value
+- .05 is 1 / 20 which means 1 in every 20 tests in which the null hyp is true will result in a type I error
+</div>
+
+## A note on hypotheses
+
+\Large
+
+This class:
+
+\hfill $H_0: \mu = 70.5, \hspace{1in} H_a: \mu < 70.5$ \hspace*{\fill}
+\vspace{.5in}
+
+The Ott textbook:
+
+\hfill $H_0: \mu \geq 70.5, \hspace{1in} H_a: \mu < 70.5$ \hspace*{\fill}
+
+<div class="notes">
+- you'll find different sources and authors do this differently, but the first approach may be more common
+- when you test the data against the null hypothesis you have to choose a particular value to test against and it's always the value on the boundary, e.g. 70.5
+- if you can reject $mu = 70.5$ in favor of $mu < 70.5$ then it is implied that you can also reject all values of mu that are above 70.5
+</div>
+
+## Example 1 - Step 2 - Conditions
+
+\Large 
+Requirements: 
+
+1. random sample of data 
+    - \large \checkmark This is a random sample of all American adult men
+2. random variable is (approximately) normally distributed 
+    - \large \checkmark The histogram suggests this is reasonable.
+
+
+## Example 1 - Step 3 - Compute
+
+```{r echo=TRUE}
+t.test(h, alternative="less", mu = 70.5)
+```
+
+## Example 1 - Step 4 - Conclusions
+
+```{r echo=FALSE}
+testme <-  t.test(h, alternative="less", mu = 70.5)
+p <- signif(testme$p.value,3)
+t <- signif(testme$statistic,3)
+```
+
+\large
+
+1. Reject $H_0$ at $\alpha = 0.05$ ($P = `r p`$).  There is statistically significant evidence that the population mean height of American adult men is less than 70.5 inches.
+
+\hfill OR \hspace*{\fill}
+
+2. The mean height of American adult men is less than 70.5 inches ($P = `r p`$)
+
+
+<div class="notes">
+- Since the $P$-value, $P = `r p`$, is smaller than the significance level $\alpha = 0.05$, we can reject the null hypothesis in favor of the alternative hypothesis. 
+- the first interpretation is a more formal approach that you might see in a stats class or book
+- the second is like what you'd see reported in a journal or article.
+</div>
+
+## Example 2 - Men's Weight
+
+\columnsbegin
+
+\column{.5\textwidth}
+
+```{r, echo=FALSE, message=FALSE, fig.width=2, fig.height=2}
+w <- HealthExam$Weight[HealthExam$Sex=="M"]
+xbar <- round(mean(w),digits=2)
+s <- round(sd(w),digits=2)
+llim <- xbar-3.5*s
+ulim <- xbar+3.5*s
+par(mar=(c(4,0,0,0)),yaxs="i",bty="l",xaxs="i",yaxt="n")
+hist(w,main=" ",xlab="inches",prob=TRUE,xlim=c(llim,ulim),ylab="")
+abline(h=0,xlim=c(llim,ulim),col="black",lwd=2)
+n = length(w)
+```
+
+\column{.5 \textwidth}
+
+\vspace{-1in}
+\large
+$\overline{x} = `r round(xbar,2)`, s = `r round(s,2)`, n = `r n`$  
+
+\vspace{.5in}
+
+Is the average weight of American men greater than 166 pounds?
+
+\columnsend
+
+<div class="notes">
+- Again, we'll try to use the one-sample $t$ test to answer the question. 
+</div>
+
+## Example 2 - Step 1 - Setup
+
+\Large
+
+\hfill $\mu =$ population mean weight of American men \hspace*{\fill}
+\vspace{.4in}
+
+\hfill $H_0: \mu = 166, \hspace{1in} H_a: \mu > 166$ \hspace*{\fill}
+\vspace{.4in}
+
+\hfill Test with significance level $\alpha = 0.05.$ \hspace*{\fill}
+
+## Example 2 - Step 2 - Conditions
+
+\Large 
+Requirements: 
+
+1. random sample of data
+    - \large \checkmark This is a random sample of all American adult men
+
+2. random variable is (approximately) normally distributed
+    - \large \checkmark OK, histogram shows nice symmetric bell shape.
+
+## Example 2 - Step 3 - Compute
+
+```{r echo=TRUE}
+t.test(w, alternative="greater", mu = 166)
+```
+
+## Example 2 - Step 4 - Conclusions
+
+```{r echo=FALSE}
+testme <-  t.test(w, alternative="greater", mu = 166)
+p <- signif(testme$p.value,3)
+t <- signif(testme$statistic,3)
+```
+
+\large
+
+1. Do not reject $H_0$ at $\alpha = 0.05$ ($P = `r p`$).  There is not sufficient evidence that the population mean weight of American adult men is greater than 166 pounds.
+
+\hfill OR \hspace*{\fill}
+
+2. There is not evidence to show the mean weight of American adult men is greater than 166 pounds ($P = `r p`$).
+
+## Is $H_0$ true?
+
+\Large
+Does this mean that the null hypothesis is true?  
+
+Is $\mu \leq 166$ pounds?  
+
+\Large
+\hfill Estimate $\beta$ first! \hspace*{\fill}
+
+<div class="notes">
+- when $P$ is large we fail to reject the null hyp
+- either the null hypothesis is true or our data failed to detect the null is false
+- when $P$ is large the conservative thing to do is to simply say "do not reject $H_0$" which isn't the same as saying $H_0$ is true.
+- but if you need to decide if $H_0$ could be true, then its important to know the risk of accidently accepting a false null hypothesis 
+- or equivalently what is the probability of rejecting a true alternative hypothesis
+- we are just asking to estimate $\beta$, the prob. of a type II error
+</div>
+
+## What if?
+
+\Large
+
+If $H_a$ is true, then what is $\mu_a$?
+
+$$ \mu_a = 170 \mbox{ pounds} $$
+
+<div class="notes">
+- Ask the question, if $H_a$ is true, then what values of the parameter would be important to be able to detect?
+- For the question of "is the average weight of men greater than 166 lb?" maybe it would be important for the test to be able to determine if the true mean were actually 170 lb.
+</div>
+
+## Estimating Power in R
+
+$$ \mbox{power} = 1 - \beta $$
+
+```{r echo=TRUE, eval=FALSE}
+power.t.test(n = NULL, delta = NULL, sd = 1, sig.level = 0.05,
+             power = NULL,
+             type = c("two.sample", "one.sample", "paired"),
+             alternative = c("two.sided", "one.sided"),
+             strict = FALSE, tol = .Machine$double.eps^0.25)
+```
+
+Can find one of: n, delta, sd, sig.level, power.
+
+
+<div class="notes">
+- recall that the power of a test is the probability of correctly accepting a particular true alternative
+- we need n, the shift between the null mean and the alternative mean and an estimate of the standard deviation
+- the standard deviation is not the standard deviation of a particular sample, rather it is an estimate of the pop. standard deviation
+</div>
+
+
+## Example 2 - Power Estimate
+
+```{r}
+power.t.test( n = 40, delta = 4, sd = 26 , sig.level = 0.05, 
+              type = "one.sample", alternative = "one.sided")
+```
+
+## Power Interpretation
+
+\Large 
+- If $\mu_a = 170$, only 25% chance of being correct.
+
+- Type II error probability:  $\beta \approx 1 - .25 = .75.$
+
+<div class="notes">
+- if the true mean were 170 instead of 166, there is only a 25% chance of getting a sample which would lead us to correctly reject the null hypothesis, there is about a 75% chance of failing to reject the false null hypothesis
+</div>
+
+## Do not accept $H_0$
+
+\Large
+
+Risk of type II error is too high: $\beta \approx .75$
+
+SAFE: do not reject $H_0$
+
+NOT SAFE: accept $H_0$
+
+<div class="notes">
+If the true alternative mean were 170 lbs then about 82% of samples would result in falsely accepting the null hypothesis.  If a shift of 4 pounds is important, then we shouldn't accept the null.
+</div>
+
+
+## Find sample size for desired power
+
+\large
+
+Choose $n$ so that power$\geq .8$ for smallest worthwhile effect.
+
+$$ \mbox{power} = .8, \delta = 4, \mbox{sd} \approx 26, n = ? $$
+
+```{r}
+power.t.test( power = .8, delta = 4, sd = 26,
+              type = "one.sample", 
+              alternative = "one.sided")$n
+```
+
+
+## Power Curve - Power vs. Shift
+```{r}
+pow <- power.t.test( n = 40, delta = 1:20, sd = 26,
+              type = "one.sample", alternative = "one.sided")
+plot(pow$delta,pow$power,type='l'); abline(h=.8)
+```
+
+## Power Curve - Power vs. Sample Size
+```{r}
+pow <- power.t.test( n = 20:400, delta = 4, sd = 26,
+              type = "one.sample", alternative = "one.sided")
+plot(pow$n,pow$power,type='l'); abline(h=.8)
+```
+
+## A Common Error
+
+\Large
+
+WRONG:  $P$ is the probability $H_0$ is true
+
+RIGHT:  $P$ is the probability of observing similar data by chance **if $H_0$ is true**
+
+<div class="notes">
+- A common misconception about $P$ values is that they somehow determine the chance that the null hypothesis is true. 
+- $P$ is simply the probability that the sample data occured by random chance alone.
+</div>
+
+## Another Common Error
+
+\Large 
+
+WRONG: A smaller $P$ means a larger effect
+
+RIGHT:  Small $P$ means sample is not a plausible outcome of the "null model"
+
+<div class="notes">
+- a very small $P$ is a strong indication that the sample data is not due to chance alone, 
+- there really is a *statistically significant* effect
+- this is not the same as a practically significant effect
+- a 5 cent per hour increase in average wage might be statistically significant, but it isn't likely to be practically significant
+- very large samples can yield statistically significance for effects that are practically meaningless
+- good statistical analysis includes an estimate of the effect size
+</div>
+
+## Hypothesis Test vs. Confidence Interval 
+
+- Hypothesis Test - The mean is larger than 10.
+
+- Confidence Interval - The mean is between 11 and 13.
+
+- WINNER: Confidence Interval
+
+<div class="notes">
+- a hypothesis test answers a yes or no question
+- a confidence interval can answer the same yes or no question *AND* it gives you idea of the size of the effect
+</div>
+
+## Why bother with hypothesis tests?
+
+\large
+
+- Very popular
+
+- Useful paradigm when a decision *must* be made
+
+- $P$ is "noise to signal" ratio
+
+- small $P$ may trigger further investigation
+
+<div class="notes">
+ - you'll have to communicate with people who are using hypothesis tests
+ - if you have to make a decision then can control testing errors by setting the significance level appropriately and estimating the sample size needed to attain high power for the smallest worthwhile effect size
+ - $P$ is useful as an informal index that a large $P$ indicates more noise than signal while a small $P$ indicates more signal than noise.
+ - Sometimes the hypotheses are "is this a good model or not" and it may not be obvious how a confidence interval applies
+</div>
+
+## Formal Equivalence
+
+\large
+
+$$H_0: \theta = \theta_0, \alpha = .05$$
+
+- $H_a: \theta \neq \theta_0$ reject $H_0$ if 95\% CI does *not* include $\theta_0$
+
+- $H_a: \theta > \theta_0$ reject $H_0$ if *90\%* CI is *above* $\theta_0$
+
+- $H_a: \theta < \theta_0$ reject $H_0$ if *90\%* CI is *below* $\theta_0$
+
+<div class="notes">
+- when testing the value of a parameter there is usually a corresponding confidence interval
+- the confidence interval can be used to answer questions about hypotheses, but for one-tailed tests we have to adjust the confidence level to be equivalent to a hypothesis test
+</div>
+</div>
+
+
+## Two-tailed example
+
+\large 
+$$H_0: \mu = 10, H_a: \mu \neq 10, \alpha = 0.05$$
+
+95% confident $\mu$ is in (11,13)
+
+$$\Rightarrow \mbox{ reject } H_0$$
+
+<div class = "notes">
+- since we're 95% confident the mean is between 11 and 13, loosely we are 5% confident that the mean is not 10 (and not 10.5 and not 13.2 and not 14 etc.)
+</div>
+
+## One-tailed example
+
+\large
+$$ H_0: \mu = 10, H_a: \mu > 10, \alpha = 0.05 $$
+
+- 90% confident $\mu$ is in (11.2, 12.8)
+- 95% confident $mu$ is greater than 11.2
+- $\Rightarrow$ reject $H_0$
+
+<div class = "notes">
+- Note that 90% confident the mean is in 11.2 to 12.8 also means we're 5% confident the mean is larger than 12.8 
+- so we're 95% confident the mean is greater than 11.2. 
+- This is sometimes called a one-sided confidence interval or simply a confidence bound
+</div>
+
+## One-sided Intervals
+
+```{r echo=TRUE}
+t.test(h, alternative="less", mu = 70.5, conf.level = 0.95)$conf.int
+t.test(h, alternative="two.sided", mu = 70.5, conf.level = 0.90)$conf.int
+```
+
+<div class="notes">
+- notice if you ask for a one-sided hypothesis test you also get the corresponding one-sided interval from R.
+- also note that the regular (two-sided) CI at 90% has the same upper bound as the 95% one-sided upper bound interval
+</div>
+
+## Is $\mu > 100$?
+
+```{r echo=TRUE}
+x = rnorm(1000,mean=101,sd=10)
+t.test(x,mu=100,alternative="greater")$p.value
+
+effect_size_d <- (101-100)/10; effect_size_d
+```
+\large
+\hfill.2 = small, .5 = moderate, .8 = large\hspace*{\fill}
+
+<div class="notes">
+- explain slide  ...
+- ...
+- Interpretations of effect size are ultimately subjective and a small effect can be important or a large effect unimportant.
+</div>
+
+## Practical Significance
+
+```{r echo=FALSE}
+library(png)
+library(grid)
+#img <- readPNG('./figures/warning.png')
+img <- readPNG('./figures/effect_sizes.png')
+grid.raster(img)
+```
+
+<div class="notes">
+- A small $P$ reveals nothing about the practical importance of an effect, but estimating the size of an can help
+- A confidence interval for a population parameter is an unstandardized estimate of the size of an effect ... whether or not the size of the effect is practically important depends on the field. 
+</div>

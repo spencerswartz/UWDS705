@@ -1,0 +1,137 @@
+---
+title: 'Intro to ANOVA'
+author: "DS705"
+fontsize: '12pt,notes'
+output:
+  beamer_presentation:
+    template: '../beamer169.tex'
+    colortheme: "seahorse"
+    keep_tex: true
+    fonttheme: default
+---
+
+```{r global_options, include=FALSE, echo=FALSE}
+# use for beamer
+knitr::opts_chunk$set(fig.width=4, fig.height=3, fig.align='center',warning=FALSE, message=FALSE)
+library(knitr)
+library(car)
+# use for word
+# knitr::opts_chunk$set(fig.width=4, fig.height=3,warning=FALSE, message=FALSE)
+```
+
+## Analysis of Variance
+
+Acronyms:  ANOVA, AOV 
+    
+Compares two or more unknown population **means** by analyzing a ratio of **variances**:
+
+$$F=\frac{\text{variation } BETWEEN \text{ samples}}{\text{variation } WITHIN \text{ samples}} $$
+  
+<div class="notes">
+
+ANOVA is used to compare two or more unknown population means.  That is, when there is a quantitative response variable and a categorical explanatory variable (called a factor).
+
+When there is only one factor, it is called a One-Way ANOVA.
+
+</div>
+
+----
+
+## The ANOVA Table
+
+\begin{table}[h!]
+        \centering
+        \begin{tabular}{lccccc}
+        Source & df & SS & MS & F  & $P$-value \\ \hline
+         & & & & & \\
+        Treatment & $t-1$& $SST$  & $MST=\frac{SST}{t-1}$ & $F_0 = \frac{MST}{MSE}$&$P(F_{t-1, n_T-t} > F_0 )$  \\[1em]
+        Error & $n_T-t$ & $SSE$ & $MSE = \frac{SSE}{n_T-t}$ & & \\[1em]  \hline
+        & & & & & \\
+        Total & $n_T-1$ & $TSS$  & &  & 
+        \end{tabular}
+\end{table}
+
+<div class="notes">
+
+The ANOVA table is a great way to organize the information and see how the test statistic is computed.  The first column is labeled "Source," and what that really means is "Source of variation in the response variable." The values of the response variable are not all identical, and we can mathematically attribute that variation to different causes or sources.  
+
+Some of the variation is due to random variation that is a part of random sampling.  This type of variation is typically labeled as "Error" or "Residual" (as in R) or "Within" (as in Ott's book).  The other potential source of variation in the response variable is the fact that they come from populations with different means.  This source may be labeled as Treatment, Factor, Between, or by the name of the categorical factor that defines the populations.  
+
+The next column is title "df" - which of course stands for degrees of freedom.  When conducting an analysis of variance, this is a great place to look first because its very easy to see that the data has been loaded correctly and you R code is right.  You know if you are comparing t population means that there should be t-1 degrees of freedom for Treatment and you know your total degrees of freedom is the overall sample size minus 1.
+
+The next column is titled SS, which stands for Sum of Squares.  This is a measure of each kind of variability in the response variable.  In fact, the formula total sum of squares, given as TSS here, is exactly the numerator of the formula for the sample variance for the response variable with all sample values combined into one big group.
+
+As we move one more column to the right, we see MS, which stands for Mean Square.  In each row (excluding the total), the mean square is simply the sum of squares divided by the degrees of freedom.  
+
+The action on the ANOVA table moves from left to right and bottom to top.  Notice that there is no Total for Mean Square.  The column titled F contains the test statistic, which is the mean square for Treatment divided by the mean square for Error - that is, the ratio of variation between groups to the variation within groups.
+
+The p-value is the probability of observing at least as much evidence against the null hypothesis as what is currently observed, given that the null hypothesis is true.  For ANOVA, when the null hypothesis is true, the sampling distribution of test statistics from all possible samples is a F-distribution with t-1 numerator degrees of freedom and n sub T denominator degrees of freedom.  
+
+If all of the population means are equal, then the variation between samples shouldn't be very large compared to the within-sample variation and the F statistic would be relatively small.  But if at least one population mean differs from another, the variation between samples would be very large compared to the within-sample variation and the F statistic would be relatively large and, as such, the probability of seeing an even larger value would be small.  
+
+When this probability, or p-value, is below some threshold - which we call the level of significance - then the null hypothesis is rejected and we formally declare that at least one mean differs from another. 
+
+</div>
+
+----
+
+## $F$ distributions
+
+$$F(df_1,df_2)$$
+
+```{r echo=FALSE, fig.width=5, fig.height = 2.5}
+df1=4
+df2=30
+p=.90
+ts=qf(p,df1,df2)
+minx = 0
+maxx = qf(.993,df1,df2)
+x=seq(minx,maxx,length=200)
+y=df(x,df1,df2)+.09
+par(mar=(c(1,.25,0,.25)),bty="n",xaxs="i",xaxt="n",yaxt="n",yaxs="i")
+plot(x,y,type="l", lwd=2, col="black",xlab="",ylab="",main=""
+     ,ylim=c(0,1.02*max(y)))
+points(c(ts,ts),c(0.09,df(ts,df1,df2)),type='l',col="red",lwd=2)
+xpts=seq(ts,maxx,length=200)
+ypts=df(xpts,df1,df2)+.09
+polygon(c(ts,xpts,maxx),c(0.09,ypts,0.09),col="khaki1")
+abline(h=0.09,xlim=c(minx,maxx),col="black",lwd=2)
+text(ts,.03,"F")
+text(ts+.8,.25,"p-value")
+```
+
+
+<div class="notes">
+
+F distributions are continuous, right-skewed distributions with non-negative values identified by two parameters called numerator degrees of freedom ( labeled as dfN or df1) and denominator degrees of freedom (labeled as dfD or df2).
+The p-value in analysis of variance is the probability of seeing a value in the associated F distribution that is at least as big as the observed test statistic F.  
+
+Large values of F provide more evidence against the null hypothesis.  Notice, the larger F is, the smaller the p-value will be.  
+
+
+
+</div>
+
+----
+
+## The Model for One-Way ANOVA
+
+$$y_{i,j}=\mu + \tau_i + \epsilon_{i,j}$$
+
+$$\text{ where } i=1, \ldots, t \text{ and } j=1, \ldots, n_i$$
+
+$$\text{and } \epsilon_{i,j} \text{ are independent and } N(0,\sigma_\epsilon)$$
+
+<div class="notes">
+
+Y sub i,j, represents the value of the response variable for the jth individual in the ith sample.  There are a total of t independent samples, corresponding to the t populations and t poplation means we wish to compare.  The ith sample contains a total of n sub i onservations.
+
+Mu is the overall population mean if all populations were combined into one big population. Sometimes this is called the grand mean.
+
+Tau is the effect of the ith population.  If all tau's are zero, then all population means are equal.  A positive value of tau indicate that that particular population mean is larger than the overall mean and a negative value would show that a particular mean is less than the overall mean.
+
+The data conditions are contained in the error term epsilon. There is an error term associated with each observed experimental unit. The error terms are independent, normally distributed with mean 0 and common standard deviation.  In this model, the response for each individual is a random variable from a normal distribution with the same variance as for all other individuals, but with the possibility of having a different mean, with the mean for the ith population given by mu plus tau sub i.
+
+</div>
+
+----

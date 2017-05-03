@@ -1,0 +1,329 @@
+---
+title: 'Lab Assignment: Two-Sample t-Procedures'
+author: "Spencer Swartz"
+date: "Feb. 7, 2017"
+output: word_document
+fontsize: 12pt
+---
+
+```{r include=FALSE, cache=FALSE}
+# Don't modify this chunk of code, it is just installing and loading the DS705data package
+if (!require(DS705data)){
+  if (!require(devtools)){
+    install.packages('devtools',repos="http://cran.rstudio.com")
+  }
+  library(devtools)
+  install_github('DataScienceUWL/DS705data')
+}
+require(DS705data)
+```
+   
+## Exercise 1  
+
+An experiment was conducted to evaluate the effectiveness of a drug treatment for tapeworm in the stomachs of sheep. A random sample of 24 worm-infected lambs of approximately the same age was divided into two groups. Twelve of the lambs were injected with the drug and the remaining twelve were left untreated. After a 6-month period the lambs were slaughtered and the worm counts recorded.
+
+### Part 1a
+
+Load the dataset WormSheep from the DS705data package. Note that the package is loaded above at line 18.  You just need the data() command.  To see all the datasets in the package, type data(package='DS705data').
+
+### -|-|-|-|-|-|-|-|-|-|-|- Answer 1a -|-|-|-|-|-|-|-|-|-|-|-
+
+```{r}
+#data(package='DS705data')
+data(WormSheep)
+head(WormSheep)
+WormSheep$treated
+
+```
+
+---
+
+### Part 1b	
+
+Create boxplots and histograms for each group (treated vs. untreated).  Be sure that each plot is labeled appropriately.
+
+### -|-|-|-|-|-|-|-|-|-|-|- Answer 1b -|-|-|-|-|-|-|-|-|-|-|-
+
+```{r}
+par(mfrow=c(2,2),mar=c(4,4,1,1))
+boxplot(WormSheep$worms[WormSheep$treated=="treated"],ylab="# of worms", main="treated")
+boxplot(WormSheep$worms[WormSheep$treated=="untreated"],ylab="# of worms", main="untreated")
+hist(WormSheep$worms[WormSheep$treated=="treated"],xlab="# of worms", main="treated")
+hist(WormSheep$worms[WormSheep$treated=="untreated"],xlab="# of worms", main="untreated")
+# reset to one plot
+par(mfrow=c(1,1))
+
+```
+
+---
+
+### Part 1c  
+
+Do the boxplots show any outliers? 
+
+### -|-|-|-|-|-|-|-|-|-|-|- Answer 1c -|-|-|-|-|-|-|-|-|-|-|-
+
+There does not seem to be any outliers in the data based on these charts.
+
+---
+
+### Part 1d  
+
+Describe the shapes of the histograms for the sample data for each sample.
+
+### -|-|-|-|-|-|-|-|-|-|-|- Answer 1d -|-|-|-|-|-|-|-|-|-|-|-
+
+Neither Box plots seem to be normally distributed as the treated seem to be low in the what would be the 50 %tile, and the untreated seem to be skewed to the left.
+
+---
+
+### Part 1e 
+
+Conduct an appropriate test to determine if the worm counts in each population can be considered as normally distributed.  Provide the p-value and the conclusion of the test.
+
+### -|-|-|-|-|-|-|-|-|-|-|- Answer 1e -|-|-|-|-|-|-|-|-|-|-|-
+
+```{r}
+treated <- WormSheep$worms[WormSheep$treated=="treated"]
+untreated <- WormSheep$worms[WormSheep$treated=="untreated"]
+shapiro.test(treated)
+shapiro.test(untreated)
+
+```
+It is not unreasonable to assume that both the treated and the untreated samples come from a normally distributed population with there p-values being 0.65 and 0.54 respectively.
+
+---
+
+### Part 1f  	
+
+Conduct an appropriate test to determine if the worm counts in each population can be considered to have equal variances.  Provide the p-value and the conclusion of the test.
+
+### -|-|-|-|-|-|-|-|-|-|-|- Answer 1f -|-|-|-|-|-|-|-|-|-|-|-
+
+```{r}
+library(car)
+leveneTest(WormSheep$worms~WormSheep$treated)
+
+```
+It is not unreasonable to believe that the population variance is equal (p-value=0.71).
+
+---
+
+### Part 1g	
+    
+Conduct the test of your choice to compare the population mean worm count for all sheep treated with the drug to the mean worm count for the population of untreated sheep.  Let $\alpha = 0.05$.
+
+
+#### Step 1
+
+Define the parameters in words in the context of the problem.
+
+#### -|-|-|-|-|-|-|-|-|-|-|- Answer 1g.step1 -|-|-|-|-|-|-|-|-|-|-|-
+
+Let $\mu_{treated}$ represent the population mean worms per lamb that were in all treated sheep.
+
+Let $\mu_{untreated}$ represent the population mean worms per lamb that were in all untreated sheep.
+
+#### Step 2
+
+State the null and alternative hypotheses for the test.
+ 
+#### -|-|-|-|-|-|-|-|-|-|-|- Answer 1g.step2 -|-|-|-|-|-|-|-|-|-|-|-
+
+$$H_0: \mu_\mbox{treated} = \mu_\mbox{untreated}$$
+$$H_a: \mu_\mbox{treated} \neq \mu_\mbox{untreated}$$
+
+
+#### Step 3
+
+Use R to generate the output for the test you selected.
+
+#### -|-|-|-|-|-|-|-|-|-|-|- Answer 1g.step3 -|-|-|-|-|-|-|-|-|-|-|-
+
+```{r}
+t.test(WormSheep$worms~WormSheep$treated, var.equal = TRUE)
+
+```
+
+#### Step 4
+
+State both a statistical conclusion at $\alpha=0.05$ and interpret it in the context of the problem.
+
+#### -|-|-|-|-|-|-|-|-|-|-|- Answer 1g.step4 -|-|-|-|-|-|-|-|-|-|-|-
+
+Statistical conclusion: Reject $H_0$ at $\alpha=0.05$
+
+Interpretation: There is sufficient evidence to claim that the population mean worms per lamb in all treated sheep is different form the population mean worms per lamb in all untreated sheep (P = 0.03329).
+
+---
+
+### Part 1h  
+
+Write an interpretation in the context of the problem for the 95% CI.
+
+### -|-|-|-|-|-|-|-|-|-|-|- Answer 1h -|-|-|-|-|-|-|-|-|-|-|-
+
+With 95% confidence, the population mean worms per lamb in all treated sheep is 1.13 to 25.03 less than for all untreated sheep.
+
+---
+
+### Part 1i  
+
+Did you use the separate-variance t-procedures or the pooled t-procedures?  Justify your choice, including some discussion of how well the conditions for the hypothesis test and confidence interval procedures were met.
+
+### -|-|-|-|-|-|-|-|-|-|-|- Answer 1i -|-|-|-|-|-|-|-|-|-|-|-
+
+I used the pooled-variance t-procedures as the variance of the two groups seemed to be equal and also seemed to be normally distributed.
+
+---
+
+## Exercise 2
+
+Data was collected for a sample of college students at a university in the Midwest.  One variable measured was the number of words per minute that they could type and also whether or not they had previously taken a typing course (Method 1) or if they were self-taught (Method 2).  
+
+### Part 2a  
+
+Load the dataset Typing from the DS705data package.
+
+### -|-|-|-|-|-|-|-|-|-|-|- Answer 2a -|-|-|-|-|-|-|-|-|-|-|-
+
+```{r}
+data(Typing)
+head(Typing)
+#Typing$Method
+```
+
+---
+
+### Part 2b
+
+Create boxplots and histograms for each group (previous typing class vs. self-taught).  Be sure that each plot is labeled appropriately.
+
+### -|-|-|-|-|-|-|-|-|-|-|- Answer 2b -|-|-|-|-|-|-|-|-|-|-|-
+
+```{r}
+prior <- Typing$Words[Typing$Method=="prior course"]
+self <- Typing$Words[Typing$Method=="self-taught"]
+par(mfrow=c(2,2),mar=c(4,4,1,1))
+boxplot(prior,ylab="# of words", main="Prior Course")
+boxplot(self,ylab="# of words", main="Self-Taught")
+hist(prior,xlab="# of words", main="Prior Course")
+hist(self,xlab="# of words", main="Self-Taught")
+# reset to one plot
+par(mfrow=c(1,1))
+```
+
+---
+
+### Part 2c
+
+Do the boxplots show any outliers? 
+
+### -|-|-|-|-|-|-|-|-|-|-|- Answer 2c -|-|-|-|-|-|-|-|-|-|-|-
+
+Yes both samples have outliers shown.
+
+---
+
+### Part 2d	
+
+Describe the shapes of the histograms for the sample data for each sample.
+
+### -|-|-|-|-|-|-|-|-|-|-|- Answer 2d -|-|-|-|-|-|-|-|-|-|-|-
+
+The Prior Course sample looks to be skewed to the left, and the Self-Taught sample looks as it may be normally distributed or maybe has a skew to the right.
+
+---
+
+### Part 2e
+
+Conduct an appropriate test to determine if typing speed in each population can be considered as normally distributed.  Provide the p-value and the conclusion of the test.
+
+### -|-|-|-|-|-|-|-|-|-|-|- Answer 2e -|-|-|-|-|-|-|-|-|-|-|-
+
+```{r}
+shapiro.test(prior)
+shapiro.test(self)
+
+```
+It is not unreasonable to assume that both the prior course and the self taught samples come from a normally distributed population with there p-values being 0.63 and 0.10 respectively. ($\alpha = .05$ )
+
+---
+
+### Part 2f
+
+Conduct an appropriate test to determine if typing speed in each population can be considered to have equal variances.  Provide the p-value and the conclusion of the test.
+
+### -|-|-|-|-|-|-|-|-|-|-|- Answer 2f -|-|-|-|-|-|-|-|-|-|-|-
+
+```{r}
+leveneTest(Typing$Words~Typing$Method)
+
+```
+We can reject $H_0$ and can assume that the Population variances are not equal between the samples. (P = .0042)
+
+---
+
+### Part 2g
+
+Conduct the test of your choice to test that the population mean typing speed for all college students with a previous course in typing is higher than for those who were self-taught.  Let $\alpha = 0.10$.
+
+#### Step 1
+
+Define the parameters in words in the context of the problem.
+
+#### -|-|-|-|-|-|-|-|-|-|-|- Answer 2g.step1 -|-|-|-|-|-|-|-|-|-|-|-
+
+Let $\mu_{prior}$ represent the population mean words per min. typed by all who had a prior course.
+
+Let $\mu_{self}$ represent the population mean words per min. typed by all who were self-taught.
+
+#### Step 2
+
+State the null and alternative hypotheses for the test.
+ 
+#### -|-|-|-|-|-|-|-|-|-|-|- Answer 2g.step2 -|-|-|-|-|-|-|-|-|-|-|-
+
+$$H_0: \mu_\mbox{prior} = \mu_\mbox{self}$$
+$$H_a: \mu_\mbox{prior} \neq \mu_\mbox{self}$$
+
+#### Step 3
+
+Use R to generate the output for the test you selected.
+
+#### -|-|-|-|-|-|-|-|-|-|-|- Answer 2g.step3 -|-|-|-|-|-|-|-|-|-|-|-
+
+```{r}
+wilcox.test(Words~Method,data = Typing, conf.int=TRUE, conf.level=0.90)
+```
+
+#### Step 4 
+State both a statistical conclusion at $\alpha=0.10$ and interpret it in the context of the problem.
+
+#### -|-|-|-|-|-|-|-|-|-|-|- Answer 2g.step4 -|-|-|-|-|-|-|-|-|-|-|-
+
+Statistical conclusion: Reject $H_0$ at $\alpha=0.10$
+
+Interpretation: There is sufficient evidence to claim that the population mean words per min. in all students that took a prior course is different form the population mean words per min. in all students who were self taught (P = 0.002181).
+
+---
+
+### Part 2h
+
+Write an interpretation in the context of the problem for a 90% confidence interval.
+
+### -|-|-|-|-|-|-|-|-|-|-|- Answer 2h -|-|-|-|-|-|-|-|-|-|-|-
+
+With 90% confidence, the population mean words per min. in all students that took a prior course is 2 to 6 more than for all students who were self taught.
+
+---
+
+### Part 2i
+
+Did you use the separate-variance t-procedures or the pooled t-procedures?  Justify your choice, including some discussion of how well the conditions for the hypothesis test and confidence interval procedures were met.
+
+### -|-|-|-|-|-|-|-|-|-|-|- Answer 2i -|-|-|-|-|-|-|-|-|-|-|-
+
+I used the separate-variance t-procedures as the variance of the two groups seemed to be different. both populations looked to be normally distributed.
+
+---

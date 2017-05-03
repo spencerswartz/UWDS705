@@ -1,0 +1,246 @@
+---
+title: 'Review: Sampling Distributions and Confidence Intervals'
+header-includes: \usepackage{amssymb}
+output:
+  beamer_presentation:
+    colortheme: seahorse
+    fonttheme: default
+    keep_tex: yes
+    template: ../../beamer169.tex
+  ioslides_presentation: default
+fontsize: 12pt
+---
+
+```{r global_options, include=FALSE, echo=FALSE}
+.pardefault <- par()
+# use for beamer
+knitr::opts_chunk$set(fig.width=4, fig.height=3, fig.align='center',warning=FALSE, message=FALSE)
+# use for word
+# knitr::opts_chunk$set(fig.width=4, fig.height=3,warning=FALSE, message=FALSE)
+source('../scripts/shadeMe.R')
+
+# install DS705data if needed
+if (!is.element("DS705data",installed.packages()[,1]))
+{ install.packages("http://websites.uwlax.edu/jbaggett/DS705/DS705data_1.0.tgz",repos=NULL,type="source")}
+
+```
+
+## Bootstrap Methods
+
+\Large
+
+Useful when
+
+- small sample
+- or conditions not met
+- or no procedure available
+
+Idea: simulate the sampling distribution
+
+<div class="notes">
+- these notes are not intended to be a comprehensive introduction to bootstrapping, rather a brief introduction to illustrate how simulating a sampling distribution can be useful
+</div>
+
+## Bootstrap Methods for $\mu$
+
+\Large
+
+- random variable is not normally distributed
+- $n$ is small
+
+<div class="notes">
+- The $t$-test can handle some departure from normality especially for very large samples.  
+- But as we saw with the test-statistic distribution shiny app.  Small samples and strong non-normality result in a $t$ test-statistic whose distribution departs from a $t$ distribution.
+- The bootstrap is one, of several, alternative methods that can be used when the exact $t$ procedures are inappropriate
+</div>
+
+
+## Bootstrap Idea
+
+\Large
+
+- original sample is the "pseudo" population
+
+- resample with replacement
+
+- $\Rightarrow$ approximate sampling distribution
+
+
+## Men's Cholesterol Levels
+
+\large $n = 40$ and *skewed* distribution
+
+```{r, echo=FALSE, message=FALSE, fig.width=4, fig.height=2.5}
+require(DS705data);
+data(HealthExam)
+c <- HealthExam$Cholesterol[HealthExam$Sex=="M"]
+xbar <- round(mean(c),digits=2)
+s <- round(sd(c),digits=2)
+par(.pardefault)
+llim <- 0
+ulim <- 1300
+par(mar=(c(4,.5,0,1)),yaxs="i",bty="l",xaxs="i",yaxt="n")
+hist(c,main=" ",xlab="mg",prob=TRUE,ylab="")
+abline(h=0,col="black",lwd=2)
+n = length(c)
+```
+
+## Bootstrap CI simulated $t$ distribution
+
+```{r,echo=FALSE, fig.width=5,fig.height=3}
+chol <- HealthExam$Cholesterol[HealthExam$Sex=="M"]
+n <- length(chol)
+xbar <- mean(chol)
+s <- sd(chol)
+
+reps <- 10000
+t_sim <- numeric(reps)
+
+# generate bootstrapped sampling distribution
+for (i in 1:reps){
+  x <- sample(chol,n,replace=TRUE)
+  t_sim[i] <- (mean(x)-xbar)/(sd(x)/sqrt(n))
+}
+
+# build boostrapped "Studentized" t-inverval for mu
+C <- .95
+alpha <- 1 - C
+prbs <- c( 1-alpha/2, alpha/2 )
+
+tcrit_est <- unname(quantile(t_sim, prob = prbs ))
+t_ci_bootstrap <- xbar - tcrit_est*s/sqrt(n)
+
+# for comparison here is the t-interval from theory
+t_ci_theory <- as.vector(t.test(chol)$conf.int)
+
+
+par(mar=(c(4,.5,0,.5)),yaxs="i",bty="l",xaxs="i",yaxt="n")
+brks <- seq(min(t_sim),max(t_sim),length=50)
+hist(t_sim,prob=TRUE,breaks=brks,main='',xlab='t',ylab='')
+x0 <- seq(-4,4,length=400)
+y0 <- dt(x0,df=39)
+points(x0,y0,type='l',lwd=2,col='blue')
+```
+
+<div class="notes">
+- Notice that the sampling distribution of t is skewed left because of the skew in the original data.
+- The theoretical critical values would be inaccurate.
+</div>
+
+## The critical values
+
+\Large
+
+critical value | bootstrap | theory
+--- | --- | ---
+$t_{.025}$ | `r signif(tcrit_est[2],3)` | `r signif(qt(.025,df=39),3)`
+$t_{.975}$ | `r signif(tcrit_est[1],3)` | `r signif(qt(.975,df=39),3)`
+
+<div class="notes">
+- Notice that the bootstrap critical values are asymmetrical while the theoretical critical values are symmetric
+- the bootstrap critical values correctly reflect the skewness of the original data
+</div>
+
+## Unfortunate Notation
+
+\Large
+$t_{.025}$
+
+- the .025 or the .975 percentile?
+- context
+- if symmetry, then not important
+
+## Formula for the Confidence Interval
+
+\Large
+
+$$ t_{.025} < t = \frac{\overline{x} - \mu}{s / \sqrt{n}} < t_{.975} $$
+
+$$ \overline{x} - t_{.975} \frac{s}{\sqrt{n}} < \mu < \overline{x} - t_{.025} \frac{s}{\sqrt{n}} $$
+
+Formula in Ott is wrong, compare above to page 260
+
+## Results
+
+\Large
+```{r echo=FALSE}
+xbar <- round(xbar,2)
+mbs1 <- round(xbar-t_ci_bootstrap[1],2)
+mbs2 <- round(t_ci_bootstrap[2]-xbar,2)
+mt1 <- round(xbar-t_ci_theory[1],2)
+mt2 <- round(t_ci_theory[2]-xbar,2)
+```
+
+Bootstrapped (good):
+$$ (`r xbar` - `r mbs1`, `r xbar` + `r mbs2`) = (`r xbar-mbs1`,`r xbar+mbs2`) $$
+
+Theory (do not use): 
+$$ (`r xbar` - `r mt1`, `r xbar` + `r mt1`) = (`r xbar-mt1`,`r xbar+mt1`) $$
+
+<div class="notes">
+- note that the bootstrapped interval is not centered about the sample mean but is instead longer to the right and shorter to the left ...
+- this reflects the same skewness as the orginal data
+- Since the original data seems to be quite skewed and the sample size is small it would be better to report the results of the bootstrapped ci
+- So.  We are 95% confident the population mean men's cholesterol level is between XXX and XXX
+</div>
+
+<!--
+## Bootstrap Hypothesis Test for $\mu$
+
+\large
+Is average cholesterol level for U.S. men larger than 320 mg?
+
+$$ H_0: \mu = 320, \hspace H_1: \mu > 320 $$
+
+$t$-test not accurate
+-->
+
+## Results of the $t$-test for $\mu$
+
+```{r}
+t.test( chol, mu = 320, alternative="greater")
+```
+
+
+## Bootstrap $t$-test
+
+Simulate test statistic with 10,000 resamples:
+
+```{r,echo=FALSE, fig.width=5,fig.height=3}
+n <- length(chol)
+xbar <- mean(chol)
+s <- sd(chol)
+mu0 <- 320
+t0 <- (xbar-mu0)/(s/sqrt(n))
+p0 = pt(t0,df = n-1, lower.tail=FALSE)
+
+reps <- 10000
+t_sim <- numeric(reps)
+
+
+for (i in 1:reps){
+  x <- sample(chol,n,replace=TRUE)
+  t_sim[i] <- (mean(x)-xbar)/(sd(x)/sqrt(n))
+}
+
+p1 <- signif(sum(t_sim>t0)/reps,3)
+
+x <- seq(min(t_sim),max(t_sim),length=400)
+y <- dt(x,df=n-1)
+brks <- seq(min(t_sim),max(t_sim),length=50)
+par(mar=(c(4,.5,0,.5)),yaxs="i",bty="l",xaxs="i",yaxt="n")
+hist( t_sim, prob=TRUE, breaks=brks,main='',xlab='t',ylab='')
+points(x,y,type = 'l',col='blue',lwd=2)
+points(c(t0,t0),c(0,dt(t0,df=39)),type='l',col='red',lwd=2)
+text(2.2,.2,bquote(P%~~%.(p1)))        
+```
+
+## Result
+
+\large
+
+- Cholesterol levels very skewed $\Rightarrow$ $t$-test inaccurate.
+
+- Bootstrap $t$-test accounts for the skewness so reject $H_0$
+
+- *Men's average cholesterol level is greater than 320 mg ($P$ = `r p1`)*

@@ -1,0 +1,167 @@
+---
+title: 'Day 1 Orientation'
+author: "DS705"
+fontsize: '12pt'
+output:
+  beamer_presentation:
+    colortheme: "seahorse"
+    keep_tex: true
+    template: '../../beamer169experimental.tex'
+    fonttheme: default
+---
+
+
+
+```{r global_options, include=FALSE, echo=FALSE}
+# use for beamer
+knitr::opts_chunk$set(fig.width=4, fig.height=3, warning=FALSE, message=FALSE)
+# use for word
+# knitr::opts_chunk$set(fig.width=4, fig.height=3,warning=FALSE, message=FALSE)
+```
+
+## Course Intro Video
+
+up to Ryan and Bryan to include here or not
+
+## Instructor Intro Video
+
+up to Ryan and Bryan
+
+## R
+
+\large
+
+- *Free*, open source statistical analysis software
+- Computational engine for DS705
+\begin{center}
+\includegraphics[width=4in]{figures/2015-vs-2014-donuts.png}
+\end{center}
+
+<div class='notes'>
+- put http://www.burtchworks.com/2015/05/21/2015-sas-vs-r-survey-results/ in the box below slide
+- a hot topic in the data science community is whether to learn R or SAS, we focus on R here for three reasons
+    1. it has packages available to do almost anything statistical
+    2. it's poised to overtake SAS as the most common platform
+    3. it's free - we have it on the virtual desktop for your use, but you should also install R and Rstudio on your own machine.  I use it as my personal statistical calculator.
+</div>
+
+## Recent News about R
+
+\Large
+
+- 2015 - Microsoft acquires commercial R provider Revolution Analytics
+- 2016 - In-database R coming to SQL server
+
+<div class='notes'>
+- no audio
+add links below slide
+- Revolution Analytics - http://www.cio.com/article/2906456/data-analytics/microsoft-closes-acquisition-of-r-software-and-services-provider.html
+- R in SQL - http://blog.revolutionanalytics.com/2015/05/r-in-sql-server.html
+</div>
+
+## RStudio
+ 
+- Development environment for DS705 in virtual desktop
+\begin{center}
+\includegraphics[width=3in]{figures/RStudio-Screenshot.png}
+\end{center}
+
+## RStudio Overview Video
+
+* please embed this video*
+
+- suggest HD and fullscreen
+- https://vimeo.com/97166163
+
+## Class Structure (non-exam weeks)
+
+\large
+
+- Study presentation(s)
+- Read
+- Complete swirl lesson (some weeks)
+- Contribute to group discussion
+- Complete brief quiz in D2L
+- Complete homework using R Markdown and submit via D2L
+
+## Class Structure (exam weeks)
+
+\large
+
+- Work on practice problems
+- Take exam
+    - \large May include D2L part similar to quizzes
+    - Complete exercises in R Markdown and submit via D2L
+
+## swirl
+
+\begin{center}\includegraphics[width=5in]{figures/swirl_logo.png}\end{center}
+
+<div class='notes'>
+- Put link to http://swirlstats.com below slide
+- We'll use swirl extensively throughout the first half of DS705 to help you learn to about R and to learn how to conduct simple statistical analyses in R
+- You're not required to submit any work from swirl, but it will definitely help you with the R part of this class
+</div>
+
+
+## Installing swirl and swirl Course
+
+At the console in the R-studio:
+```{r eval=FALSE}
+install.packages('swirl') 
+library(swirl)
+install_course_github('DataScienceUWL','Statistical_Methods') 
+swirl() 
+info() # type this anytime in swirl to see options
+```
+After the first time, you can skip the first and third commands.
+
+<div class='notes'>
+- no audio
+- add code in box below slide for easy cut and paste
+
+install.packages('swirl')  
+library(swirl)  
+install_course_github('DataScienceUWL','Statistical_Methods')   
+swirl()
+info() # type this anytime in swirl to see options  
+
+</div>
+
+## R Markdown
+
+\large
+
+- Great tool for reproducible research
+- Each week download file like 'Homework_01.Rmd'
+- In RStudio
+    - \large open .Rmd file
+    - Add chunks of R code and text to complete exercises
+    - 'knit' a Word .docx file
+    - Upload .Rmd and .docx file to D2L dropbox
+- http://rmarkdown.rstudio.com for getting started and documentation
+
+<div class='notes'>
+- no audio
+</div>  
+
+## Try R Markdown Now
+
+\large 
+
+- In RStudio
+    - \large Choose File $\rightarrow$ New File $\rightarrow$ R Markdown
+    - Fill in the title and author fields and select Word document
+    - At the top of the editor window, click on 'Knit Word'
+    
+## Weekly Download
+
+\large
+
+- Download week01_download.zip from D2L
+- Create DS705 directory and unzip there
+- Set working directory to week01_download in RStudio
+    - Session $\rightarrow$ Set Working Directory $\rightarrow$ Choose Directory
+- Open Week_01_Discussion_Assignment.Rmd
+- Open Week_01_HW_Submission.Rmd
+    

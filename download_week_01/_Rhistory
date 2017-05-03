@@ -1,0 +1,512 @@
+install_course_zip()
+?install_course_zip
+path <- file.choose()
+path
+install_course_zip(path)
+swirl()
+coinPlot(10)
+coinPlot(10000)
+qnrom(.95)
+qnorm(.95)
+.6 + c(-1,1)*qnorm(.975)*sqrt(.6*.4/100)
+?binom.test
+binom.test(60,100)$conf.int
+mywald(.2)
+ACCompar(20)
+lamb <- 5/94.32
+lamb + c(-1,1)*qnorm(.975)sqrt(lamb/94.32)
+lamb + c(-1,1)*qnorm(.975)*sqrt(lamb/94.32)
+?poisson.test
+poisson.test(5,94.32)
+poisson.test(5,94.32)$conf
+seq(5,15,by=2)
+seq(5,15,by=1)
+seq()
+data(HealthExam)
+require(DS705data)
+data(HealthExam)
+str(HealthExam)
+x <- rnorm(20)
+x>0
+x<1
+x>0 and x<1
+?and
+x>0 & x<1
+x>0 | x<0
+x>0 & x<0
+?uninstall_course
+uninstall_course("Statistical_Methods")
+swirl()
+uninstall_course("DS705")
+require(swirlify)
+set_lesson()
+testit()
+load(file.path(find.package("swirl"),
+"Courses/Statistical_Methods/Descriptive_Statistics/",
+"HealthExam.rda")
+load(file.path(find.package("swirl"),
+"Courses/Statistical_Methods/Descriptive_Statistics/",
+"HealthExam.rda"))
+load(file.path(find.package("swirl"),
+"Courses/Statistical_Methods/Descriptive_Statistics/",
+"HealthExam.rda"))
+set_lesson()
+testit()
+set_lesson()
+testit()
+testit()
+1-pnorm(74,70,3)
+x <- c(3, 6, 10, 11, 12, 23)
+x[ x>10 & x<20]
+28 + 1.5*(28-10)
+13*40/3
+13*40
+150 + 150
+t <- c(130,130,520,300,500)
+sum(c)
+sum(t)
+t/sum(t)*100
+t <- c(130,130,520,300,300)
+t <- c(130,130,520,300,200)
+sum(t)
+t/sum(t)*100
+t2 <- c(130,130,520,500)
+t2/sum(t2)*100
+swirl()
+uninstall_course("Statistical Methods")
+install_course_google_drive("https://drive.google.com/open?id=0B5mGbIhF96axYjBKaXVyN083T2c&authuser=0")
+swirl()
+?boot
+library(boot)
+?boot
+x <- rexp(30)
+x
+mean(x)
+set.seed(1)
+x <- rexp(30)
+mean(x)
+set.seed(1)
+x <- 3*rexp(30)
+mean(x)
+hist(x)
+mean9x)
+mean(x)
+?t.test
+mu0 <- 2
+tref <- t.text(x,mu=mu0,alternative="greater")$statistic
+tref <- t.test(x,mu=mu0,alternative="greater")$statistic
+tref
+str(tref)
+source('~/Google Drive/Gdrive_snap_May_15/MS Data Science/DS 705 CEOEL Folder/class_material/lessons/week 02/bootExample.R')
+tref
+source('~/Google Drive/Gdrive_snap_May_15/MS Data Science/DS 705 CEOEL Folder/class_material/lessons/week 02/bootExample.R')
+hist(t.values)
+sum(t.values>tref)
+tref
+?rexp
+source('~/Google Drive/Gdrive_snap_May_15/MS Data Science/DS 705 CEOEL Folder/class_material/lessons/week 02/bootExample.R')
+hist(t.values)
+tref
+mean(x)
+t.test(x,mu=1)
+tref
+source('~/Google Drive/Gdrive_snap_May_15/MS Data Science/DS 705 CEOEL Folder/class_material/lessons/week 02/bootExample.R')
+hist(t.values)
+max(t.values)
+source('~/Google Drive/Gdrive_snap_May_15/MS Data Science/DS 705 CEOEL Folder/class_material/lessons/week 02/bootExample.R')
+max(t.values)
+hist(t.values)
+tref
+sum(t.values>tref)
+20/1000
+t.test(x,mu=1.5)
+?t.test
+source('~/Google Drive/Gdrive_snap_May_15/MS Data Science/DS 705 CEOEL Folder/class_material/lessons/week 02/bootExample.R')
+source('~/Google Drive/Gdrive_snap_May_15/MS Data Science/DS 705 CEOEL Folder/class_material/lessons/week 02/bootExample.R')
+source('~/Google Drive/Gdrive_snap_May_15/MS Data Science/DS 705 CEOEL Folder/class_material/lessons/week 02/bootExample.R')
+source('~/Google Drive/Gdrive_snap_May_15/MS Data Science/DS 705 CEOEL Folder/class_material/lessons/week 02/bootExample.R')
+source('~/Google Drive/Gdrive_snap_May_15/MS Data Science/DS 705 CEOEL Folder/class_material/lessons/week 02/bootExample.R')
+source('~/Google Drive/Gdrive_snap_May_15/MS Data Science/DS 705 CEOEL Folder/class_material/lessons/week 02/bootExample.R')
+x <- rnorm(30,mean=2,sd=2)
+source('~/Google Drive/Gdrive_snap_May_15/MS Data Science/DS 705 CEOEL Folder/class_material/lessons/week 02/bootExample.R')
+source('~/Google Drive/Gdrive_snap_May_15/MS Data Science/DS 705 CEOEL Folder/class_material/lessons/week 02/bootExample.R')
+source('~/Google Drive/Gdrive_snap_May_15/MS Data Science/DS 705 CEOEL Folder/class_material/lessons/week 02/bootExample.R')
+?t.test
+t.test(rnorm(30))
+t.test(rnorm(30))
+t.test(rnorm(30))
+t.test(rnorm(30))
+t.test(rnorm(30))
+t.test(rnorm(30))
+t.test(rnorm(30))
+t.test(rnorm(30))
+t.test(rnorm(30))
+t.test(rnorm(30))
+t.test(rnorm(30))
+t.test(rnorm(30))
+t.test(rnorm(30))
+t.test(rnorm(30))
+t.test(rnorm(30))
+t.test(rnorm(30))
+t.test(rnorm(30))
+t.test(rnorm(30))
+t.test(rnorm(30))
+t.test(rnorm(30))
+t.test(rnorm(30))
+t.test(rnorm(30))
+t.test(rnorm(30))
+t.test(rnorm(30))
+shiny::runApp('Google Drive/Gdrive_snap_May_15/DS705 - Resources/shiny_apps/sampling3')
+shiny::runApp('Google Drive/Gdrive_snap_May_15/DS705 - Resources (1)/shiny_apps/test_stats_heavy')
+shiny::runApp('Google Drive/Gdrive_snap_May_15/DS705 - Resources (1)/shiny_apps/sample_means_heavy')
+source('~/Google Drive/Gdrive_snap_May_15/MS Data Science/DS 705 CEOEL Folder/class_material/swirl_lessons/Statistical_Methods/Assessing_Normality/initLesson.R')
+source('~/Google Drive/Gdrive_snap_May_15/MS Data Science/DS 705 CEOEL Folder/class_material/swirl_lessons/Statistical_Methods/Assessing_Normality/initLesson.R')
+source('~/Google Drive/Gdrive_snap_May_15/MS Data Science/DS 705 CEOEL Folder/class_material/swirl_lessons/Statistical_Methods/Assessing_Normality/initLesson.R')
+?HealthExam
+help pbinom
+?pbinom
+pbinom(4,20,.3)
+shiny::runApp('Google Drive/Gdrive_snap_May_15/DS705 - Resources/shiny_apps/tSimulPower')
+shiny::runApp('Google Drive/Gdrive_snap_May_15/DS705 - Resources/shiny_apps/tSimulPower')
+require(DS705data)
+data(HealthExam)
+hm <- HealthExam$Height[HealthExam$Sex=="M"]
+t.test(hm,alternative="less",mu=70.5)
+t.test(hm,alternative="less",mu=70)
+power.t.test
+wm <- HealthExam$Weight[HealthExam$Sex=="M"]
+hist(wm)
+shapiro.test(wm)
+mean(wm)
+t.test(wm,alternative="greater",mu=160)
+?power.t.test
+t.test(wm,alternative="greater",mu=165)
+power.t.test(40,delta=5,sd=sd(wm),type="one.sample",alternative="greater")
+power.t.test(40,delta=5,sd=sd(wm),type="one.sample",alternative="one.sided")
+t.test(wm,alternative="greater",mu=166)
+t.test(wm,alternative="greater",mu=167)
+t.test(wm,alternative="greater",mu=166)
+power.t.test(power=.8,delta=5,sd=sd(wm),type="one.sample",alternative="one.sided")
+t.test(wm,alternative="greater",mu=165)
+x <- rnorm(173)
+x <- (x-mean(x))/sd(x) * sd(wm) + mean(wm)
+mean(x)
+sd(x)
+mean(wm)
+sd(wm)
+t.test(x,alternative="greater",mu=165)
+power.t.test(n=40,delta=1:20,sd=sd(wm),type="one.sample",alternative="one.sided")
+pw<-power.t.test(n=40,delta=1:20,sd=sd(wm),type="one.sample",alternative="one.sided")
+pw$poewr
+pw$power
+plot(pw$delta,pw$power)
+pw<-power.t.test(n=40,delta=1:20,sd=sd(wm),type="one.sample",alternative="one.sided",sig.level=.01)
+plot(pw$delta,pw$power)
+pw<-power.t.test(n=40,delta=15,sd=sd(wm),type="one.sample",alternative="one.sided",sig.level=.01)
+pw
+pw<-power.t.test(n=40,delta=15,sd=sd(wm),type="one.sample",alternative="one.sided",sig.level=.01)
+t.test(x,alternative="greater",mu=165)
+t.test(wm,alternative="greater",mu=165)
+sd(hm)
+power.t.test
+?power.t.test
+shiny::runApp('Google Drive/Gdrive_snap_May_15/DS705 - Resources/shiny_apps/tSimulPower')
+mv
+mv
+wm
+mean(wm)
+t.test(wm,mu=165,alternative='greater')
+t.test(wm,mu=166,alternative='greater')
+t.test(wm,mu=167,alternative='greater')
+power.t.test(n=40,delta=3,sd=sd(wm),sig.level=.05,type='one.sample',alternative='one.sided')
+power.t.test(n=40,delta=4,sd=sd(wm),sig.level=.05,type='one.sample',alternative='one.sided')
+t.test(wm,mu=166,alternative='greater')
+sd(wm)
+power.t.test(n=40,delta=3,sd=26,sig.level=.05,type='one.sample',alternative='one.sided')
+ls()
+chol <- HealthExam$Cholesterol(HealthExam$Sex=="M")
+chol <- HealthExam$Cholesterol[HealthExam$Sex=="M"]
+qqnorm(chol)
+hist(chol)
+mean(chol)
+sum(chol>mean(chol))
+t.test(chol,mu=300,alternative="greater")
+source('~/Google Drive/Gdrive_snap_May_15/DS705 - Resources/class_scripts/bootstrap_chol.R')
+hist(t_sim,prob=true)
+hist(t_sim,prob=TRE)
+hist(t_sim,prob=TRUE)
+source('~/Google Drive/Gdrive_snap_May_15/DS705 - Resources/class_scripts/bootstrap_chol.R')
+source('~/Google Drive/Gdrive_snap_May_15/DS705 - Resources/class_scripts/bootstrap_chol.R')
+source('~/Google Drive/Gdrive_snap_May_15/DS705 - Resources/class_scripts/bootstrap_chol.R')
+source('~/Google Drive/Gdrive_snap_May_15/DS705 - Resources/class_scripts/bootstrap_chol.R')
+source('~/Google Drive/Gdrive_snap_May_15/DS705 - Resources/class_scripts/bootstrap_chol.R')
+source('~/Google Drive/Gdrive_snap_May_15/DS705 - Resources/class_scripts/bootstrap_chol.R')
+source('~/Google Drive/Gdrive_snap_May_15/DS705 - Resources/class_scripts/bootstrap_chol.R')
+source('~/Google Drive/Gdrive_snap_May_15/DS705 - Resources/class_scripts/bootstrap_chol.R')
+tcrit_est
+tcrit_model <- qt(df=39,p=c(.025,.975))
+tcrit_model
+?boot
+require('boot')
+?boot
+min(chol)
+max(chol)
+n = length(c)
+source('~/Google Drive/Gdrive_snap_May_15/DS705 - Resources/class_scripts/bootstrap_chol.R')
+source('~/Google Drive/Gdrive_snap_May_15/DS705 - Resources/class_scripts/bootstrap_chol.R')
+source('~/Google Drive/Gdrive_snap_May_15/DS705 - Resources/class_scripts/bootstrap_chol.R')
+source('~/Google Drive/Gdrive_snap_May_15/DS705 - Resources/class_scripts/bootstrap_chol.R')
+source('~/Google Drive/Gdrive_snap_May_15/DS705 - Resources/class_scripts/bootstrap_chol.R')
+source('~/Google Drive/Gdrive_snap_May_15/DS705 - Resources/class_scripts/bootstrap_chol.R')
+source('~/Google Drive/Gdrive_snap_May_15/DS705 - Resources/class_scripts/bootstrap_chol.R')
+source('~/Google Drive/Gdrive_snap_May_15/DS705 - Resources/class_scripts/bootstrap_chol.R')
+source('~/Google Drive/Gdrive_snap_May_15/DS705 - Resources/class_scripts/bootstrap_chol.R')
+source('~/Google Drive/Gdrive_snap_May_15/DS705 - Resources/class_scripts/bootstrap_chol.R')
+xbar
+t_ci_bootstrap-xbar
+install.packages("sign.median")
+install.packages("signmedian")
+source('~/Google Drive/Gdrive_snap_May_15/DS705 - Resources/class_scripts/randomizeTest_chol.R')
+source('~/Google Drive/Gdrive_snap_May_15/DS705 - Resources/class_scripts/randomizeTest_chol.R')
+source('~/Google Drive/Gdrive_snap_May_15/DS705 - Resources/class_scripts/randomizeTest_chol.R')
+p1
+p0
+source('~/Google Drive/Gdrive_snap_May_15/DS705 - Resources/class_scripts/randomizeTest_chol.R')
+p0
+p1
+source('~/Google Drive/Gdrive_snap_May_15/DS705 - Resources/class_scripts/randomizeTest_chol.R')
+p0
+p1
+source('~/Google Drive/Gdrive_snap_May_15/DS705 - Resources/class_scripts/randomizeTest_chol.R')
+p1
+source('~/Google Drive/Gdrive_snap_May_15/DS705 - Resources/class_scripts/randomizeTest_chol.R')
+p1
+source('~/Google Drive/Gdrive_snap_May_15/DS705 - Resources/class_scripts/randomizeTest_chol.R')
+p1
+source('~/Google Drive/Gdrive_snap_May_15/DS705 - Resources/class_scripts/randomizeTest_chol.R')
+p1
+source('~/Google Drive/Gdrive_snap_May_15/DS705 - Resources/class_scripts/randomizeTest_chol.R')
+p1
+source('~/Google Drive/Gdrive_snap_May_15/DS705 - Resources/class_scripts/randomizeTest_chol.R')
+p1
+source('~/Google Drive/Gdrive_snap_May_15/DS705 - Resources/class_scripts/randomizeTest_chol.R')
+p1
+source('~/Google Drive/Gdrive_snap_May_15/DS705 - Resources/class_scripts/randomizeTest_chol.R')
+p0
+source('~/Google Drive/Gdrive_snap_May_15/DS705 - Resources/class_scripts/randomizeTest_chol.R')
+p1
+source('~/Google Drive/Gdrive_snap_May_15/DS705 - Resources/class_scripts/randomizeTest_chol.R')
+p1
+source('~/Google Drive/Gdrive_snap_May_15/DS705 - Resources/class_scripts/randomizeTest_chol.R')
+p1
+?t.test
+install.packages('BDSA')
+install.packages('BSDA')
+?BSDA
+library(BSDA)
+?BSDA
+?tsum.test
+tsum.test
+x <- rnorm(30); x <- (x-mean(x))/sd(x)
+mean(x)
+sd(x)
+x <- rnorm(30); x <- (x-mean(x))/sd(x); x <- 13*x + 28
+mean(x)
+sd(x)
+hist(x)
+xbar <- 13
+s <- 3
+x <- rnorm(30)
+x <- (x-mean(x))/sd(x)
+x <- rnorm(30,mean=xbar,sd=s)
+mean(x)
+sd(x)
+t.test(x)
+p.test
+?binom.test
+?prop.test
+prop.test(16,20)
+?binom.test
+binom.test(16,20)
+binom.test(160,200)
+prop.test(160,200)
+binom.test(1600,2000)
+prop.test(1600,2000)
+binom.test(16000,20000)
+binom.test(160000,200000)
+prop.test(160000,200000)
+power.prop.test
+power.binom.test
+?power.prop.test
+shiny::runApp('Google Drive/Gdrive_snap_May_15/DS705 - Resources/shiny_apps/samplingShiny-master')
+shiny::runApp('Google Drive/Gdrive_snap_May_15/DS705 - Resources/shiny_apps/samplingShiny-master')
+install.packages('WRS2')
+require(WRS2)
+who
+?require(WRS2)
+?WRS2
+x
+clear
+source('~/Google Drive/Gdrive_snap_May_15/DS705 - Resources/class_scripts/exploreMultiPop.R')
+t1 <- t1waybt(x~group,tr=0,nboot=1000)
+t1
+t1 <- t1waybt(x~group,tr=0,nboot=1000)
+t1
+source('~/Google Drive/Gdrive_snap_May_15/DS705 - Resources/class_scripts/exploreMultiPop.R')
+source('~/Google Drive/Gdrive_snap_May_15/DS705 - Resources/class_scripts/exploreMultiPop.R')
+t1 <- t1waybt(x~group,tr=0,nboot=1000)
+t1
+m1 <- mcppb20(x~group,tr=0,nboot=1000)
+m1 <- mcppb20(x~group,tr=0,nboot=1000,crit=.05)
+m1
+by(x,group,mean)
+tapply(x,group,mean)
+source('~/Google Drive/Gdrive_snap_May_15/DS705 - Resources/class_scripts/anovaBoot.R')
+install.packages(lsmeans)
+install.packages('lsmeans')
+anboot(x~group)
+df <- data.frame(x,groujp)
+df <- data.frame(x,group)
+anboot(x~group,data=df)
+anboot(x~group,data=df,pw.comp=NULL)
+tmp <- anboot(x~group,data=df,pw.comp=NULL)
+tmp
+tmp <- anboot(x~group,data=df,pw.comp=c("A","B","C"))
+install.packages('asbio')
+require(asbio)
+remove.packages("asbio", lib="~/Library/R/3.2/library")
+install.packages(file.choose(),repos=NULL,type="source")
+library(asbio)
+eggs<-c(11,17,16,14,15,12,10,15,19,11,23,20,18,17,27,33,22,26,28)
+trt<-as.factor(c(1,1,1,1,1,2,2,2,2,2,3,3,3,3,4,4,4,4,4))
+pairw.anova(y = eggs, x = trt, method = "lsd")##LSD method
+pairw.anova(y = eggs, x = trt, method = "bonf")##Bonferroni
+pairw.anova(y = eggs, x = trt, method = "scheffe")##Sheffe
+tukey <- pairw.anova(y = eggs, x = trt, method = "tukey")##Tukey HSD
+eggs<-c(11,17,16,14,15,12,10,15,19,11,23,20,18,17,27,33,22,26,28)
+trt<-as.factor(c(1,1,1,1,1,2,2,2,2,2,3,3,3,3,4,4,4,4,4))
+pairw.anova(y = eggs, x = trt, method = "lsd")##LSD method
+pairw.anova(y = eggs, x = trt, method = "bonf")##Bonferroni
+pairw.anova(y = eggs, x = trt, method = "scheffe")##Sheffe
+tukey <- pairw.anova(y = eggs, x = trt, method = "tukey")##Tukey HSD
+eggs<-c(11,17,16,14,15,12,10,15,19,11,23,20,18,17,27,33,22,26,28)
+trt<-as.factor(c(1,1,1,1,1,2,2,2,2,2,3,3,3,3,4,4,4,4,4))
+pairw.anova(y = eggs, x = trt, method = "lsd")##LSD method
+pairw.anova(y = eggs, x = trt, method = "bonf")##Bonferroni
+pairw.anova(y = eggs, x = trt, method = "scheffe")##Sheffe
+tukey <- pairw.anova(y = eggs, x = trt, method = "tukey")##Tukey HSD
+tukey
+plot(tukey)
+plot(tukey)
+tukey
+bonf.cont(y = eggs, x = trt, lvl = c(1,3), comps = 2)
+pairw.kw
+?pairw.kw
+pairw.kw(eggs,trt)
+kw <- pairw.kw(eggs,trt)
+plot(kw)
+# You can also use the p.adjust function in the stats: library, but I
+# haven't wuite figured that out to my satisfaction. See also p.adjust in stats package
+p <- c(.0717, 5e-05, .0124, .04525, .83208, .02122, .88829, .05305, 3e-05, .03277) # p from LSD
+p.adjust.methods <- c("holm", "hochberg", "hommel", "bonferroni", "BH", "BY", "fdr", "none")
+p.adjust(p = p, method = p.adjust.methods, n = length(p))
+p.adjust(p = p, method = "fdr", n = length(p))
+?complete.cases
+?comb
+?combn
+?TukeyHSD
+require(graphics)
+summary(fm1 <- aov(breaks ~ wool + tension, data = warpbreaks))
+TukeyHSD(fm1, "tension", ordered = TRUE)
+plot(TukeyHSD(fm1, "tension"))
+install.packages('userfriendlyscience')
+library(userfriendlyscience)
+ChickenWeight
+data(ChickenWeight)
+x
+y
+x <- c(rnorm(20),rnorm(20)+1,rnorm(20)+2)
+g <- factor(rep(letters[1:3],each=20))
+posthocTGH(x,g)
+posthocTGH(x,g,'tukey')
+remove.packages("DS705data", lib="/Library/Frameworks/R.framework/Versions/3.2/Resources/library")
+install.packages('swirl')
+?install_course_zip
+library(swirl)
+rm(list=ls())
+?install_course_zip
+- http://rmarkdown.rstudio.com for getting started and documentation
+install_course_github('DataScienceUWL','Statistical_Methods')
+swirl()
+swirl()
+uninstall_course('Statistical Methods')
+install_course_github('DataScienceUWL','Statistical_Methods')
+swirl()
+install_course_github('DataScienceUWL','Statistical_Methods')
+uninstall_course('Statistical Methods')
+install_course_github('DataScienceUWL','Statistical_Methods')
+swirl
+swirl()
+detach("package:swirl", unload=TRUE)
+require(devtools)
+library("DS705data", lib.loc="/Library/Frameworks/R.framework/Versions/3.2/Resources/library")
+remove.packages("DTK", lib="/Library/Frameworks/R.framework/Versions/3.2/Resources/library")
+remove.packages("DS705data", lib="/Library/Frameworks/R.framework/Versions/3.2/Resources/library")
+if (!require(DS705data)){
+if (!require(devtools)){
+install.packages('devtools')
+}
+install_github('DataScienceUWL/DS705data')
+}
+install.
+install.packages('devtools')
+install.packages("devtools")
+detach(devtools)
+remove.packages("devtools", lib="/Library/Frameworks/R.framework/Versions/3.2/Resources/library")
+if (!require(DS705data)){
+if (!require(devtools)){
+install.packages('devtools')
+}
+install_github('DataScienceUWL/DS705data')
+}
+if (!require(DS705data)){
+if (!require(devtools)){
+install.packages('devtools')
+}
+library(devtools)
+install_github('DataScienceUWL/DS705data')
+}
+if (!require(DS705data)){
+if (!require(devtools)){
+install.packages('devtools')
+}
+library(devtools)
+install_github('DataScienceUWL/DS705data')
+}
+require(DS705data)
+data()
+libarry(DS705data)
+library(DS705data)
+uninstall.packages('DS705data')
+detach("package:DS705data", unload=TRUE)
+remove.packages("DS705data", lib="~/Library/R/3.2/library")
+date: "September 2, 2015"
+set.seed(123)
+P     <- 3
+Nj    <- c(15, 25, 20)
+Sigma <- matrix(c(16,-2, -2,9), byrow=TRUE, ncol=2)
+mu11  <- c(-4,  4)
+mu21  <- c( 3,  3)
+mu31  <- c( 1, -1)
+library(mvtnorm)
+Y11 <- round(rmvnorm(Nj[1], mean=mu11, sigma=Sigma))
+Y21 <- round(rmvnorm(Nj[2], mean=mu21, sigma=Sigma))
+Y31 <- round(rmvnorm(Nj[3], mean=mu31, sigma=Sigma))
+dfMan1 <- data.frame(Y =rbind(Y11, Y21, Y31),
+IV=factor(rep(1:P, Nj)))
+manRes1 <- manova(cbind(Y.1, Y.2) ~ IV, data=dfMan1)
+summary(manRes1, test="Wilks")
+setwd("~/Google Drive/Gdrive_snap_May_15/MS Data Science/DS 705 CEOEL Folder/class_material/lessons/week 01/download_week_01")
+swirl()
+require(swirl)
+swirl()

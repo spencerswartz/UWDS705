@@ -1,0 +1,85 @@
+install.packages("knitr")
+install.packages("signmedian")
+load("~/Google Drive/DS 705 /Class Materials/Weekly Content/week 14/police.rda")
+police.s <- scale(police[,2:16], center = FALSE,
+scale = apply(police[,2:16], 2, sd, na.rm = TRUE))
+model.s<-hclust(dist(police.s))
+plot(model.s)
+rect.hclust(model.s, h=8)
+police$clusternumber <- cutree(model.s, h=8)
+summary(as.factor(police$clusternumber))
+round(aggregate(police[,2:16],by=list(police$clusternumber),FUN=mean),2)
+load("~/Google Drive/DS 705 /Class Materials/Weekly Content/week 13/ifanmot.rda")
+summary(ifanmot$Interest)
+load("~/Google Drive/DS 705 /Class Materials/Weekly Content/week 11/anesthesia.rda")
+counts <- table(anesthesia$anesthetic,anesthesia$nausea)
+chisq.test(anesthesia$anesthetic,anesthesia$nausea)
+counts
+naus.out <- glm(nausea~anesthetic,data=anesthesia,family="binomial")
+summary(naus.out)
+exp(-1.5261)
+View(anesthesia)
+require(mosaic)
+counts <- table(anesthesia$anesthetic,anesthesia$nausea)
+oddsRatio(counts,verbose = TRUE)  # can skip verbose=TRUE if you don't want extra info
+exp(1.5261)
+naus.out <- glm(nausea~anesthetic,data=anesthesia,family="binomial")
+newdata <- data.frame(anesthesia="A")
+predict(naus.out, newdata, type="response")
+newdata <- data.frame(anesthetic="A")
+predict(naus.out, newdata, type="response")
+out <- predict(naus.out, newdata, se.fit=TRUE)
+C = .95  # define the level of confidence
+crit = qnorm(1-(1-C)/2)  # get the appropriate critical value
+lower = exp(out$fit-crit*out$se.fit)/(1+exp(out$fit-crit*out$se.fit))
+upper = exp(out$fit+crit*out$se.fit)/(1+exp(out$fit+crit*out$se.fit))
+c(lower,upper)
+naus.out2 <- glm(nausea~painmed,data=anesthesia,family="binomial")
+summary(naus.out2)
+```
+exp(0.037487)
+newdata2 <- data.frame(painmed=c(50,100))
+predict(naus.out2, newdata2, type="response")
+pts <- NULL
+pts.poss <- NULL
+display.grades <- TRUE
+scoreFunction <- function(prb,earned,possible){
+pts[prb] <<- earned
+pts.poss[prb] <<- possible
+if (display.grades){
+print( paste('Score for',prb,':',earned,'/',possible))
+}
+}
+scoreFunction("1b.1",6)
+250-28
+36+40+32+38+38+38
++28
+222+28
+load("~/Google Drive/DS 705 /Class Materials /Weekly Content/week 15/download_week_15/careerbarrier.rda")
+View(careerbarrier)
+spent <- c(8,10,12,12,14,15,17,17,19,24,25,27,30,31,39,53)
+method <- c("Cash","Credit","Cash","Cash","Cash","Check","Debit","Check","Cash","Check","Credit","Debit","Credit","Cash","Credit","Credit")
+gender <- c("F","F","M","F","M","M","M","F","F","M","F","F","F","F","M","F")
+store <- data.frame(spent,method,gender)
+dotchart(store$spent)
+boxplot(store$spent)
+hist(store$spent)
+counts <- table(store$gender, store$method)
+barplot(counts,xlab="Method of Payment", ylab="Frequency", col=c("darkblue","red"),
+legend = rownames(counts), beside=TRUE)
+stem(store$spent)
+stripchart(store$spent)
+stripchart(store$spent,method="stack")
+table(store$method,store$gender)
+mean(store$spent)
+median(store$spent)
+quantile(store$spent)
+quantile(store$spent,c(.32,.57,.98))
+var(store$spent) # variance
+sd(store$spent) # std dev
+mean(store$spent,trim=.05) # trimmed mean 5% off each end
+mean(store$spent,trim=.25) # trimmed mean 5% off each end
+setwd("~/Google Drive/DS 705 /Class Materials /Weekly Content/week 05/download_week_05")
+load('BirdPecks.rda')
+g1 <- BirdPecks$pecks[BirdPecks$group==1]
+g2 <- BirdPecks$pecks[BirdPecks$group==2]

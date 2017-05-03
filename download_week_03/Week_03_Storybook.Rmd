@@ -1,0 +1,482 @@
+---
+title: 'Two-Sample t-Procedures for Means'
+author: "DS705"
+fontsize: '12pt,notes'
+output:
+  beamer_presentation:
+    template: '../beamer169.tex'
+    colortheme: "seahorse"
+    keep_tex: true
+---
+
+
+## Pooled vs. Unpooled
+
+
+Pooled-variance t-procedures
+
+  * var.equal=TRUE
+  
+  \vspace{3em}
+  
+Separate-variance (Welch, Unpooled) t-procedures 
+
+  * var.equal=FALSE
+  
+<div class="notes">
+
+Pooled vs Unpooled – that is the question when it comes to two–sample t-tests and intervals for population means.
+
+Pooled and unpooled procedures both require independent, random samples from normally distributed populations.
+
+The difference between the two is that the pooled procedures have the additional data requirement that the populations have equal variances.  In R, the option to specify this in the t.test function is var.equal=TRUE.
+
+The separate-variance or unpooled t-procedures require no such stipulation that the population variances be equal.  In R, the option to specify this in the t.test function is var.equal=FALSE and this is the default case if the var.equal option is omitted.
+
+Please recognize that just because we don’t assume the population variances are equal does not mean that they must be different – we simply place no conditions on them at all.  
+
+In other words, As long as the conditions of independent random samples from normal populations are met, the separate-variance t-procedures are applicable, whereas the pooled t-procedures are only reliable when the population variances are equal.
+
+The benefit of placing this extra condition on the data is that the sampling distribution that the pooled t-procedures are based on is exact, whereas the sampling distribution that the separate-variance t-procedures are derived from are only approximate.
+
+</div>
+  
+----
+
+## Interpreting CI’s for a Difference: $\mu_1 - \mu_2 = ?$
+
+The importance of 0 in the interval . . . or not in the interval
+
+<div class="notes">
+
+With the two-sample t-intervals, the purpose is to estimate the difference between two unknown population means.  We’re estimating the answer to a subtraction problem, and so of course it will be important to determine if the difference is positive, negative, or if it could be 0. 
+
+</div>
+
+----
+
+## Interpreting CI’s for a Difference: $\mu_1 - \mu_2 = ?$
+
+The importance of 0 in the interval . . . or not in the interval.
+
+Then for a given level of confidence:
+
+\vspace{2em}
+
+If $(-3, 2)$, then "...the difference in population means is between -3 and 2..."
+
+<div class="notes">
+
+When 0 is in the interval, which is evident when the lower bound is negative and the upper bound is positive, then there is insufficient evidence to conclude that the population means are different, such as in this example here.
+
+</div>
+
+----
+
+## Interpreting CI’s for a Difference: $\mu_1 - \mu_2 = ?$
+
+The importance of 0 in the interval . . . or not in the interval.
+
+Then for a given level of confidence:
+
+\vspace{2em}
+
+If $(-3, 2)$, then "...the difference in population means is between -3 and 2..."
+
+If $(-7,-4)$, then "...population mean 1 is 4 to 7 units less than population mean 2..."
+
+<div class="notes">
+
+If the interval is entirely negative, then we can conclude that mu 1 is less than mu 2 by the amount given by the interval with whatever level of confidence was used.  Notice that the negative signs are not needed in the written interpretation because they have been interpreted by the word “less” in the comparison.
+
+</div>
+
+----
+
+## Interpreting CI’s for a Difference: $\mu_1 - \mu_2 = ?$
+
+The importance of 0 in the interval . . . or not in the interval.
+
+Then for a given level of confidence:
+
+\vspace{2em}
+
+If $(-3, 2)$, then "...the difference in population means is between -3 and 2..."
+
+If $(-7,-4)$, then "...population mean 1 is 4 to 7 units less than population mean 2..."
+
+If $(5,9)$, then "...population mean 1 is 5 to 9 units more than population mean 2..."
+
+<div class="notes">
+
+If the interval falls entirely in the positive part of the number line, then it can be concluded that mu 1 is greater than mu 2 by the amount given by the interval with whatever level of confidence was used.  It makes sense in the order of subtraction that when the answer is positive the first number is bigger than the second number.
+
+</div>
+
+----
+
+## Assessing Conditions with Other Hypothesis Tests
+
+  * Shapiro-Wilk test for normality
+  * Levene test for equal variance
+
+<div class="notes">
+
+We’ll be introducing two additional hypothesis tests this week: the Shapiro-Wilk test for normality and the Levene test for equal variance.
+
+Both the pooled and separate-variance t-procedures require the samples to be independent and randomly selected as well as normally distributed.  
+
+The Shapiro-Wilk test will be used to assess the normality of the samples in addition to looking at boxplots, histograms, and normal probability plots.
+
+Levene’s test will be used to determine if the condition of equal population variances is met for the pooled t-interval and test.
+
+</div>
+
+----
+
+## Shapiro-Wilk Test
+
+$H_0$: The sample was drawn from a normally distributed population.
+
+$H_a$: The sample was not drawn from a normally distributed population.
+
+<div class="notes">
+
+While we won’t formally be teaching the mathematical details of the Shapiro-Wilk test and it isn’t presented in the textbooks we’re using, it is easily performed in R and it is important to understand what is being tested.
+
+The null hypothesis is simply that a particular random sample was drawn from a normally distributed population, while the alternative hypothesis is that it was not.
+
+</div>
+
+----
+
+## Levene Test
+
+$H_0$: Population variances are equal.
+
+$H_a$: Population variances are not equal.
+
+<div class="notes">
+
+Similarly, Levene’s is easily performed in R and it is important to understand what is being tested here as well.
+
+The null hypothesis is simply that the population variances are equal, while the alternative hypothesis is that they are not.
+
+To introduce some terminology here, it is not uncommon to refer to equal population variance as
+
+</div>
+
+----
+
+## Levene Test
+
+$H_0$: Homogeneity of variance
+
+$H_a$: Population variances are not equal.
+
+<div class="notes">
+
+“homogeneity of variance” and unequal population variances as
+
+</div>
+
+----
+
+## Levene Test
+
+$H_0$: Homogeneity of variance
+
+$H_a$: Heterogeneity of variance
+
+<div class="notes">
+
+“heterogeneity of variance”  . . .Homogeneity of variance is also called
+
+</div>
+
+----
+
+## Levene Test
+
+$H_0$: Homoscedasticity
+
+$H_a$: Heterogeneity of variance
+
+<div class="notes">
+
+homoscedasticity and heterogeneity of variance is known as
+
+</div>
+
+----
+
+## Levene Test
+
+$H_0$: Homoscedasticity
+
+$H_a$: Heretoscedasticity
+
+<div class="notes">
+
+heteroscedasticity . . .the hypotheses are probably most commonly written using the
+
+</div>
+
+----
+
+## Levene Test
+
+$H_0: \sigma_1^2=\sigma_2^2$
+
+$H_a: \sigma_1^2 \ne \sigma_2^2$
+
+<div class="notes">
+
+mathematical symbols that represent the population variances.
+
+</div>
+
+----
+
+## Example
+
+Suppose a national car rental agency wants to compare the average number of miles their customers put on luxury car rentals versus sports car rentals and estimate their difference.  The company selects independent, random samples of 15 luxury car rentals and 15 sports car rentals and record the daily mileage for each.  
+
+```{r,echo=FALSE}
+mileage <- c(50,58,43,48,50,66,32,73,55,78,43,66,57,40,54,26,33,21,37,39,23,48,58,28,39,22,38,41,50,43);
+cartype <- c(rep("sports",15),rep("luxury",15));
+cardata <- data.frame(mileage,cartype)
+sports_cars <-mileage[cartype=="sports"]
+luxury_cars <-mileage[cartype=="luxury"]
+```
+
+<div class="notes">
+
+When reading a problem scenario like this, it is very important for us to be able to pick out the key pieces of information.  For example, we should be able to identify the two populations of interest.  
+
+Here, we see that there is some national car rental agency that has both luxury car rentals and sports car rentals.  And we read that they want to compare the average number of miles for each – this is the response variable.
+
+It also says that the company has selected independent random samples.  This is important because these are conditions for both the separate-variance t-procedures and the pooled t-procedures.  If these conditions were not clearly stated, we would be in the position of having to assume them in order to proceed.
+
+The sample sizes are also given and we see that they are relatively small, but equal.
+
+</div>
+
+----
+
+## Example
+
+Conduct a hypothesis test at a 10% level of significance to compare the population means miles per day for luxury car and sports car rentals.  Also construct a 90% confidence interval to estimate the difference in population means.
+
+<div class="notes">
+
+There is no audio for this slide.
+
+</div>
+
+----
+
+## Sample Statistics
+
+```{r}
+mean(luxury_cars); sd(luxury_cars)
+mean(sports_cars); sd(sports_cars)
+```
+
+<div class="notes">
+
+Before doing any statistical inference, it is always a good idea to examine the sample statistics.  The R code for generating the sample means and standard deviations is shown as well as the output that is generated by each.
+
+We’ll assume that we have already loaded the data into R and that the names luxury cars and sports cars identify vectors that contain each sample.
+
+Clearly the sample mean for the sports cars is higher, but that doesn’t necessarily mean that the population means are different.  However, with this in mind, if we do find a significant difference in population means, it would stand to reason that the sample with the higher mean would correspond to population with the higher mean.
+
+We can also see that the sample standard deviations are not too far apart and that they satisfy the general guideline that if the larger standard deviation is no more than twice the smaller one, then it is reasonable to assume equal population variances.  We will test it formally with Levene’s test as we proceed.
+
+</div>
+
+----
+
+## Assessing Conditions: Equal Variance (numerically)
+
+```{r}
+library(car)
+leveneTest(mileage~cartype)
+```
+
+<div class="notes">
+
+To conduct Levene’s test for equal variance in R, the package “car” must be installed and called from the library.  (by the way it is purely a coincidence that this example is about cars and this package is called car)
+
+A warning message is shown alerting us that the car package was built under a different version of R than the one we are currently running.  Many times this will not affect the output – such as in this case.
+
+Another warning is given when the Levene test is executed, but again, it is more informational rather than something that will affect our output.
+
+What we are most interested in with this output is the P-value.  Since it is rather large, especially when compared to something like the typical 0.05 level of significance, we would not reject the null hypothesis of equal variance, and so conclude that it is not at all unreasonable to consider the underlying population variances to be equal.
+
+</div>
+
+----
+
+## Assessing Conditions: Normality (visually)
+
+```{r,echo=FALSE,fig.height=3,fig.width=3,fig.align='center'}
+boxplot(mileage~cartype,data=cardata,ylab="Miles",main="Rental Car Mileage")
+```
+
+<div class="notes">
+
+To assess the normality of the samples it is wise to make a visual assessment of boxplots and histograms in addition to conducting a goodness-of-it test such as the Shapiro-Wilk test for normality.
+
+No outliers are seen in these boxplots and both boxplots are relatively symmetric.  Once again, however, we can see that the mileage for sports car rentals tends to be higher in the sample, though we have yet to compare population means formally.
+
+</div>
+
+----
+
+## Assessing Conditions: Normality (visually)
+
+```{r,echo=FALSE,fig.height=3,fig.width=4,fig.align='center'}
+par(mfrow=c(1,2))
+hist(luxury_cars,main="Luxury Cars")
+hist(sports_cars,main="Sports Cars")
+```
+
+<div class="notes">
+
+The histograms are a little blocky and may have a very slight skewness to the right.  However, we should keep in mind that the samples contain random variation simply from the process of random sampling and that they are also relatively small samples.  
+
+We should not be too hasty to declare them to be non-normal.  We would only be skeptical normality if we see heavy skewness, extreme outliers, or a large number of outliers.
+
+</div>
+
+----
+
+## Assessing Conditions: Normality (numerically)
+
+```{r}
+shapiro.test(luxury_cars)
+shapiro.test(sports_cars)
+```
+
+<div class="notes">
+
+When assessing the condition numerically that both samples come from normally distributed populations, the Shapiro-Wilk test is applied to each sample individually.  
+
+A p-value of 0.6395 for the luxury cars is large enough that normality for the daily  mileage for the population of all luxury cars at this company would not be rejected at a 5% level of significance, and similarly the large p-value of .966 for the sports cars indicates that it would not be unreasonable at all to consider the population of mileage for all sports cars to be normally distributed as well.
+
+</div>
+
+---- 
+
+## Define the Parameters
+
+Let $\mu_1$ represent the population mean miles per day that customers put on all luxury car rentals.
+
+Let $\mu_2$ represent the population mean miles per day that customers put on all sports car rentals.
+
+<div class="notes">
+
+Since we were given in the problem statement that the samples were independent and randomly selected and we have determined that the underlying populations are normally distributed with equal variance, we can proceed with either the separate variance t-test or the pooled t-test.
+
+In either case, we should begin by being clear about defining the mathematical symbols we use and identifying the populations for the parameters we are comparing.
+
+</div>
+
+----
+
+## State the Hypotheses
+
+$$H_0: \mu_1 = \mu_2$$
+
+$$H_a: \mu_1 \ne \mu_2$$
+
+<div class="notes">
+
+Every hypothesis test must begin with a null and alternative hypothesis.  Since the problem statement did not specify a particular direction to test, that is, it did not say “test that the mean for sports cars is higher than for luxury cars – it simply said to compare the population means, so we choose the two-tailed alternative, which states that the population means are not equal to each other.
+
+</div>
+
+----
+
+## R Code and Output
+
+```{r}
+t.test(mileage~cartype,data=cardata,var.equal=TRUE,conf.level=0.90)
+```
+
+<div class="notes">
+
+In order to get the t-test and t-interval output using R the t.test function is used.  I’ll show you the structure of the data and the variable names in just a few more slides.
+
+Since the pooled t-test conditions are met and it is an exact procedure, I have chosen it to compare the population means, as indicated by the option var.equal=TRUE within the t.test function.
+
+Since a 90% confidence interval was requested, I also had to specify the option conf.level=0.90.  If this was not specified, the function uses .95 as the default level of confidence.
+
+The test statistic, degrees of freedom, and p-value for the two-sample t-test are given as well as a note indicating the default option of the two-tailed alternative that the difference in population means is not 0.
+
+There is no explicit note in the output itself indicating whether the separate variance t-procedures or the pooled t-procedures were selected.  However, one strong clue is to look at the degrees of freedom.  An integer value for the df nearly always indicates that the pooled t-procedures were used – a df with several decimal places shown would only result from the approximation that goes with the separate-variance option.  
+
+If you can recall the formula for degrees of freedom for the pooled procedure, n1+n2-2, it is an easy way to confirm the df in the output:  15+15-2=28 and to know that this is the output for the pooled t-procedure.
+
+The lower and upper bounds of the 90% confidence interval are stated, followed by a printing of the sample means.  Another important detail of the output of sample means is the order in which they are printed because this also indicates the order of subtraction that R has used, which is very important to keep in mind when interpreting the results.  
+
+Note that the order here is luxury car miles minus sports car miles.
+
+</div>
+
+----
+
+## Test Conclusions
+
+Statistical conclusion:  Reject $H_0$ at $\alpha = 0.10$.
+
+Interpretation:  There is sufficient evidence to claim that the population mean miles per day customers put on all of this company's luxury cars is different from the population mean miles per day customers put on all of their sports cars (P = 0.0003).
+
+<div class="notes">
+
+Hypothesis test conclusions can be written as a statistical conclusion, simply stating whether or not the null hypothesis was rejected and reporting the level of significance.  Here H0 is rejected at a 10% level of significance since the p-value, 0.0003, is less than 0.10.
+
+In order to clearly communicate the result of the hypothesis, a practical conclusion, or interpretation, is also given in the context of the problem.  Please take a moment to read the interpretation and go back and compare it to the wording in the original problem statement.  Stating the p-value in parenthesis is commonly done in research publications.
+
+</div>
+
+----
+
+## Interpreting the Confidence Interval
+
+With 90% confidence, the population mean mileage per day on all luxury cars is 10.45 to 25.15 miles less than for all sports cars for this rental company.
+
+<div class="notes">
+
+A typical confidence interval interpretation is shown here.  Note that the inference is in reference to population means, not sample means.  Also note that negative signs are not brought into the interpretation with the numerical values of the lower and upper bounds of the confidence interval, but rather have been interpreted in that we are claiming that the population mean mileage per day for luxury cars is less than for sports car rentals for this company.  
+
+Since we know the order of subtraction was luxury car minus sports car, and we see the interval in the output from R that is entirely negative, we can conclude that the population mean for luxury cars must be less than the mean for sports cars by somewhere between 10.45 and 25.15 miles, that is, with 90% confidence.
+
+</div>
+
+----
+
+## Structuring the Data in R
+
+```{r}
+mileage <- c(50,58,43,48,50,66,32,73,55,78,43,66,57,40,54,
+             26,33,21,37,39,23,48,58,28,39,22,38,41,50,43);
+cartype <- c(rep("sports",15),rep("luxury",15));
+cardata <- data.frame(mileage,cartype)
+sports_cars <-mileage[cartype=="sports"]
+luxury_cars <-mileage[cartype=="luxury"]
+```
+
+<div class="notes">
+
+Though it wasn’t shown in the problem statement, the data for this example would have been provided in some way.  If it was simply printed in a book and it was up to me to get it into R, I would have to create a data frame as shown here.
+
+In the data frame, which I called cardata, the data are entered and stored in two vectors, one called mileage and one called cartype.  Mileage stores the 30 observed miles per day of all the cars in the sample with the 15 sports car mileage values  entered first followed by the 15 luxury car values.  Think of a matrix with 2 columns and 30 rows.
+
+Cartype stores a categorical indicator of which type of rental car, thus identifying which population each sample value was selected from.
+
+Some procedures in R, such histograms and the Shapiro-Wilk test, only handle one vector at a time, so the data for each sample was pulled out into separate vectors using the last two lines of R code for this purpose.  The 15 values for sports cars identified by the cartype “sports” and the 15 values for the luxury cars identified by the cartype “luxury.”
+
+</div>
+

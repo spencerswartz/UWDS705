@@ -1,0 +1,29 @@
+---
+title: 'A mini biography for '
+author: "Spencer Swartz"
+output: word_document
+---
+
+Share a little information about yourself, but only what you are comfortable with.  You can use the following as a template.  Change the information so it is about you!  To include this in a discussion, knit this document into aWord document, then copy and paste the content into the discussion post editor in D2L.
+
+## Let me introduce myself to you. 
+
+(CHANGE THE FOLLOWING LIST TO INTRODUCE YOURSELF)
+- I am a Data Analyst at ACT, and started in 2014.
+- I earned a BS in Informatics from the University of Iowa also in 2014.
+- In addtion to this Masters program I am also working through the Machine Learning courses on Coursera through the Univeristy of Washington
+- **Fun Fact:**  My hometown is home to the highest grossing Taco Johns in the US per capita.
+
+### Why I want to learn about data science: 
+
+Ever since I took a class my Sophmore year of college about data visualization, I have been hooked on data. since then I earned a degree in Informatics and was offered a great job at ACT where I have been given the opprotunity to both learn on the job and off all about data.
+
+#### What is your background in statistics?
+
+I have taken a few classes in statistics in my undergrad so I would say I know enough to be dangerous! Working through the UWashington Machine Learning courses have caused me to freshen up on my stats as well.`
+
+ 
+
+
+
+

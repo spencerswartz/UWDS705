@@ -1,0 +1,569 @@
+
+---
+title: "Exam 1"
+author: "Spencer Swartz"
+date: "Feb. 20, 2017"
+output: word_document
+fontsize: 12pt
+---
+
+```{r echo=FALSE}
+# leave alone, this block for grading
+pts <- NULL
+pts.poss <- NULL
+display.grades <- TRUE
+scoreFunction <- function(prb,earned,possible){
+  pts[prb] <<- earned
+  pts.poss[prb] <<- possible
+  if (display.grades){
+      print( paste('Score for',prb,':',earned,'/',possible))
+  }
+}
+```
+
+This is an exam.  Do your own work and do not collaborate with others.  Use any materials that you like, but no discussion please.  You may ask questions of the instructor.
+
+## Problem 1  
+
+Investigators studying the effects of sodium deficiency in chickens observed that birds deprived of sodium showed an increase in spontaneous activity, partly measured by pecking activity.  The number of bird pecks per bird was recorded for 17 eleven-week old chickens that were fed a low-sodium diet for 22 days, and 15 eleven-week old chickens that were fed a standard ration for 22 days.  
+
+The data set is called BirdPecks.rda.  Note, this data is *not* part of the DS705data package.  To use it, set your working directory containing all of the files from the download pack and use load('BirdPecks.rda').  Other data for this exam is similar.
+
+
+### Part 1a 
+
+Load the data set and create boxplots and histograms for the samples. 
+
+### -|-|-|-|-|-|-|-|-|-|-|- Answer 1a -|-|-|-|-|-|-|-|-|-|-|-
+
+```{r}
+load('BirdPecks.rda')
+#head(BirdPecks)
+par(mfrow=c(2,2),mar=c(4,4,1,1))
+boxplot(BirdPecks$pecks[BirdPecks$group==1],ylab="# of pecks", main="Group 1")
+boxplot(BirdPecks$pecks[BirdPecks$group==2],ylab="# of pecks", main="Group 2")
+hist(BirdPecks$pecks[BirdPecks$group==1],xlab="# of pecks", main="Group 1")
+hist(BirdPecks$pecks[BirdPecks$group==2],xlab="# of pecks", main="Group 2")
+par(mfrow=c(1,1))
+```
+
+```{r echo=FALSE}
+# leave alone, this block for grading
+scoreFunction("1a",0,6)
+```
+
+---
+
+### Part 1b 
+
+Briefly describe the distributions with respect to their shape, variability, outliers.
+
+### -|-|-|-|-|-|-|-|-|-|-|- Answer 1b -|-|-|-|-|-|-|-|-|-|-|-
+
+It would look like in both Group 1 and Group 2 that the distribution is not normal. Both groups also have some outliers to the right.IT does not look as if the variances are the same for two groups.
+
+```{r echo=FALSE}
+# leave alone, this block for grading
+scoreFunction("1b",0,6)
+```
+
+---
+
+### Part 1c
+    
+Test the for equality of population variances.  Let $\alpha = 0.05$. Include all the steps, that is, be sure to state the null and alternative hypotheses, provide the R code and output for the test statistic and p-value, and state the conclusion for the test.
+
+### -|-|-|-|-|-|-|-|-|-|-|- Answer 1c -|-|-|-|-|-|-|-|-|-|-|-
+
+```{r}
+library(car)
+leveneTest(BirdPecks$pecks~BirdPecks$group)
+```
+Hypotheses:
+
+$$H_0: \sigma^2_\mbox{group 1} = \sigma^2_\mbox{group 2}$$
+$$H_a: \sigma^2_\mbox{group 1} \neq \sigma^2_\mbox{group 2}$$
+Test Statistic:
+
+F-value = 0.3359
+
+p-value:
+
+p-value = 0.5665
+
+Conclution: 
+
+Since the $P$ value ($P$ = 0.5665) is greater than $\alpha = 0.05$, do not reject the null hypothesis that the population variances of bird pecks are the same for group 1 and group 2.
+
+```{r echo=FALSE}
+# leave alone, this block for grading
+scoreFunction("1c",0,8)
+```
+
+---
+
+### Part 1d
+    
+Conduct tests for the normality of the number of bird pecks for each population.  Let $\alpha = 0.05$ for each test. State the null and alternative hypotheses, provide the R code and output for the test statistics and p-values, and state the conclusions for each test.
+
+### -|-|-|-|-|-|-|-|-|-|-|- Answer 1d -|-|-|-|-|-|-|-|-|-|-|-
+Hypotheses:
+
+$H_0: $ The sample was drawn from a normally distributed population.
+
+$H_a: $ The sample was not drawn from a normally distributed population.
+
+```{r}
+pecks1 <- BirdPecks$pecks[BirdPecks$group==1]
+pecks2 <- BirdPecks$pecks[BirdPecks$group==2]
+shapiro.test(pecks1)
+shapiro.test(pecks2)
+```
+
+Test Statistic:
+
+$W_\mbox{group 1}$ = 0.81645
+
+$W_\mbox{group 1}$ = 0.69085
+
+p-value:
+
+$P_\mbox{group 1}$ = 0.003441
+
+$P_\mbox{group 2}$ = 0.0001987
+
+Conclutions:
+
+For group 1 the Shapiro-Wilk test of the pecks data gives a P-value of 0.0034.  Since $P$ is less than $\alpha$, reject the null hypothesis that the worm counts are normally distributed.  For group 2, the P-value is 0.0001 and the conclusion is the same as for the group 1.
+
+
+
+
+```{r echo=FALSE}
+# leave alone, this block for grading
+scoreFunction("1d",0,8)
+```
+
+----
+
+### Part 1e 
+    
+Use R to construct an appropriate interval to estimate the difference (Diff = Low - Standard) in the central population values for the number of bird pecks for all chickens on the low sodium diet and the standard diet using a 90% level of confidence.
+
+### Answer 1e
+
+```{r}
+t.test(pecks~group,data = BirdPecks,conf.level=0.9,var.equal=TRUE)
+
+
+```
+
+```{r echo=FALSE}
+# leave alone, this block for grading
+scoreFunction("1e",0,6)
+```
+
+---
+
+### Part 1f
+
+Write an interpretation in the context of the problem for the 90% CI.
+
+### -|-|-|-|-|-|-|-|-|-|-|- Answer 1f -|-|-|-|-|-|-|-|-|-|-|-
+
+We are 90% confident that the population mean peck count for group 1 is -6.815983 to 63.09834 less than the population mean peck count for group 2.
+
+```{r echo=FALSE}
+# leave alone, this block for grading
+scoreFunction("1f",0,4)
+```
+
+---
+
+### Part 1g
+
+Was it necessary to make any assumptions about the data in order for the confidence interval for the difference in bird pecks to be accurate and valid?  If so, what are they?
+
+### -|-|-|-|-|-|-|-|-|-|-|- Answer 1g -|-|-|-|-|-|-|-|-|-|-|-
+
+Yes, We assumed that the data was both normally distributed and that the variance was the same between the two data sets. On a previous test is was not conclusive that the two samples were normally distributed, making it possible that the CI derived is not accurate.
+
+```{r echo=FALSE}
+# leave alone, this block for grading
+scoreFunction("1g",0,4)
+```
+
+----
+
+## Problem 2
+
+Does strength training increase speed?  To address this question a random sample of 35 college athletes were timed in a 100 meter dash both before and after a rigorous six-week strength training program.    
+
+The times before and after the training are in the data file StrengthSpeed.rda.
+
+### Part 2a
+
+Create a list of inference procedures that might be used to answer the research question. 
+
+### -|-|-|-|-|-|-|-|-|-|-|- Answer 2a -|-|-|-|-|-|-|-|-|-|-|-
+
+1. paired t-test
+2. Wilcoxon signed-rank
+3. sign test
+
+```{r echo=FALSE}
+# leave alone, this block for grading
+scoreFunction("2a",0,4)
+```
+
+---
+
+### Part 2b
+
+Load the data and assess the data conditions for the statistical procedures you are considering. 
+
+### -|-|-|-|-|-|-|-|-|-|-|- Answer 2b -|-|-|-|-|-|-|-|-|-|-|-
+
+```{r}
+load("StrengthSpeed.rda")
+#head(StrengthSpeed)
+StrengthSpeed$diff <- StrengthSpeed$after-StrengthSpeed$before
+par(mfrow=c(1,2))
+boxplot(StrengthSpeed$diff)
+hist(StrengthSpeed$diff)
+par(mfrow=c(1,1))
+shapiro.test(StrengthSpeed$diff)
+```
+
+Based on the charts not looking extremely skewed and the Shapiro-Wilk test returning a p-value of .6065 it does not seem there is strong evidence against normality. because of this the t-test would be a good bet for this data as it is fairly robust, and given that it is the most powerful of the three procedures.
+
+
+
+```{r echo=FALSE}
+# leave alone, this block for grading
+scoreFunction("2b",0,8)
+```
+
+### Part 2c
+    
+Use R to conduct an appropriate hypothesis test to determine if strength training tends to increase speed in the target population.  Use a 5% level of significance.  State the null and alternative hypotheses, provide the R code and output for the test statistic and p-value, and state the conclusion for the test.
+
+### -|-|-|-|-|-|-|-|-|-|-|- Answer 2c -|-|-|-|-|-|-|-|-|-|-|-
+
+Hypotheses:
+
+$$H_0: \mu_\mbox{diff} = 0$$
+$$H_a: \mu_\mbox{diff} > 0$$
+
+
+```{r}
+t.test(StrengthSpeed$after,StrengthSpeed$before,alternative = "greater",paired=TRUE)
+```
+
+Test Statistic:
+
+$t$ = -9.6083
+
+p-value:
+
+$p$-value = 1
+
+Conclution:
+
+Do not reject $H_0$ at $\alpha = 0.10$ (p-value = 1).  There is not sufficient evidence to suggest that the population mean difference of speed increase is different than zero.  In other words, there is no difference in speed before and after the strength training.
+
+```{r echo=FALSE}
+# leave alone, this block for grading
+scoreFunction("2c",0,12)
+```
+
+---
+
+### Problem 3
+
+The HLT is a test used to measure the level of hostility in a person.  Researchers are interested in comparing the mean HLT among two populations:  (1) college students after attending a college football game when their team won and (2) college students after attending a college football game when their team lost.  Independent, random samples of 15 students were obtained to represent each population.
+
+The data is as follows:
+
+Group | HLT Score
+:---: | ---
+1 | 79, 76, 74, 70, 81, 85, 73, 78, 69, 72, 83, 89, 72, 79, 75
+2 | 78, 96, 85, 91, 77,103, 72, 93, 98, 86, 70, 110, 70, 91, 99
+
+### Part 3a
+
+Create a data frame for the data set in R.
+
+### -|-|-|-|-|-|-|-|-|-|-|- Answer 3a -|-|-|-|-|-|-|-|-|-|-|-
+
+```{r}
+students <- c(79, 76, 74, 70, 81, 85, 73, 78, 69, 72, 83, 89, 72, 79, 75, 78, 96, 85, 91, 77,103, 72, 93, 98, 86, 70, 110, 70, 91, 99)
+group <- c('g1','g1','g1','g1','g1','g1','g1','g1','g1','g1','g1','g1','g1','g1','g1','g2','g2','g2','g2','g2','g2','g2','g2','g2','g2','g2','g2','g2','g2','g2')
+studentsdf <- data.frame(students,group)
+head(studentsdf)
+
+```
+
+```{r echo=FALSE}
+# leave alone, this block for grading
+scoreFunction("3a",0,4)
+```
+
+---
+
+### Part 3b 
+
+Create a list of inference procedures that might be used to answer the research question. 
+
+### -|-|-|-|-|-|-|-|-|-|-|- Answer 3b -|-|-|-|-|-|-|-|-|-|-|-
+
+1. Wilcoxon rank-sum test
+2. pooled t-test
+3. Welch t-test
+
+```{r echo=FALSE}
+# leave alone, this block for grading
+scoreFunction("3b",0,4)
+```
+---
+
+### Part 3c
+
+Assess the data conditions for the statistical procedures you are considering. 
+
+### -|-|-|-|-|-|-|-|-|-|-|- Answer 3c -|-|-|-|-|-|-|-|-|-|-|-
+
+```{r}
+par(mfrow=c(2,2))
+boxplot(studentsdf$students[studentsdf$group=='g1'])
+boxplot(studentsdf$students[studentsdf$group=='g2'])
+hist(studentsdf$students[studentsdf$group=='g1'])
+hist(studentsdf$students[studentsdf$group=='g2'])
+par(mfrow=c(1,1))
+shapiro.test(studentsdf$students[studentsdf$group=='g1'])
+shapiro.test(studentsdf$students[studentsdf$group=='g2'])
+leveneTest(students~group,data=studentsdf)
+```
+
+Group 1 looks to be fairly close to normally distributed based on the charts, where as group 2 does not seem as conclusive. when the Shapiro-Wilk test was applyed it was not possible to rule out that the samples are not normally distributed ($P-value_\mbox{group1}$ = .7191 , $P-value_\mbox{group2}$ = .5876). Since $P-value$ for the Levene's Test is smaller that $\alpha = 0.05$, we can reject the null hypothesis that the population variances of two groups are the same. With all the information stated above we believe the Welch t-test will be of best use for this data set.
+
+```{r echo=FALSE}
+# leave alone, this block for grading
+scoreFunction("3c",0,8)
+```
+
+---
+
+### Part 3d
+    
+Use R to conduct an appropriate hypothesis test to compare the central population values for HLT scores for the two populations.  Use a 5% level of significance.  State the null and alternative hypotheses, provide the R code and output for the test statistic and p-value, and state the conclusion for the test.
+
+### -|-|-|-|-|-|-|-|-|-|-|- Answer 3d -|-|-|-|-|-|-|-|-|-|-|-
+
+Hypotheses:
+
+$$H_0: \mu_{\mbox{group1}} = \mu_{\mbox{group2}}$$
+$$H_a: \mu_{\mbox{group1}} \neq \mu_{\mbox{group2}}$$
+
+```{r}
+t.test(students~group,data=studentsdf ,var.equal=FALSE)
+
+```
+
+Test Statistic:
+
+$t$ = -3.0854
+
+P-value:
+
+$p-value$ = 0.00591
+
+Conclusion:
+
+Reject $H_0$ at $\alpha = 0.05$ ($P-value$ = 0.00591). There is sufficient evidence to suggest that the population mean HLT is different for students who have lost a game and who have won a game.
+
+```{r echo=FALSE}
+# leave alone, this block for grading
+scoreFunction("3d",0,12)
+```
+
+---
+
+### Part 3e
+
+What type of error could have possibly been made here?  Explain your answer in the context of the problem.
+
+### -|-|-|-|-|-|-|-|-|-|-|- Answer 3e -|-|-|-|-|-|-|-|-|-|-|-
+
+Type I error, since we rejected $H_0$ this is the only type of error we can make. In this case the population mean actually would be the same for the two samples.
+
+```{r echo=FALSE}
+# leave alone, this block for grading
+scoreFunction("3e",0,4)
+```
+
+---
+
+### Part 3f
+
+Use a 95% confidence interval to estimate the population mean HLT score for all college students after attending a college football game when their team loses.  Provide an interpretation for the interval.
+
+### -|-|-|-|-|-|-|-|-|-|-|- Answer 3f -|-|-|-|-|-|-|-|-|-|-|-
+
+```{r}
+t.test(studentsdf$students[studentsdf$group=='g2'])
+
+```
+
+We are 95% confident that the population mean HLT for the loseing team students is between 81.03 and 94.84.
+
+```{r echo=FALSE}
+# leave alone, this block for grading
+scoreFunction("3f",0,10)
+```
+
+---
+
+### Part 3g
+
+Use bootstrapping to estimate a 95% Studentized confidence interval for the population mean HLT score. 
+
+### -|-|-|-|-|-|-|-|-|-|-|- Answer 3g -|-|-|-|-|-|-|-|-|-|-|-
+
+```{r}
+s <- sd(studentsdf$students[studentsdf$group=='g2'])
+s
+zcrit <- qnorm(0.975) 
+E <- 0.05
+n <- ceiling ( ( s * zcrit / E )^2 )
+n
+xbar <- mean(studentsdf$students[studentsdf$group=='g2'])
+xbar
+x <- rnorm(n)
+x <- ( x - mean(x) ) / sd(x) 
+x <- s * x + xbar 
+mean(x)
+sd(x)
+t.test(x)$conf.int
+```
+
+CI = (87.88333, 87.98333)
+
+```{r echo=FALSE}
+# leave alone, this block for grading
+scoreFunction("3g",0,10)
+```
+
+---
+
+### Part 3h
+
+Conduct a hypothesis test to determine if the population mean HLT score for all college students after attending a college football game when their team loses is less than 92.  Let $\alpha = 0.01$  Provide all part of the test.
+
+### -|-|-|-|-|-|-|-|-|-|-|- Answer 3h -|-|-|-|-|-|-|-|-|-|-|-
+
+```{r}
+t.test(studentsdf$students[studentsdf$group=='g2'], mu = 92, alternative = 'less')
+```
+
+Hypothesis:
+
+$$H_0: \mu_{\mbox{loss}} = 92$$
+$$H_a: \mu_{\mbox{loss}} < 92$$
+Test Statistic:
+
+t = -1.2636
+
+Degrees of Freedom:
+
+DF = 14
+
+P-value:
+
+p = 0.1135
+
+Conclusion:
+
+Do not reject $H_0$ at $\alpha = 0.01$ ($P-value$ = 0.1135).  There is not sufficient evidence to conclude the population mean HLT is less than 92.
+
+```{r echo=FALSE}
+# leave alone, this block for grading
+scoreFunction("3h",0,12)
+```
+
+---
+
+### Problem 4
+
+In an experiment conducted at the University of Mississippi, eighteen randomly selected study participants are asked to perform a series of computer keystrokes in reaction to a stimulus.  In one experiment, the participant must press a predefined sequence of keys on seeing a blue screen.  Reaction time (in seconds) to press the key sequence is recorded.  The same person is then asked to press a different key sequence on seeing a red screen, again with the reaction time measured.  The order of the blue and red screens was randomized for each individual. 
+
+For the 18 study participants, with the reaction times for the red screen and the blue screen the difference in reaction times, with blue minus red, are in the data file called diffs.rda.   
+
+### Part 4a
+
+Load the data set diffs.rda and assess the data conditions for the statistical procedures you are considering. 
+
+### -|-|-|-|-|-|-|-|-|-|-|- Answer 4a -|-|-|-|-|-|-|-|-|-|-|-
+
+```{r}
+load('diffs.rda')
+head(diffs)
+par(mfrow=c(1,2))
+boxplot(diffs$diff)
+hist(diffs$diff)
+par(mfrow=c(1,1))
+shapiro.test(diffs$diff)
+
+```
+
+The differences seem like they could be symmetrically distributed, but there are a few outliers indicating maybe a heavy tailed distribution.  The Shapiro-Wilk test, when applied to the differences, yields $p.value$ = 0.0001 which indicates a strong departure from normlity.  So we will use the Wilocoxon signed-rank test.
+
+```{r echo=FALSE}
+# leave alone, this block for grading
+scoreFunction("4a",0,8)
+```
+
+---
+
+### Part 4b
+    
+Conduct a hypothesis test at $\alpha=0.05$ to determine if the population location parameter for reaction time for the blue screen is greater than for the red screen.  Report all details of the test.
+
+### -|-|-|-|-|-|-|-|-|-|-|- Answer 4b -|-|-|-|-|-|-|-|-|-|-|-
+
+```{r}
+wilcox.test(diffs$diff,mu=0,conf.int=TRUE, alternative = 'greater')
+
+```
+
+Hypothesis:
+
+$$H_0: M_d = 0$$ 
+$$H_a: M_d > 0$$
+
+Test Statistic:
+
+V = 137
+
+P-Value:
+
+p = 0.01184
+
+Conclusion:
+
+Reject $H_0$ at $\alpha = 0.10$ ($P-value$ = 0.01184).  There is evidence to show there the population median for blue screen reaction time is greater than that of red screen reaction time.
+
+```{r echo=FALSE}
+# leave alone, this block for grading
+scoreFunction("4b",0,12)
+```
+
+---
+
+```{r echo=FALSE}
+# leave along, this block for grading
+if (display.grades){
+  pts.tot <- sum(pts)
+  pts.poss.tot <- sum(pts.poss)
+  print(paste('Total points earned',pts.tot,'out of',pts.poss.tot))
+}
